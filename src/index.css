@@ -113,7 +113,7 @@
   /* The deck's inner column. The masthead reads as the deck's own title
      rather than a floating page header, so when Nala sits on the card she
      takes this inset too and her drawing starts on the same vertical as
-     "Payday amount" below her. Two consumers, one measure — change it and
+     "Take-home pay" below her. Two consumers, one measure — change it and
      both move together. */
   --deck-x: 28px;
   /* Every full-size control is exactly this tall, set as a height rather
@@ -125,7 +125,7 @@
      than the arithmetic said. A fixed height is immune to that. Anything
      that has to line up with these two takes this token, not a padding
      pair. Floor is 44px; do not go under it. */
-  --control-h: 56px;
+  --control-h: 48px;
   --stack: 26px;
   --gutter: 22px;
   --split: 34px;

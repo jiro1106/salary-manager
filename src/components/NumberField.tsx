@@ -13,10 +13,34 @@ interface NumberFieldProps {
 }
 
 /**
- * Digits, at most one decimal point, and no leading zeros on the integer
- * part — so "05" typed into a fresh category is 5, not fifty.
+ * How many digits a field takes before the point, by what it measures.
+ *
+ * This is **not** the 100 clamp, which stays off: four categories at 90%
+ * each is still expressible, still 360%, and still reported as over. It
+ * is a ceiling on the figure itself, and a share three orders of
+ * magnitude past whole is not an over-allocation anybody meant. Left
+ * open, a chip of 9s multiplies the payday into an amount that outgrows
+ * every card on the page and, past 2^53, is silently inexact besides.
+ *
+ * The peso cap matches the payday field's, since a sub-item's peso
+ * amount is bounded by the same salary.
  */
-function sanitize(input: string): string {
+const MAX_INT_DIGITS: Record<NumberFieldProps["unit"], number> = {
+  "%": 3,
+  "₱": 9,
+};
+
+/**
+ * Digits, at most one decimal point, and no leading zeros on the integer
+ * part — so "05" typed into a fresh category is 5, not fifty. The integer
+ * part is capped per unit; a keystroke past the cap is refused the same
+ * way a typed letter is.
+ *
+ * Decimals are deliberately not capped here. `display()` rounds what it
+ * prints, and the stored value has to keep every digit of a percent
+ * back-computed from a peso amount for the round-trip to land.
+ */
+function sanitize(input: string, maxIntDigits: number): string {
   const cleaned = input.replace(/[^0-9.]/g, "");
   const dot = cleaned.indexOf(".");
   const oneDot =
@@ -25,7 +49,11 @@ function sanitize(input: string): string {
       : cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, "");
   // A zero in front of a digit is dead weight; a zero in front of a point
   // is the whole number ("0.5" keeps its zero).
-  return oneDot.replace(/^0+(?=\d)/, "");
+  const [intRaw, ...decRest] = oneDot.split(".");
+  const intPart = intRaw.replace(/^0+(?=\d)/, "").slice(0, maxIntDigits);
+  // decRest is empty or a single element — the dots were collapsed above.
+  // An empty one is a trailing point mid-typing ("5."), which is kept.
+  return decRest.length > 0 ? `${intPart}.${decRest[0]}` : intPart;
 }
 
 /**
@@ -92,7 +120,7 @@ export default function NumberField({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = sanitize(e.target.value);
+    const next = sanitize(e.target.value, MAX_INT_DIGITS[unit]);
     setDraft(next);
     const parsed = Number(next);
     onChange(next === "" || Number.isNaN(parsed) ? 0 : parsed);

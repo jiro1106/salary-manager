@@ -35,8 +35,26 @@ interface PaydayHeaderProps {
 }
 
 /**
+ * Nine digits before the point — ₱999,999,999.99, three orders of
+ * magnitude past any take-home pay this app is for.
+ *
+ * The ceiling is about arithmetic before it is about layout. Every figure
+ * on the page is derived from this one by `salary * percent / 100`, and a
+ * JS number holds integers exactly only up to 2^53 (₱9,007,199,254,740,991).
+ * Type past that and the split figures stop being merely wide and start
+ * being wrong — the category amounts drift, and they drift silently. Nine
+ * digits leaves the largest product (100% of the cap) seven orders of
+ * magnitude inside the safe range, so every peso on screen is exact.
+ *
+ * Layout is the second reason and the visible one: at ten digits the
+ * derived amounts outgrow their cards and run past the edge.
+ */
+const MAX_INT_DIGITS = 9;
+
+/**
  * Strips input down to a valid "raw" numeric string:
- * digits only, at most one decimal point, at most 2 decimal digits.
+ * digits only, at most one decimal point, at most 2 decimal digits,
+ * at most MAX_INT_DIGITS digits before the point.
  * Leading zeros in the integer part are stripped (except "0" itself).
  */
 function sanitizeRaw(input: string): string {
@@ -51,7 +69,11 @@ function sanitizeRaw(input: string): string {
   }
 
   const [intRaw, decRaw] = value.split(".");
-  let intPart = intRaw.replace(/^0+(?=\d)/, "");
+  // Strip the dead zeros first, then take the cap off what's left, so a
+  // pasted "0001234" spends its budget on digits that count. A keystroke
+  // past the cap is simply not accepted — the same silent refusal a typed
+  // letter already gets here, which is what a maxlength does elsewhere.
+  let intPart = intRaw.replace(/^0+(?=\d)/, "").slice(0, MAX_INT_DIGITS);
   const decPart = decRaw !== undefined ? decRaw.slice(0, 2) : undefined;
 
   if (intPart === "") {
@@ -187,7 +209,7 @@ export default function PaydayHeader({
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
           <p className="text-label uppercase tracking-caps text-ink-soft">
-            Payday amount
+            Take-home pay
           </p>
           {/* The field is editable, so it reads as one: a recessed ground
               with real padding round the figure, and the sand rule along
@@ -220,15 +242,29 @@ export default function PaydayHeader({
               ref={inputRef}
               type="text"
               inputMode="decimal"
-              aria-label="Payday amount in pesos"
+              aria-label="Take-home pay in pesos"
               value={displaySalary}
               onChange={handleSalaryChange}
               placeholder="0"
+              // Fixed at 10ch, and no inline width: the box does not track
+              // what is typed. A width that grew with the figure moved the
+              // Save button beside it on every keystroke and, past seven
+              // figures, wrapped it onto its own line. 10ch holds
+              // "9,999,999" and its separators with a character to spare,
+              // which is every salary this app is for.
+              //
+              // Nothing overflows, because the figure is inside an <input>:
+              // it scrolls its own content while focused, so the caret is
+              // always visible however long the entry runs. text-ellipsis
+              // covers the other half — blurred, an over-long amount reads
+              // "1,234,567…" rather than being cut mid-glyph. The leading
+              // digits are the ones kept, so the magnitude survives the
+              // truncation even when the centavos don't.
               className={[
-                "min-w-[4ch] max-w-full border-0 bg-transparent p-0",
+                "w-[10ch] max-w-full border-0 bg-transparent p-0",
+                "text-ellipsis",
                 "outline-none focus:outline-none placeholder:text-ink-faint",
               ].join(" ")}
-              style={{ width: `${Math.max(displaySalary.length, 4)}ch` }}
             />
             {/* Only offered when there is something to clear, so the field
                 doesn't carry a dead control on an empty amount. */}

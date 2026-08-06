@@ -44,7 +44,7 @@ export default function Masthead({
         "flex flex-wrap items-end gap-0 pt-stack",
         // The inset is left-only and it is on every screen. The mark takes
         // the deck's column so her drawing starts on the same vertical as
-        // "Payday amount" below her; the -21px cancels 22px of transparent
+        // "Take-home pay" below her; the -21px cancels 22px of transparent
         // PNG margin and leaves her a hair inside the cap of the P, which
         // is what a soft round silhouette wants against a straight stem.
         // It is unconditional because the brand does not move between
