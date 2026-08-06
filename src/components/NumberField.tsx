@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+
 interface NumberFieldProps {
   value: number;
   onChange: (value: number) => void;
@@ -11,23 +13,33 @@ interface NumberFieldProps {
 }
 
 /**
- * A field sitting at 0 holds a placeholder, not a figure — a new category
- * starts there — so the first digit typed should *replace* that zero
- * rather than land beside it and read as 50 when 5 was meant. The caret
- * can be either side of the zero and a number input exposes no selection,
- * so both arrangements are stripped: "05" and "50" from a zero field are
- * each 5.
- *
- * This is not ambiguous with genuinely typing "50" from zero, because only
- * the keystroke *made on a zero* is rewritten: "5" arrives as 5, and the
- * "0" after it lands on a field holding 5, which is left alone. Decimals
- * survive for the same reason — "0." is still 0, and the following "5"
- * makes "0.5", which has no zero adjacent to a digit to strip.
+ * Digits, at most one decimal point, and no leading zeros on the integer
+ * part — so "05" typed into a fresh category is 5, not fifty.
  */
-function parseTyped(typed: string, current: number): number {
-  if (typed === "") return 0;
-  if (current !== 0 || typed === "0") return Number(typed);
-  return Number(typed.replace(/^0(?=\d)/, "").replace(/^(\d)0$/, "$1"));
+function sanitize(input: string): string {
+  const cleaned = input.replace(/[^0-9.]/g, "");
+  const dot = cleaned.indexOf(".");
+  const oneDot =
+    dot === -1
+      ? cleaned
+      : cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, "");
+  // A zero in front of a digit is dead weight; a zero in front of a point
+  // is the whole number ("0.5" keeps its zero).
+  return oneDot.replace(/^0+(?=\d)/, "");
+}
+
+/**
+ * What the chip shows when nobody is typing into it. `value` is a number,
+ * and a number that came out of arithmetic rather than off the keypad
+ * carries every digit of it: a sub-item's percent back-computed from a
+ * peso amount (₱5,000 of a ₱15,000 category) is 33.33333333333333, and
+ * String() would print the whole thing inside a 3ch chip. Two decimals is
+ * finer than any figure on this page is read to, and a whole number still
+ * prints whole, so the typed case is untouched.
+ */
+function display(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+  return String(Math.round(value * 100) / 100);
 }
 
 /**
@@ -38,6 +50,14 @@ function parseTyped(typed: string, current: number): number {
  * The unit sits inside the chip on purpose: on a category ground, a
  * loose "%" beside the field would be normal-weight text on clay at
  * 3.65:1, which fails. Inside, it sits on card.
+ *
+ * The input is `text` rather than `number`, and it holds its own draft
+ * string while focused, for one reason: React compares a *number* input's
+ * DOM string to the incoming value **loosely**, so `"05" != 5` is false
+ * and it declines to rewrite the field. The value would be right and the
+ * zero would stay on screen — the digits kept piling up as "050". Strict
+ * string comparison on a text input writes every time. `inputMode` keeps
+ * the numeric keypad, and the spinners were already suppressed as noise.
  */
 export default function NumberField({
   value,
@@ -48,13 +68,51 @@ export default function NumberField({
   width = "w-[3ch]",
   disabled = false,
 }: NumberFieldProps) {
-  // A white chip on a category ink is already its own boundary; a grey
-  // chip on a white card is not, so only that one is ringed.
+  // In-progress typing that no number can hold: "", "5.", "0.". Dropped on
+  // blur so the field falls back to the canonical figure.
+  const [draft, setDraft] = useState<string | null>(null);
+  const selectedOnFocus = useRef(false);
+  const text = draft ?? display(value);
+
+  // A zero is a placeholder, not a figure, so focusing a field that holds
+  // one takes the whole thing — the first digit typed replaces it instead
+  // of landing on whichever side of it the caret happened to fall.
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (value !== 0) return;
+    e.currentTarget.select();
+    selectedOnFocus.current = true;
+  };
+
+  // The mouseup that ends the click would otherwise collapse that
+  // selection back to a caret.
+  const handleMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (!selectedOnFocus.current) return;
+    e.preventDefault();
+    selectedOnFocus.current = false;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = sanitize(e.target.value);
+    setDraft(next);
+    const parsed = Number(next);
+    onChange(next === "" || Number.isNaN(parsed) ? 0 : parsed);
+  };
+
+  const handleBlur = () => {
+    setDraft(null);
+    selectedOnFocus.current = false;
+  };
+
+  // Ground is fill and ink only — the boundary is unconditional and lives
+  // on the chip below, so every field on the page is drawn the same way.
+  // The white chip on a category ink is its own boundary already and does
+  // not strictly need the ring; it carries it so a field looks like a
+  // field wherever it lands, which matters more than the one saved line.
   const ground = disabled
-    ? "bg-sunk text-ink-soft cursor-not-allowed shadow-field"
+    ? "bg-sunk text-ink-soft cursor-not-allowed"
     : tone === "card"
       ? "bg-card text-ink"
-      : "bg-sunk text-ink shadow-field";
+      : "bg-sunk text-ink";
 
   // Roomier than the chip strictly needs to be: a figure you are meant to
   // click into and retype wants air around it, and the chip is the only
@@ -78,6 +136,9 @@ export default function NumberField({
       <span
         className={[
           "inline-flex items-baseline gap-[3px] font-bold rounded-control",
+          // The grey boundary every field on this page wears. Inset, so it
+          // costs the box no width and the chip metrics are untouched.
+          "shadow-field",
           "group-focus-within:outline group-focus-within:outline-[3px]",
           "group-focus-within:outline-blue group-focus-within:outline-offset-[3px]",
           ground,
@@ -90,11 +151,14 @@ export default function NumberField({
           </span>
         )}
         <input
-          type="number"
-          step="any"
-          value={value}
+          type="text"
+          inputMode="decimal"
+          value={text}
           disabled={disabled}
-          onChange={(e) => onChange(parseTyped(e.target.value, value))}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onMouseUp={handleMouseUp}
+          onBlur={handleBlur}
           className={[
             // Preflight already hands inputs the surrounding font and colour.
             "bg-transparent border-0 p-0 text-right",

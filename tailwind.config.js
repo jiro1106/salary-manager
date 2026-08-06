@@ -17,6 +17,7 @@ export default {
         "line-strong": "var(--line-strong)",
         ink: "var(--ink)",
         "ink-soft": "var(--ink-soft)",
+        "ink-faint": "var(--ink-faint)",
         "on-color": "var(--on-color)",
         clay: "var(--clay)",
         "clay-edge": "var(--clay-edge)",
@@ -84,6 +85,11 @@ export default {
         "caps-tight": "0.1em",
         tag: "0.08em",
       },
+      // Cancels the trailing letter-space on an optically centred tracked
+      // label; pairs with tracking-caps and nothing else.
+      textIndent: {
+        caps: "0.14em",
+      },
       maxWidth: {
         content: "var(--content)",
         prose: "65ch",
@@ -92,6 +98,8 @@ export default {
       },
       spacing: {
         "page-x": "var(--page-x)",
+        "deck-x": "var(--deck-x)",
+        control: "var(--control-h)",
         stack: "var(--stack)",
         gutter: "var(--gutter)",
         split: "var(--split)",

@@ -28,22 +28,39 @@
   --field-line: #8e8a83; /* a control boundary has to clear 3:1 on white */
   --ink: #23211e;
   --ink-soft: #6d6862;
+  /* One rung further back than --ink-soft, for a figure that is a prompt
+     rather than a value — the payday amount at zero. It stops at 3.58:1 on
+     --sunk because that is the floor for large text, and the only thing
+     wearing it is set at hero size. Nothing small takes this ink. */
+  --ink-faint: #7c7871;
   --on-color: #ffffff; /* text and icons sitting on a category ink */
 
   /* --- category inks, face + a darker shade for text on white ---
      These four mirror CATEGORY_COLORS in src/lib/palette.ts exactly; the
      data side stamps them onto categories, this side is the chrome that
      has to sit next to them. Change one and change the other. Each edge
-     is its face darkened 22%, except gold, which is light enough that 22%
-     still misses 4.5:1 on white and has to go to 40%. */
+     is its face darkened exactly 22%, with no exceptions — see the note
+     on sand below for why there used to be one.
+
+     The faces are held to 3:1 against --on-color, not 4.5:1, because
+     everything that ever sits on one is either large text (the 19px/800
+     category name, the 23px/800 amount) or an icon. Measured white-on-
+     face: slate 7.79, clay 4.39, sand 3.55, moss 3.35.
+
+     Sand was #e0b14d and measured 1.99 — it carried no mark legibly, and
+     it needed a 40% edge to clear 4.5:1 where the others needed 22%. Both
+     problems were the same problem: the face was too light to be in this
+     family. Darkened to #b07f24 it clears the 3:1 bar with moss and its
+     22% edge clears 4.5:1 like the rest, so the exception is gone. Any
+     new face joins on the same two terms. */
   --clay: #bc5b5b;
   --clay-edge: #934747;
   --slate: #33566e;
   --slate-edge: #284356;
   --moss: #7f9455;
   --moss-edge: #637342;
-  --sand: #e0b14d;
-  --sand-edge: #866a2e;
+  --sand: #b07f24;
+  --sand-edge: #89631c;
 
   /* Not a category ink: the focus ring and the saved state, kept off the
      palette on purpose so it never lands on a ground of its own colour. */
@@ -93,6 +110,22 @@
   /* --- layout --- */
   --content: 800px;
   --page-x: 24px;
+  /* The deck's inner column. The masthead reads as the deck's own title
+     rather than a floating page header, so when Nala sits on the card she
+     takes this inset too and her drawing starts on the same vertical as
+     "Payday amount" below her. Two consumers, one measure — change it and
+     both move together. */
+  --deck-x: 28px;
+  /* Every full-size control is exactly this tall, set as a height rather
+     than fallen out of padding. The payday field and the Save button sit
+     on one row and have to match, and padding could not get them there:
+     Chrome forces line-height:normal on a text input regardless of what
+     the parent sets, so the field's box came out 33.6px of content where
+     the 1.05 it was told to use predicts 25.2, and it rendered 9px taller
+     than the arithmetic said. A fixed height is immune to that. Anything
+     that has to line up with these two takes this token, not a padding
+     pair. Floor is 44px; do not go under it. */
+  --control-h: 56px;
   --stack: 26px;
   --gutter: 22px;
   --split: 34px;

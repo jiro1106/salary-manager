@@ -124,6 +124,7 @@ export default function App() {
     <div className="mx-auto w-full max-w-content px-page-x pb-[90px]">
       <Masthead
         sits
+        titles
         template={{
           // Nothing allocated yet reads as an invitation, not as a split
           // called "Custom" with no figures behind it.
@@ -135,24 +136,30 @@ export default function App() {
         onOpenGallery={() => setView("templates")}
       />
 
-      <PaydayHeader
-        salary={salary}
-        onSalaryChange={setSalary}
-        totalPercent={totalPercent}
-        onSave={savePaycheck}
-        savedFlash={savedFlash}
-        categories={categories}
-      />
+      {/* The masthead is the banner and stays outside this; everything
+          below it is the one task the screen exists for. A plain block
+          wrapper, so the deck still rises into the mark's overlap exactly
+          as it did. */}
+      <main>
+        <PaydayHeader
+          salary={salary}
+          onSalaryChange={setSalary}
+          totalPercent={totalPercent}
+          onSave={savePaycheck}
+          savedFlash={savedFlash}
+          categories={categories}
+        />
 
-      <CategoryList
-        categories={categories}
-        salary={salary}
-        onChangeCategory={updateCategory}
-        onRemoveCategory={removeCategory}
-        onAddCategory={addCategory}
-      />
+        <CategoryList
+          categories={categories}
+          salary={salary}
+          onChangeCategory={updateCategory}
+          onRemoveCategory={removeCategory}
+          onAddCategory={addCategory}
+        />
 
-      <HistoryPanel history={history} onDelete={deleteEntry} />
+        <HistoryPanel history={history} onDelete={deleteEntry} />
+      </main>
     </div>
   );
 }

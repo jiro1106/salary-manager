@@ -42,7 +42,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
         "inline-flex items-center justify-center gap-[9px] rounded-control",
         "font-display font-extrabold leading-none",
         "transition-[transform,box-shadow] duration-fast ease-paper",
-        small ? "px-5 py-3 text-meta" : "px-7 py-4 text-ui",
+        // Full size has one consumer, the Save button, where it sits
+        // opposite the payday field. At px-7 the two came out the same
+        // width and the action out-weighed the figure it acts on, so the
+        // padding came in. The height is h-control rather than a py pair
+        // because the field it has to match cannot be sized by padding at
+        // all; see --control-h. Don't put py-* back alongside it.
+        small ? "px-5 py-3 text-meta" : "h-control px-6 text-ui",
         shape,
         className,
       ].join(" ")}

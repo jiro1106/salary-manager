@@ -46,8 +46,21 @@ export default function EditableName({
           }
         }}
         className={[
-          "min-w-0 flex-1 bg-transparent border-0 p-0 outline-none",
-          "underline decoration-2 underline-offset-4 decoration-current",
+          "min-w-0 flex-1 border-0 outline-none rounded-control",
+          // A field, drawn the way every other field on the page is: white
+          // ground, the same inset grey boundary, the control radius. This
+          // replaced an underline — with a box around it the rule was a
+          // second mark saying the same thing, and on a category head it
+          // was the only mark, which made the one place a name is editable
+          // on colour look unlike every field beside it.
+          "bg-card text-ink shadow-field",
+          // Padding cancelled by an equal negative margin, so the padded
+          // box grows *outward* from where the text already sat. The
+          // glyphs do not move when the button becomes the field — only
+          // the boundary appears around them. Both grounds have the room:
+          // the category head clears the icon tile's 11px gap, and a sub
+          // row sits inside the card's 22px.
+          "px-2 py-1 -mx-2 -my-1",
           className,
         ].join(" ")}
       />

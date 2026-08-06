@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import Button from "./Button";
 
@@ -29,6 +29,8 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -81,15 +83,24 @@ export default function ConfirmDialog({
         ref={panelRef}
         role="alertdialog"
         aria-modal="true"
-        aria-label={title}
+        // Pointed at the real nodes rather than an aria-label carrying a
+        // copy of the title. Every one of these dialogs guards something
+        // that cannot be undone, and the consequence lives in the
+        // description — with a label alone that line is never read out,
+        // so the reader is asked to confirm a deletion having heard only
+        // its name.
+        aria-labelledby={titleId}
+        aria-describedby={description ? descId : undefined}
         className="w-full max-w-dialog rounded-slab border border-line bg-card px-[26px] py-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="font-display text-title font-extrabold text-ink">
+        <p id={titleId} className="font-display text-title font-bold text-ink">
           {title}
         </p>
         {description && (
-          <p className="mt-2 text-meta text-ink-soft">{description}</p>
+          <p id={descId} className="mt-2 text-meta text-ink-soft">
+            {description}
+          </p>
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button ref={cancelRef} variant="alt" small onClick={onCancel}>

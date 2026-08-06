@@ -40,7 +40,7 @@ export default function HistoryPanel({ history, onDelete }: HistoryPanelProps) {
         <div className="animate-[nala-reveal_200ms_var(--ease)_both] mt-3 rounded-slab border border-line bg-card px-[26px] py-1.5">
           {history.length === 0 ? (
             <p className="py-3 text-meta text-ink-soft">
-              Nothing here yet. Save a payday and it'll land right here.
+              No paydays saved yet. Hit Save payday and this is where it lands.
             </p>
           ) : (
             history.map((h) => (
@@ -48,7 +48,11 @@ export default function HistoryPanel({ history, onDelete }: HistoryPanelProps) {
                 key={h.id}
                 className="flex items-center gap-4 py-3 [&+&]:border-t [&+&]:border-line"
               >
-                <span className="w-[9ch] flex-none font-display text-body font-bold">
+                {/* A floor rather than a fixed width: the column lines up
+                    on 9ch, which every ordinary payday fits inside, and a
+                    larger one pushes the date along rather than running
+                    underneath it. */}
+                <span className="min-w-[9ch] flex-none font-display text-body font-bold">
                   {pesoRound(h.salary)}
                 </span>
                 <span className="w-[14ch] flex-none text-meta text-ink-soft">

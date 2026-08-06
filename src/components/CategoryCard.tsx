@@ -33,7 +33,20 @@ export default function CategoryCard({
   const subTotal = cat.subs.reduce((s, x) => s + Number(x.percent || 0), 0);
   const subPesoTotal = (catAmount * subTotal) / 100;
   const remaining = catAmount - subPesoTotal;
-  const isOver = cat.subs.length > 0 && subTotal > 100;
+  // Judged against a tolerance rather than exactly. A sub-item percent
+  // that was back-computed from a peso amount carries float dust: three
+  // items splitting a category evenly are 33.33333333333333 each and sum
+  // to 99.99999999999999, which `=== 100` reads as under-assigned and
+  // prints as "₱0.00 left to assign" on a category that is plainly full.
+  // The same dust the other way prints "over by ₱0.00". A thousandth of a
+  // percent is far finer than any figure on this card is read to, so it
+  // is the honest place to call the split even. Percent stays the model —
+  // this is not a peso comparison, so a category with no amount yet still
+  // reports its items as unassigned rather than as all assigned.
+  const EVEN = 1e-3;
+  const hasSubs = cat.subs.length > 0;
+  const isOver = hasSubs && subTotal - 100 > EVEN;
+  const isExact = hasSubs && Math.abs(subTotal - 100) <= EVEN;
 
   const updateSub = (subId: string, patch: Partial<SubCategory>) =>
     onChange({
@@ -77,13 +90,21 @@ export default function CategoryCard({
           >
             <Icon size={18} strokeWidth={2} className="text-cat-edge" />
           </span>
-          <EditableName
-            value={cat.name}
-            onChange={(name) => onChange({ name })}
-            label={`Rename ${cat.name}`}
-            tone="colour"
-            className="font-display text-title font-extrabold"
-          />
+          {/* The category name is this card's heading, so the grid gives
+              a screen reader a real outline (the wordmark is the h1) and
+              not just a run of buttons. Preflight strips a heading's own
+              size, weight and margin, and the flex pair below hands the
+              name the same box it had as a bare child of the row, so this
+              is structure only — nothing moves. */}
+          <h2 className="flex min-w-0 flex-1">
+            <EditableName
+              value={cat.name}
+              onChange={(name) => onChange({ name })}
+              label={`Rename ${cat.name}`}
+              tone="colour"
+              className="font-display text-title font-bold"
+            />
+          </h2>
           <IconButton
             label={`Delete ${cat.name}`}
             onClick={() => setConfirmOpen(true)}
@@ -121,8 +142,8 @@ export default function CategoryCard({
       >
         <span>
           {itemCount}
-          {cat.subs.length > 0 &&
-            (subTotal === 100 ? (
+          {hasSubs &&
+            (isExact ? (
               <> · all assigned</>
             ) : isOver ? (
               <>

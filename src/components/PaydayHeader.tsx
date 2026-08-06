@@ -141,6 +141,17 @@ export default function PaydayHeader({
     }
   });
 
+  // Which category the dial and the legend are both pointing at. It lives
+  // here because it is the one thing those two share and it is nobody
+  // else's business: it is a pointer position, not part of the split, so
+  // it never reaches App and never reaches storage. Nothing latches it —
+  // the highlight is exactly as long as the pointer is on it.
+  const [hovered, setHovered] = useState<string | null>(null);
+  // A category deleted or replaced out from under the pointer resolves to
+  // nothing, so no stale id can light a wedge.
+  const activeId =
+    hovered && categories.some((c) => c.id === hovered) ? hovered : null;
+
   const clearSalary = () => {
     setRawValue("");
     onSalaryChange(0);
@@ -172,7 +183,7 @@ export default function PaydayHeader({
   }, [savedFlash]);
 
   return (
-    <section className="relative rounded-slab border border-line bg-card px-7 py-[26px]">
+    <section className="relative rounded-slab border border-line bg-card px-deck-x py-[26px]">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
           <p className="text-label uppercase tracking-caps text-ink-soft">
@@ -183,19 +194,24 @@ export default function PaydayHeader({
               the bottom carrying the accent the underline used to. */}
           <span
             className={[
-              "mt-2 inline-flex max-w-full items-baseline rounded-slab bg-sunk",
-              "border-b-[3px] border-sand px-5 pb-3 pt-3.5",
+              // h-control, not a padding pair: the input inside refuses
+              // the inherited line-height, so padding could never make
+              // this box a predictable height. items-center now, because
+              // the ₱ and the figure carry the same size and leading and
+              // so centre to the same place their baselines did.
+              "mt-2 inline-flex h-control max-w-full items-center rounded-slab bg-sunk",
+              "border-b-[3px] border-sand px-5",
               "font-display text-hero font-extrabold",
               "focus-within:outline focus-within:outline-[3px]",
               "focus-within:outline-blue focus-within:outline-offset-[3px]",
-              isBlank ? "text-ink-soft" : "text-ink",
+              isBlank ? "text-ink-faint" : "text-ink",
             ].join(" ")}
           >
             <span
               aria-hidden="true"
               className={[
                 "mr-[0.1em]",
-                isBlank ? "text-ink-soft" : "text-clay-edge",
+                isBlank ? "text-ink-faint" : "text-clay-edge",
               ].join(" ")}
             >
               ₱
@@ -210,7 +226,7 @@ export default function PaydayHeader({
               placeholder="0"
               className={[
                 "min-w-[4ch] max-w-full border-0 bg-transparent p-0",
-                "outline-none focus:outline-none placeholder:text-ink-soft",
+                "outline-none focus:outline-none placeholder:text-ink-faint",
               ].join(" ")}
               style={{ width: `${Math.max(displaySalary.length, 4)}ch` }}
             />
@@ -227,17 +243,17 @@ export default function PaydayHeader({
             )}
           </span>
 
-          {isOver && (
-            // Names the consequence once, in pesos, instead of saying the
-            // same number twice.
-            <p className="mt-3.5 max-w-prose rounded-control bg-clay-tint px-3.5 py-[9px] font-display text-meta font-semibold text-clay-edge">
-              Over by {pct(totalPercent - 100)}% ·{" "}
-              <b className="font-bold">{pesoRound(overAmount)}</b> more than this
-              payday
-            </p>
-          )}
         </div>
 
+        {/*
+          No pull. Both faces are h-control, so items-end lands their tops
+          and their bottoms together and the two read as one pair. The 4px
+          clay edge below the button is depth, not misalignment: it is the
+          underside of the only raised object on the page. Pulling the
+          button up to tuck that edge in would buy a shared bottom line at
+          the price of a 4px step across the tops, which is the worse of
+          the two mismatches because the faces are the same size.
+        */}
         <span className="relative inline-flex max-[700px]:w-full">
           <Button
             variant={savedFlash ? "saved" : "primary"}
@@ -247,11 +263,13 @@ export default function PaydayHeader({
             {savedFlash ? (
               <Check size={17} aria-hidden="true" strokeWidth={2.4} />
             ) : (
-              // the same mark the history disclosure carries, so the button
-              // shows where the payday is about to land
+              // The same mark the history disclosure carries, so the two
+              // read as one destination. It is now the only thing naming
+              // that destination — the label names the object instead —
+              // which is why it stays and why it stays this mark.
               <History size={17} aria-hidden="true" strokeWidth={2.2} />
             )}
-            {savedFlash ? "Saved" : "Save to history"}
+            {savedFlash ? "Saved" : "Save payday"}
           </Button>
           {burst !== null && (
             <span
@@ -281,16 +299,50 @@ export default function PaydayHeader({
         </span>
       </div>
 
+      {/*
+        The live region is always in the DOM, empty when the split fits,
+        because a status region has to be registered before content lands
+        in it or the first message goes unread — mounting the banner and
+        its role together announces nothing. Empty it draws no box, and
+        the banner's own top margin collapses through it, so the spacing
+        is what it was.
+
+        The banner names the consequence once, in pesos, instead of saying
+        the same number twice. It sits under the whole row rather than
+        inside the amount column, for two reasons: it warns about what the
+        Save button is about to write, not just about the figure, and left
+        inside that column it became the column's bottom edge, so
+        items-end would hang the button off a banner that is only
+        sometimes there.
+      */}
+      <div role="status">
+        {isOver && (
+          <p className="mt-3.5 max-w-prose rounded-control bg-clay-tint px-3.5 py-[9px] font-display text-meta font-semibold text-clay-edge">
+            Over by {pct(totalPercent - 100)}% ·{" "}
+            <b className="font-bold">{pesoRound(overAmount)}</b> more than this
+            payday
+          </p>
+        )}
+      </div>
+
       {/* No categories: the deck collapses to the amount row alone. */}
       {categories.length > 0 && (
         <>
           <hr className="my-6 h-px border-0 bg-line" />
           <div className="grid grid-cols-[var(--dial)_1fr] items-center gap-split max-[700px]:grid-cols-1 max-[700px]:justify-items-center max-[700px]:gap-7">
-            <CutDial segments={categories} totalPercent={totalPercent} />
+            <CutDial
+              segments={categories}
+              totalPercent={totalPercent}
+              salary={salary}
+              activeId={activeId}
+              onHover={setHovered}
+            />
             <Legend
               segments={categories}
               salary={salary}
               totalPercent={totalPercent}
+              activeId={activeId}
+              onHover={setHovered}
             />
           </div>
         </>
