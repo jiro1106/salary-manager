@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   NALA — FLAT WHITE
+   The single source for every design token. Components read these
+   through Tailwind utilities declared in tailwind.config.js
+   (bg-card, rounded-slab, text-title, ease-paper, ...).
+   A hardcoded hex in a style prop is drift; put it here instead.
+   ============================================================ */
+:root {
+  /* --- ground & ink ---
+     Pure #FFFFFF across a full page is the brightest thing a display can
+     emit; at that luminance dark text haloes and the page is tiring to
+     read for long. The measured comfortable ceiling is roughly L*98, so
+     the page sits one step below white with a trace of warmth (it goes
+     blue-grey if you neutralise it) and the cards are true white laid on
+     top. The site reads white, and the cards separate from the page on
+     value alone — no shadow needed. */
+  --page: #f3f3f1;
+  --card: #ffffff;
+  --sunk: #e9e8e4; /* recessed grounds: number fields, unassigned wedge */
+  --sunk-deep: #dfddd7;
+  --line: #dedcd6; /* hairline between and around surfaces */
+  --line-soft: #e7e6e2; /* the quieter rule inside a card */
+  --line-strong: #d5d2ca; /* button edge, dashed tile outline */
+  --field-line: #8e8a83; /* a control boundary has to clear 3:1 on white */
+  --ink: #23211e;
+  --ink-soft: #6d6862;
+  --on-color: #ffffff; /* text and icons sitting on a category ink */
+
+  /* --- category inks, face + a darker shade for text on white ---
+     These four mirror CATEGORY_COLORS in src/lib/palette.ts exactly; the
+     data side stamps them onto categories, this side is the chrome that
+     has to sit next to them. Change one and change the other. Each edge
+     is its face darkened 22%, except gold, which is light enough that 22%
+     still misses 4.5:1 on white and has to go to 40%. */
+  --clay: #bc5b5b;
+  --clay-edge: #934747;
+  --slate: #33566e;
+  --slate-edge: #284356;
+  --moss: #7f9455;
+  --moss-edge: #637342;
+  --sand: #e0b14d;
+  --sand-edge: #866a2e;
+
+  /* Not a category ink: the focus ring and the saved state, kept off the
+     palette on purpose so it never lands on a ground of its own colour. */
+  --blue: #2563eb;
+  --blue-edge: #1d4db7;
+
+  /* --- washes, scrims, tints --- */
+  --clay-tint: #bc5b5b16;
+  --scrim: rgba(35, 33, 30, 0.4);
+  /* hover washes for icon targets, on white and on a category ground */
+  --wash-ink: rgba(35, 33, 30, 0.06);
+  --wash-color: rgba(255, 255, 255, 0.2);
+
+  /* --- elevation ---
+     Surfaces carry no shadow at all; they are told apart by fill and a
+     hairline. The one exception is a button, which keeps a solid edge
+     under it — no blur — so it still reads as pressable and can travel
+     down onto the page when clicked. */
+  --sh-action: 0 4px 0 var(--clay-edge);
+  --sh-action-lift: 0 6px 0 var(--clay-edge);
+  --sh-action-press: 0 0 0 var(--clay-edge);
+  --sh-action-blue: 0 4px 0 var(--blue-edge);
+  --sh-action-blue-lift: 0 6px 0 var(--blue-edge);
+  --sh-action-blue-press: 0 0 0 var(--blue-edge);
+
+  --sh-alt: 0 0 0 1px var(--line-strong), 0 4px 0 var(--line-strong);
+  --sh-alt-lift: 0 0 0 1px var(--line-strong), 0 6px 0 var(--line-strong);
+  --sh-alt-press: 0 0 0 1px var(--line-strong);
+
+  --sh-inert: 0 0 0 1px var(--line-strong);
+  --sh-field: inset 0 0 0 1px var(--field-line);
+
+  /* --- radii ---
+     Two values, and only two: every surface is 10px and every control is
+     6px. Nothing here is per-component, so nothing can drift out of step
+     with the rest. Circles use rounded-full, which is a shape, not a
+     corner. --- */
+  --r: 12px;
+  --r-sm: 8px;
+
+  /* --- motion: everything eases out, nothing bounces --- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-mid: 200ms;
+  --dur-slow: 260ms;
+
+  /* --- layout --- */
+  --content: 800px;
+  --page-x: 24px;
+  --stack: 26px;
+  --gutter: 22px;
+  --split: 34px;
+  --dial: 190px;
+}
+
+@layer base {
+  body {
+    background: var(--page);
+    color: var(--ink);
+    /* Plus Jakarta Sans ships ₱ (U+20B1), so a currency figure needs no
+       second face behind it. */
+    font-family: "Plus Jakarta Sans", ui-rounded, "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    /* money columns must line up down the page */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Blue clears white, card and all four category grounds */
+  :focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  /* the figures are typed, not stepped; the spinners are noise */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* a disabled field keeps its ground; the browser's grey is not a token */
+  input:disabled {
+    color: var(--ink-soft);
+    -webkit-text-fill-color: var(--ink-soft);
+    opacity: 1;
+  }
+}
+
+/* A handful of category-ink dots pop out from the Save button on a
+   successful save, the one milestone moment on the page. --dx/--dy are
+   set per-dot from PaydayHeader; the reduced-motion block below disables
+   this like every other animation. */
+@keyframes nala-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Disclosure content (category sub-items, history rows) rises and fades
+   in on mount instead of popping into place. */
+@keyframes nala-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

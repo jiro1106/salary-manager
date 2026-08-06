@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nala — Templates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nala.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <!-- IMAGE SLOT A · 1:1 · brand mark -->
+    <span class="mark cat"><img src="logo.png" alt="Nala"></span>
+    <span class="wordmark">
+      <b>Nala</b>
+      <span class="sub">Salary manager</span>
+    </span>
+  </header>
+
+  <a class="back" href="index.html"><i>←</i>Back to your split</a>
+
+  <div class="page-head">
+    <p class="eyebrow">Templates</p>
+    <h1>Start from a known split</h1>
+    <p>Picking one <b>replaces all your categories and their items</b>. Your saved paydays are not affected, and you can always edit the figures afterwards.</p>
+  </div>
+
+  <div class="tpls">
+
+    <article class="slab a tpl current">
+      <span class="bars"><i style="background:var(--teal);flex:50"></i><i style="background:var(--clay);flex:30"></i><i style="background:var(--plum);flex:20"></i></span>
+      <h2>Default</h2>
+      <span class="split">50 / 30 / 20</span>
+      <p>The standard 50/30/20 rule.</p>
+      <span class="btn sm" aria-disabled="true">Already your split</span>
+    </article>
+
+    <article class="slab b tpl">
+      <span class="bars"><i style="background:var(--teal);flex:30"></i><i style="background:var(--clay);flex:40"></i><i style="background:var(--plum);flex:30"></i></span>
+      <h2>Student</h2>
+      <span class="split">30 / 40 / 30</span>
+      <p>No rent, food, or utilities to cover yet.</p>
+      <button class="btn sm">Replace my split</button>
+    </article>
+
+    <article class="slab c tpl">
+      <span class="bars"><i style="background:var(--teal);flex:40"></i><i style="background:var(--sand);flex:15"></i><i style="background:var(--clay);flex:20"></i><i style="background:var(--plum);flex:25"></i></span>
+      <h2>Freelancer</h2>
+      <span class="split">40 / 15 / 20 / 25</span>
+      <p>Sets aside tax money and a slow-month buffer first.</p>
+      <button class="btn sm">Replace my split</button>
+    </article>
+
+    <article class="slab b tpl">
+      <span class="bars"><i style="background:var(--teal);flex:50"></i><i style="background:var(--sand);flex:10"></i><i style="background:var(--clay);flex:20"></i><i style="background:var(--plum);flex:20"></i></span>
+      <h2>Debt payoff</h2>
+      <span class="split">50 / 10 / 20 / 20</span>
+      <p>Clears what you owe before anything discretionary.</p>
+      <button class="btn sm">Replace my split</button>
+    </article>
+
+    <article class="slab a tpl">
+      <span class="bars"><i style="background:var(--teal);flex:40"></i><i style="background:var(--clay);flex:15"></i><i style="background:var(--plum);flex:45"></i></span>
+      <h2>Aggressive saver</h2>
+      <span class="split">40 / 15 / 45</span>
+      <p>Lean spending, maximum savings and investing.</p>
+      <button class="btn sm">Replace my split</button>
+    </article>
+
+  </div>
+
+</div>
+</body>
+</html>

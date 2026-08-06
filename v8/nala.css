@@ -1,0 +1,414 @@
+/* ============================================================
+   NALA — STACKED CARDSTOCK
+   Every surface is a slab of card with a visible cut edge, laid
+   in relief on a tabletop under raking light. Nothing floats;
+   everything sits. Clay leads on oat.
+   Shared by index.html (your split) and templates.html.
+   STATIC MOCKUP.
+   ============================================================ */
+
+:root{
+  /* --- paper & ink --- */
+  --oat:#E1D8C6;
+  --oat-dk:#CFC4AE;
+  --card:#FAF6EC;
+  --card-e:#E4DCCA;      /* cut edge, first layer  */
+  --card-e2:#CFC5B0;     /* cut edge, second layer */
+  --ink:#2A2622;
+  --ink-soft:#736A5C;
+  --clay:#BE6A52;   --clay-e:#96503C;
+  --teal:#3F7A72;   --teal-e:#2E5B55;
+  --plum:#7B5A80;   --plum-e:#5D4262;
+  --sand:#D6A45C;   --sand-e:#AE8144;
+
+  /* --- type scale: fixed rem, ~1.2 between steps ---
+     One size per job. Nothing in between. */
+  --fs-label:.6875rem;   /* 11 · eyebrows, tags, uppercase micro */
+  --fs-meta:.8125rem;    /* 13 · notes, dates, descriptions      */
+  --fs-ui:.9375rem;      /* 15 · inputs, sub-item rows           */
+  --fs-body:1rem;        /* 16 · body                            */
+  --fs-title:1.1875rem;  /* 19 · card titles, legend figures     */
+  --fs-amt:1.4375rem;    /* 23 · category amount                 */
+  --fs-sec:1.8125rem;    /* 29 · section headings                */
+  --fs-total:2rem;       /* 32 · dial total                      */
+  --fs-hero:clamp(1.875rem,4.4vw,2.5rem);
+
+  --lh-tight:1.15;
+  --lh-body:1.6;
+  --track-caps:.18em;    /* uppercase micro always gets tracking */
+  --ease:cubic-bezier(.22,1,.36,1);
+  --stack:26px;          /* the one gap between stacked blocks */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--oat);color:var(--ink);
+  /* Hanken Grotesk has no ₱, so Epilogue backs it up glyph by glyph */
+  font-family:'Hanken Grotesk','Epilogue',sans-serif;
+  font-size:var(--fs-body);line-height:var(--lh-body);
+  font-variant-numeric:tabular-nums;   /* money columns must line up */
+  overflow-x:hidden;position:relative;
+}
+/* board grain + raking light from the top left */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(120% 90% at 22% -10%, rgba(255,250,238,.5) 0%, transparent 58%);
+}
+
+.wrap{max-width:940px;margin:0 auto;padding:0 24px 90px;position:relative;z-index:2}
+
+/* a slab of card: cut edge, then contact shadow */
+.slab{
+  background:var(--card);padding:26px 28px;
+  box-shadow:0 3px 0 var(--card-e),0 6px 0 var(--card-e2),0 9px 12px rgba(42,38,34,.2);
+}
+.slab.a{border-radius:30px 10px 26px 12px}
+.slab.b{border-radius:12px 28px 10px 26px}
+.slab.c{border-radius:24px 24px 8px 26px}
+
+/* ---------- shared type roles ---------- */
+.eyebrow{
+  font-size:var(--fs-label);letter-spacing:var(--track-caps);
+  text-transform:uppercase;color:var(--ink-soft);
+}
+
+/* ---------- masthead ----------
+   Compact horizontal lockup. The whole point of this screen is the
+   split, so the brand takes one line and gets out of the way. */
+.mast{display:flex;align-items:flex-end;gap:0;flex-wrap:wrap;padding:26px 0}
+/* Nala herself, and the only instance of her on the page: the mark
+   and the character are one object.
+   The PNG carries 20% transparent on each side and 14% under the
+   basket, so the box is sized off the drawing and the padding is
+   pulled back out with negative margins — otherwise she reads as
+   indented against the cards below and shrunken next to the wordmark.
+   The artwork brings its own line and shading, so it gets a contact
+   shadow only, never the die-cut edge used on the paper. */
+.mark.cat{
+  width:110px;height:110px;flex:none;background:none;box-shadow:none;
+  border-radius:0;overflow:visible;
+  margin-left:-21px;margin-right:-6px;   /* cancel the side padding */
+  position:relative;z-index:3;           /* she sits in front of the deck */
+}
+.mark.cat::after{display:none}
+.mark.cat img{
+  width:100%;height:100%;object-fit:contain;display:block;transform-origin:50% 88%;
+  filter:drop-shadow(0 5px 7px rgba(42,38,34,.22));
+  transition:transform 260ms var(--ease);
+}
+.mast:hover .mark.cat img{transform:rotate(-4deg)}
+
+/* .sits — home only: the basket rests on the deck's top edge.
+   -28px puts the basket floor about 12px inside the card, once the
+   PNG's 14% bottom padding (15.7px at this size) is accounted for. */
+.mast.sits{padding-bottom:0}
+.mast.sits .mark.cat{margin-bottom:-28px}
+.mast.sits .wordmark,.mast.sits .tplchip{margin-bottom:18px}
+
+/* IMAGE SLOT A · 1:1 · 52px · brand mark, die-cut with an edge.
+   Drop <img> inside .mark to use your own mark instead of Nala. */
+.mark{
+  width:52px;height:52px;overflow:hidden;position:relative;background:var(--clay);
+  border-radius:54% 46% 48% 52%/50% 52% 48% 50%;
+  box-shadow:0 3px 0 var(--clay-e),0 6px 8px rgba(42,38,34,.24);
+}
+.mark::after{content:"";position:absolute;inset:26% 24% 20% 24%;background:var(--sand);border-radius:50% 50% 44% 44%}
+.mark img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2}
+.mast b{
+  display:block;font-family:'Epilogue',sans-serif;font-weight:800;
+  font-size:1.5rem;line-height:1.05;letter-spacing:-.035em;
+}
+.mast .sub{
+  display:block;margin-top:2px;
+  font-size:var(--fs-label);letter-spacing:var(--track-caps);
+  text-transform:uppercase;color:var(--ink-soft);
+}
+
+/* ---------- buttons ----------
+   One vocabulary on both screens: clay is the committing action,
+   card is everything else. Press sinks the slab onto the table. */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:'Epilogue',sans-serif;font-weight:700;
+  font-size:var(--fs-ui);line-height:1;border:0;cursor:pointer;text-decoration:none;
+  background:var(--clay);color:#FBF7EE;padding:15px 26px;border-radius:24px 8px 22px 8px;
+  box-shadow:0 3px 0 var(--clay-e),0 6px 9px rgba(42,38,34,.22);
+  transition:transform 160ms var(--ease),box-shadow 160ms var(--ease);
+}
+.btn svg{width:17px;height:17px;flex:none;fill:currentColor}
+.btn.alt{
+  background:var(--card);color:var(--ink);border-radius:8px 24px 8px 22px;
+  box-shadow:0 3px 0 var(--card-e2),0 6px 9px rgba(42,38,34,.18);
+}
+.btn.sm{padding:11px 20px;font-size:var(--fs-meta)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 3px 0 var(--clay-e),0 10px 14px rgba(42,38,34,.24)}
+.btn.alt:hover{box-shadow:0 3px 0 var(--card-e2),0 10px 14px rgba(42,38,34,.2)}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--clay-e),0 3px 6px rgba(42,38,34,.2)}
+.btn[aria-disabled="true"]{
+  background:transparent;color:var(--ink-soft);box-shadow:inset 0 0 0 2px var(--card-e2);
+  cursor:default;transform:none;
+}
+.btn:focus-visible,.x:focus-visible,.pen:focus-visible,.add-item:focus-visible,
+.add-cat:focus-visible,.back:focus-visible,.tplbar:focus-visible,
+.cat-foot:focus-visible,.hist-tog:focus-visible{
+  outline:3px solid var(--teal);outline-offset:3px;
+}
+/* icon-only controls */
+.x,.pen{
+  color:var(--ink-soft);background:none;border:0;cursor:pointer;
+  font-family:inherit;border-radius:8px;line-height:0;padding:5px;
+}
+.x svg,.pen svg{width:16px;height:16px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.x:hover{color:var(--clay)}
+.pen:hover{color:var(--ink)}
+
+/* ============================================================
+   THE DECK — amount, action, dial and legend on one slab.
+   Everything you need to read the payday in a single glance.
+   ============================================================ */
+.deck{position:relative}
+
+.deck-top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.amount{
+  display:inline-flex;align-items:baseline;margin-top:6px;padding-bottom:6px;
+  font-family:'Epilogue',sans-serif;font-weight:800;font-size:var(--fs-hero);
+  line-height:1;letter-spacing:-.05em;
+  border-bottom:3px solid var(--sand);   /* the field is editable, so it reads as one */
+}
+.amount i{font-style:normal;color:var(--clay);margin-right:.1em}
+.deck-rule{height:2px;background:rgba(42,38,34,.1);margin:24px 0 26px;border:0}
+.deck-split{display:grid;grid-template-columns:214px 1fr;gap:34px;align-items:center}
+
+/* ---------- SIGNATURE: the cut dial ----------
+   The circle cut apart and pulled open, die-cut from card, so each
+   wedge carries its own edge and drops onto the tabletop.
+   drop-shadow follows the wedge's alpha, so the straight cuts get a
+   thickness too. Pull direction is each wedge's own bisector. */
+.dial{position:relative;width:100%;aspect-ratio:1/1}
+.dial i{
+  position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  filter:drop-shadow(0 3px 0 var(--e)) drop-shadow(0 8px 10px rgba(42,38,34,.24));
+}
+/* Every wedge travels the same 6px, each along its own bisector, so
+   the cuts stay even. Bisectors: needs 90°, wants 234°, savings 324°,
+   measured clockwise from twelve. */
+.w-needs{background:conic-gradient(var(--teal) 0 180deg,transparent 180deg);--e:var(--teal-e);transform:translate(6px,0)}
+.w-wants{background:conic-gradient(from 180deg,var(--clay) 0 108deg,transparent 108deg);--e:var(--clay-e);transform:translate(-4.9px,3.5px)}
+.w-save{background:conic-gradient(from 288deg,var(--plum) 0 72deg,transparent 72deg);--e:var(--plum-e);transform:translate(-3.5px,-4.9px)}
+/* the total is a smaller disc laid over the middle, not a hole */
+.dial .core{
+  position:absolute;inset:30%;background:var(--card);
+  border-radius:52% 48% 46% 54%/48% 52% 48% 52%;
+  display:grid;place-content:center;text-align:center;
+  box-shadow:0 3px 0 var(--card-e2),0 8px 11px rgba(42,38,34,.22);
+}
+.dial .core b{
+  font-family:'Epilogue',sans-serif;font-weight:800;
+  font-size:var(--fs-total);letter-spacing:-.04em;line-height:1;
+}
+.dial .core small{
+  font-size:var(--fs-label);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-soft);
+}
+
+/* ---------- legend ---------- */
+.leg{display:flex;align-items:center;gap:13px;padding:11px 0}
+.leg+.leg{border-top:2px solid rgba(42,38,34,.1)}
+.pip{width:26px;height:26px;flex:none;border-radius:10px 4px 10px 4px}
+.pip.a{background:var(--teal);box-shadow:0 3px 0 var(--teal-e)}
+.pip.b{background:var(--clay);box-shadow:0 3px 0 var(--clay-e)}
+.pip.c{background:var(--plum);box-shadow:0 3px 0 var(--plum-e)}
+.leg-name{font-weight:700;font-size:var(--fs-body)}
+/* the numbers hold the right rail; the tag stays beside the name it labels */
+.leg-pct{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-soft);width:5ch;text-align:right}
+.leg-amt{font-family:'Epilogue',sans-serif;font-weight:700;font-size:var(--fs-title);width:10ch;text-align:right}
+.tag{
+  font-size:var(--fs-label);letter-spacing:.1em;text-transform:uppercase;
+  background:var(--ink);color:#FBF7EE;padding:3px 8px;border-radius:9px 3px 9px 3px;
+}
+.leg-foot{
+  display:flex;justify-content:space-between;gap:12px;
+  margin-top:13px;padding-top:12px;border-top:2px solid rgba(42,38,34,.1);
+  font-size:var(--fs-meta);color:var(--ink-soft);
+}
+.leg-foot b{font-family:'Epilogue',sans-serif;color:var(--ink);font-weight:700}
+
+/* ---------- template chip ----------
+   Which split you are on is read-once state, so it rides in the
+   masthead as a small slab rather than owning a row of the page.
+   The chip is the link: label and destination are the same object. */
+.tplchip{
+  margin-left:auto;display:inline-flex;align-items:center;gap:9px;
+  padding:9px 15px;text-decoration:none;color:var(--ink);
+  font-family:'Epilogue',sans-serif;font-weight:700;font-size:var(--fs-meta);letter-spacing:-.01em;
+  background:var(--card);border-radius:18px 6px 18px 6px;
+  box-shadow:0 3px 0 var(--card-e2),0 6px 8px rgba(42,38,34,.16);
+  transition:transform 160ms var(--ease),box-shadow 160ms var(--ease);
+}
+.tplchip span{color:var(--ink-soft);font-weight:500}
+.tplchip svg{width:15px;height:15px;flex:none;fill:none;stroke:var(--ink-soft);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tplchip i{font-style:normal;font-size:var(--fs-body);line-height:1;color:var(--ink-soft);transition:transform 160ms var(--ease)}
+.tplchip:hover{transform:translateY(-2px);box-shadow:0 3px 0 var(--card-e2),0 9px 12px rgba(42,38,34,.2)}
+.tplchip:hover i{transform:translateX(3px)}
+.tplchip:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+/* ============================================================
+   CATEGORY CARDS
+   Collapsed by default: name, share, amount, and what is left.
+   The items live behind the disclosure at the card floor.
+   ============================================================ */
+.cats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:22px;align-items:start;margin-top:var(--stack);
+}
+.cat{position:relative;padding:0}
+/* The head is a full sheet of the category's own stock, laid on the
+   card. Same colour as its pip and its wedge, at full strength, with
+   its cut edge along the bottom fold. */
+.cat-body{
+  background:var(--c);color:#FBF7EE;padding:20px 22px 18px;
+  box-shadow:inset 0 -4px 0 var(--ce);
+}
+.slab.a .cat-body{border-radius:30px 10px 0 0}
+.slab.b .cat-body{border-radius:12px 28px 0 0}
+.slab.c .cat-body{border-radius:24px 24px 0 0}
+.cat-top{display:flex;align-items:center;gap:11px}
+/* punched out of the head, so the card shows through it */
+.glyph{
+  width:34px;height:34px;flex:none;display:grid;place-items:center;
+  background:var(--card);border-radius:12px 4px 12px 4px;box-shadow:0 3px 0 rgba(42,38,34,.22);
+}
+.glyph svg{width:18px;height:18px;display:block;fill:var(--ce)}
+.cat-top h3{
+  font-family:'Epilogue',sans-serif;font-weight:800;
+  font-size:var(--fs-title);letter-spacing:-.03em;
+}
+.cat-body .pen,.cat-body .x{color:rgba(251,247,238,.8)}
+.cat-body .pen:hover,.cat-body .x:hover{color:#FBF7EE}
+.cat-top .pen{margin-right:auto}
+.cat-fig{display:flex;align-items:center;gap:9px;margin-top:16px}
+.cat-fig .unit{font-size:var(--fs-ui);color:#FBF7EE}
+.cat-fig .field{color:var(--ink)}   /* the head is dark; the field is not */
+.field{
+  background:var(--card);border-radius:11px 4px 11px 4px;padding:5px 13px;
+  font-weight:700;font-size:var(--fs-ui);box-shadow:inset 0 0 0 2px var(--card-e2);
+}
+.unit{font-size:var(--fs-meta);color:var(--ink-soft);white-space:nowrap}
+.cat-amt{
+  font-family:'Epilogue',sans-serif;font-weight:800;color:#FBF7EE;
+  font-size:var(--fs-amt);margin-left:auto;letter-spacing:-.03em;
+}
+/* the disclosure at the card floor, carrying the assignment state */
+.cat-foot{
+  width:100%;display:flex;align-items:center;gap:12px;
+  padding:13px 22px;background:var(--card);border:0;border-top:2px solid rgba(42,38,34,.09);
+  font-family:inherit;font-size:var(--fs-meta);color:var(--ink-soft);
+  text-align:left;cursor:pointer;
+}
+.cat-foot:hover{color:var(--ink)}
+.cat-foot.warn{color:var(--clay)}
+/* the figure is what you scan for, and Epilogue carries the ₱ */
+.cat-foot b{font-family:'Epilogue',sans-serif;font-weight:700;color:var(--ink)}
+.cat-foot.warn b{color:var(--clay)}
+.cat-foot i{margin-left:auto;font-style:normal;line-height:1;transition:transform 200ms var(--ease)}
+.cat.open .cat-foot i{transform:rotate(180deg)}
+.cat-items{padding:4px 22px 20px;background:var(--card)}
+.item{display:flex;align-items:center;gap:9px;padding:7px 0}
+.item+.item{border-top:2px solid rgba(42,38,34,.07)}
+.item-name{flex:1;font-size:var(--fs-ui)}
+.item .field{padding:3px 10px;font-size:var(--fs-meta);background:var(--oat);box-shadow:inset 0 2px 0 var(--oat-dk)}
+.item-amt{font-family:'Epilogue',sans-serif;font-weight:700;font-size:var(--fs-meta);width:9ch;text-align:right}
+.add-item{
+  margin-top:13px;font-family:'Epilogue',sans-serif;font-weight:700;
+  font-size:var(--fs-meta);color:var(--clay);background:none;border:0;cursor:pointer;border-radius:8px;
+}
+.add-item:hover{text-decoration:underline;text-underline-offset:3px}
+.add-cat{
+  align-self:stretch;min-height:172px;   /* matches the card it sits beside */
+  display:grid;place-content:center;justify-items:center;gap:6px;padding:34px;
+  background:transparent;color:var(--ink-soft);
+  border:3px dashed rgba(42,38,34,.2);   /* a card not cut yet */
+  font-family:'Epilogue',sans-serif;font-weight:700;font-size:var(--fs-body);cursor:pointer;
+  border-radius:30px 10px 26px 12px;
+  transition:transform 180ms var(--ease),border-color 180ms var(--ease),color 180ms var(--ease);
+}
+.add-cat:hover{transform:translateY(-3px);border-color:var(--clay);color:var(--clay)}
+.add-cat i{font-style:normal;font-size:1.75rem;line-height:1}
+
+/* ---------- history: a disclosure at the floor of the page ---------- */
+.hist{margin-top:34px}
+.hist-tog{
+  display:inline-flex;align-items:center;gap:10px;padding:6px 4px;
+  background:none;border:0;cursor:pointer;font-family:inherit;
+  font-size:var(--fs-meta);color:var(--ink-soft);border-radius:8px;
+}
+.hist-tog:hover{color:var(--ink)}
+.hist-tog svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hist-tog i{font-style:normal;line-height:1;transition:transform 200ms var(--ease)}
+.hist.open .hist-tog i{transform:rotate(180deg)}
+.hist .slab{margin-top:12px;padding:6px 26px}
+.hrow{display:flex;align-items:center;gap:16px;padding:12px 0}
+.hrow+.hrow{border-top:2px solid rgba(42,38,34,.1)}
+.hamt{font-family:'Epilogue',sans-serif;font-weight:700;font-size:var(--fs-body);width:9ch}
+.hdate{color:var(--ink-soft);width:14ch;font-size:var(--fs-meta)}
+.hbrk{flex:1;color:var(--ink-soft);font-size:var(--fs-meta)}
+
+/* ============================================================
+   TEMPLATES SCREEN
+   ============================================================ */
+.back{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  color:var(--ink-soft);font-size:var(--fs-meta);font-weight:500;
+  border-radius:8px;margin-bottom:22px;
+}
+.back:hover{color:var(--ink)}
+.back i{font-style:normal;font-size:var(--fs-body);line-height:1}
+
+.page-head{max-width:52ch;margin-bottom:30px}
+.page-head h1{
+  font-family:'Epilogue',sans-serif;font-weight:800;
+  font-size:var(--fs-sec);line-height:var(--lh-tight);letter-spacing:-.035em;margin-top:6px;
+}
+.page-head p{margin-top:10px;color:var(--ink-soft);font-size:var(--fs-meta)}
+.page-head p b{color:var(--ink);font-weight:700}
+
+/* stretch so every card in a row is the same height and every
+   action sits on the same line, however long the description runs */
+.tpls{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:22px;align-items:stretch}
+.tpl{display:flex;flex-direction:column;padding:24px}
+.tpl .bars{display:flex;height:40px;border-radius:15px 5px 15px 5px;overflow:hidden;box-shadow:0 3px 0 rgba(42,38,34,.22)}
+.tpl h2{
+  font-family:'Epilogue',sans-serif;font-weight:800;
+  font-size:var(--fs-title);letter-spacing:-.03em;margin:18px 0 0;
+}
+.tpl .split{
+  display:block;margin-top:5px;font-size:var(--fs-meta);
+  letter-spacing:.12em;color:var(--clay);font-weight:700;
+}
+.tpl p{margin:10px 0 20px;font-size:var(--fs-meta);color:var(--ink-soft)}
+.tpl .btn{margin-top:auto;align-self:flex-start}   /* auto pushes it to the card floor */
+/* the split you are already on: ringed, and its action says so */
+.tpl.current{box-shadow:0 3px 0 var(--card-e),0 6px 0 var(--card-e2),0 9px 12px rgba(42,38,34,.2),inset 0 0 0 3px var(--teal)}
+
+/* ---------- responsive ---------- */
+@media (max-width:700px){
+  .deck-split{grid-template-columns:1fr;gap:28px;justify-items:center}
+  .dial{width:min(100%,214px)}
+  .deck-split .legend{width:100%}
+  .deck-top .btn{width:100%;justify-content:center}
+  .tplchip{margin-left:0;width:100%}   /* wraps under the wordmark */
+  /* the chip takes its own line here, so she stands clear of the card
+     instead of sitting on it */
+  .mast.sits{padding-bottom:22px}
+  .mast.sits .mark.cat{margin-bottom:0}
+  .mast.sits .wordmark,.mast.sits .tplchip{margin-bottom:0}
+  .hbrk{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
