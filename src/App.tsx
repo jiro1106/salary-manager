@@ -22,7 +22,7 @@ type View = "home" | "templates";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
-  const [salary, setSalary] = useState<number>(30000);
+  const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [savedFlash, setSavedFlash] = useState(false);
