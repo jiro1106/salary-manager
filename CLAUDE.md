@@ -26,7 +26,7 @@ Single-page React 18 + Vite + TypeScript app. No router, no state library, no ba
 
 **Persistence** (`src/lib/storage.ts`, keys `salary-manager:config` and `salary-manager:history`) has two deliberately different write paths:
 
-- Config (salary + categories) is written by a debounced effect (400ms). A `skipSave` ref suppresses the first run so the mount-time load doesn't immediately write defaults back over stored data. Any new persisted config field must go through this effect.
+- Config (salary + categories) is written by a debounced effect (400ms), **flushed on `visibilitychange` → hidden and on `pagehide`**, so an edit made just before the tab is hidden or closed still lands. Both events are listened to on purpose: `visibilitychange` is the one that fires reliably on iOS Safari and on a tab switch, `pagehide` covers unload and bfcache including reload, and the double fire is harmless because the write is idempotent. `beforeunload` is not used — it is unreliable on mobile Safari. A `skipSave` ref suppresses the first run so the mount-time load doesn't immediately write defaults back over stored data; that guard lives **inside** the save closure, not at the top of the effect, because an early return there would skip the listener registration on the mount pass and leave nothing attached until the first edit. Any new persisted config field must go through this effect.
 - History is written eagerly at the mutation site — `savePaycheck` / `deleteEntry` call both `setHistory` and `storage.set`, because the debounced effect only watches config. History is capped at 50 entries.
 
 `storage` swallows all errors and returns `null`, so a corrupt or disabled localStorage silently falls back to defaults.

@@ -42,11 +42,32 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (skipSave.current) return;
-    const t = setTimeout(() => {
+    // The guard sits inside save() rather than at the top of the effect: an
+    // early return here would skip the listener registration entirely on the
+    // mount pass, so nothing would be attached until the first edit.
+    const save = () => {
+      if (skipSave.current) return;
       storage.set<Config>(CONFIG_KEY, { salary, categories });
-    }, 400);
-    return () => clearTimeout(t);
+    };
+    const t = setTimeout(save, 400);
+    // Close the 400ms window: an edit made just before the tab is hidden or
+    // closed has to land. visibilitychange is the signal that fires reliably
+    // on iOS Safari and on a tab switch; pagehide covers unload and bfcache,
+    // including reload. They overlap, which is harmless — save() is idempotent.
+    const flush = () => {
+      clearTimeout(t);
+      save();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", flush);
+    };
   }, [salary, categories]);
 
   const totalPercent = categories.reduce(
