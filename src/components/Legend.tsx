@@ -86,7 +86,7 @@ export default function Legend({
                   ink, not on white, which is the only ground it clears. */}
               {isBiggest && (
                 <span className="absolute -right-[5px] -top-[5px] grid h-[15px] w-[15px] place-items-center rounded-full bg-ink">
-                  <Crown size={9} strokeWidth={2.6} className="text-sand" />
+                  <Crown size={9} strokeWidth={2.6} className="text-zest" />
                 </span>
               )}
             </span>

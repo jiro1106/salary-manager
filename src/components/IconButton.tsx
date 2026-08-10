@@ -5,7 +5,7 @@ interface IconButtonProps {
   onClick: () => void;
   /** Sitting on card, or on a category's own colour. */
   tone?: "card" | "colour";
-  /** Destructive controls warm to clay instead of ink. */
+  /** Destructive controls warm to the action ink instead of ink. */
   danger?: boolean;
   className?: string;
   children: ReactNode;
@@ -38,7 +38,7 @@ export default function IconButton({
   const ink =
     tone === "colour"
       ? "text-on-color"
-      : `text-ink-soft ${danger ? "hover:text-clay-edge" : "hover:text-ink"}`;
+      : `text-ink-soft ${danger ? "hover:text-action-edge" : "hover:text-ink"}`;
 
   const wash =
     tone === "colour"

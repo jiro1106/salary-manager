@@ -27,7 +27,7 @@ function AddCategoryTile({
         "rounded-slab border-2 border-dashed border-line-strong bg-transparent text-ink-soft",
         "font-display text-body font-extrabold",
         "transition-[transform,border-color,color] duration-[180ms] ease-paper",
-        "hover:-translate-y-[3px] hover:border-clay hover:text-clay-edge",
+        "hover:-translate-y-[3px] hover:border-action hover:text-action-edge",
         full ? "col-span-full" : "",
       ].join(" ")}
     >

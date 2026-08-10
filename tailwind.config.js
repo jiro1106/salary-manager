@@ -4,6 +4,16 @@
  * rounded-slab, text-title) and never with a raw hex.
  */
 export default {
+  future: {
+    // Compiles every `hover:` inside `@media (hover: hover)`. Without it
+    // Tailwind 3 emits a bare `:hover`, which a touch device applies on
+    // tap and then leaves applied until something else is tapped — so the
+    // Save button stays lifted and its 6px edge stays grown after a save,
+    // reading as stuck rather than as pressed. `active:` is untouched and
+    // still gives touch its press feedback. Default in Tailwind 4; opt-in
+    // here. Removing this reintroduces the stuck state on phones.
+    hoverOnlyWhenSupported: true,
+  },
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
@@ -19,15 +29,22 @@ export default {
         "ink-soft": "var(--ink-soft)",
         "ink-faint": "var(--ink-faint)",
         "on-color": "var(--on-color)",
-        clay: "var(--clay)",
-        "clay-edge": "var(--clay-edge)",
-        "clay-tint": "var(--clay-tint)",
-        slate: "var(--slate)",
-        "slate-edge": "var(--slate-edge)",
-        moss: "var(--moss)",
-        "moss-edge": "var(--moss-edge)",
-        sand: "var(--sand)",
-        "sand-edge": "var(--sand-edge)",
+        "on-action": "var(--on-action)",
+        // The committing action and every warning that names a
+        // consequence. Off the category rotation on purpose.
+        action: "var(--action)",
+        "action-edge": "var(--action-edge)",
+        "action-tint": "var(--action-tint)",
+        punch: "var(--punch)",
+        "punch-deep": "var(--punch-deep)",
+        zest: "var(--zest)",
+        "zest-deep": "var(--zest-deep)",
+        lime: "var(--lime)",
+        "lime-deep": "var(--lime-deep)",
+        aqua: "var(--aqua)",
+        "aqua-deep": "var(--aqua-deep)",
+        violet: "var(--violet)",
+        "violet-deep": "var(--violet-deep)",
         blue: "var(--blue)",
         "blue-edge": "var(--blue-edge)",
         scrim: "var(--scrim)",

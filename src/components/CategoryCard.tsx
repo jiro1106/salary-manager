@@ -84,11 +84,22 @@ export default function CategoryCard({
           disclosure below it. */}
       <div className="rounded-t-slab bg-cat px-[22px] pb-[18px] pt-5 text-on-color">
         <div className="flex items-center gap-[11px]">
+          {/* The Inversion Rule, which survives the palette going light by
+              swapping which end is dark. The tile is still the opposite of
+              the ground it sits on and the icon still the opposite of the
+              tile — but the ground is now a light face, so the tile fills
+              with ink and the glyph is punched back out in the face's own
+              colour. A white tile here would be the old rule applied to the
+              new palette and would all but vanish: white on punch measures
+              1.4:1. The legend pip is this same object seen from the other
+              side, and it did not have to change at all: it was already a
+              face-filled tile, and its glyph rides --on-color, which is the
+              ink now. */}
           <span
             aria-hidden="true"
-            className="grid h-[34px] w-[34px] flex-none place-items-center rounded-control bg-card"
+            className="grid h-[34px] w-[34px] flex-none place-items-center rounded-control bg-ink"
           >
-            <Icon size={18} strokeWidth={2} className="text-cat-edge" />
+            <Icon size={18} strokeWidth={2} className="text-cat" />
           </span>
           {/* The category name is this card's heading, so the grid gives
               a screen reader a real outline (the wordmark is the h1) and
@@ -137,7 +148,7 @@ export default function CategoryCard({
         className={[
           "flex w-full items-center gap-3 px-[22px] py-[13px]",
           "text-left font-display text-meta transition-colors duration-fast ease-paper",
-          isOver ? "text-clay-edge" : "text-ink-soft hover:text-ink",
+          isOver ? "text-action-edge" : "text-ink-soft hover:text-ink",
         ].join(" ")}
       >
         <span>
@@ -186,7 +197,7 @@ export default function CategoryCard({
             onClick={addSub}
             className={[
               "mt-[13px] inline-flex min-h-hit -mb-2.5 items-center gap-1.5 rounded-control",
-              "font-display text-meta font-extrabold text-clay-edge",
+              "font-display text-meta font-extrabold text-action-edge",
               "hover:underline hover:underline-offset-[3px]",
             ].join(" ")}
           >

@@ -33,55 +33,106 @@
      --sunk because that is the floor for large text, and the only thing
      wearing it is set at hero size. Nothing small takes this ink. */
   --ink-faint: #7c7871;
-  --on-color: #ffffff; /* text and icons sitting on a category ink */
+  /* Text and icons sitting on a category ink. This is the ink, not white,
+     and that is the hinge the whole palette turns on: the faces below are
+     light, and white on any of them measures under 2:1. The rule itself is
+     unchanged — every mark on a face is --on-color — only its value moved,
+     and it moved for all five faces at once. A page where some faces carry
+     white and some carry ink is not one component in five colours. */
+  --on-color: #23211e;
+  /* The label on a chrome button, which is a different surface with a
+     different answer: --action below is dark, so its label stays white.
+     Splitting this off --on-color is what let the faces go light without
+     turning the Save button's word to ink on ink. */
+  --on-action: #ffffff;
 
-  /* --- category inks, face + a darker shade for text on white ---
-     These four mirror CATEGORY_COLORS in src/lib/palette.ts exactly; the
+  /* --- category inks, face + a deeper shade for text on white ---
+     These five mirror CATEGORY_COLORS in src/lib/palette.ts exactly; the
      data side stamps them onto categories, this side is the chrome that
-     has to sit next to them. Change one and change the other. Each edge
-     is its face darkened exactly 22%, with no exceptions — see the note
-     on sand below for why there used to be one.
+     has to sit next to them. Change one and change the other.
 
-     The faces are held to 3:1 against --on-color, not 4.5:1, because
-     everything that ever sits on one is either large text (the 19px/800
-     category name, the 23px/800 amount) or an icon. Measured white-on-
-     face: slate 7.79, clay 4.39, sand 3.55, moss 3.35.
+     Two measured terms, both inverted from the palette this replaced:
+       - --ink on the face clears 4.5:1, not 3:1. The old dark faces were
+         held to 3:1 because only large text and icons ever sat on them;
+         these clear the small-text bar outright, lowest violet at 6.99.
+       - the deep clears 4.5:1 on white, lowest punch at 4.50, because the
+         deep is what carries small text on a card and the pip glyph.
 
-     Sand was #e0b14d and measured 1.99 — it carried no mark legibly, and
-     it needed a 40% edge to clear 4.5:1 where the others needed 22%. Both
-     problems were the same problem: the face was too light to be in this
-     family. Darkened to #b07f24 it clears the 3:1 bar with moss and its
-     22% edge clears 4.5:1 like the rest, so the exception is gone. Any
-     new face joins on the same two terms. */
-  --clay: #bc5b5b;
-  --clay-edge: #934747;
-  --slate: #33566e;
-  --slate-edge: #284356;
-  --moss: #7f9455;
-  --moss-edge: #637342;
-  --sand: #b07f24;
-  --sand-edge: #89631c;
+     The deep is no longer a fixed 22% darkening. Darkening a light face
+     22% leaves it light and clears nothing, so each deep is scaled down
+     until it passes — 55% to 69% of its face. The ratio is the invariant
+     now, not the multiplier. */
+  --punch: #ff8fa3;
+  --punch-deep: #ab606d;
+  --zest: #ffd23f;
+  --zest-deep: #8c7323;
+  --lime: #a5e34d;
+  --lime-deep: #5e812c;
+  --aqua: #5fd8d3;
+  --aqua-deep: #387f7c;
+  --violet: #b79bff;
+  --violet-deep: #7e6bb0;
 
-  /* Not a category ink: the focus ring and the saved state, kept off the
-     palette on purpose so it never lands on a ground of its own colour. */
-  --blue: #2563eb;
-  --blue-edge: #1d4db7;
+  /* Not a category ink: the committing action, and every warning that
+     names its consequence. Kept off the rotation for the same reason
+     --blue is — a Save button drawn on a ground of its own colour stops
+     being a button — and kept dark because that is what a primary control
+     and a small warning both need.
+
+     It is #c66e46, a terracotta, chosen by hand rather than derived.
+     It measures OKLCH L 0.630 / C 0.124 / h 44 — chroma inside the
+     palette's own band (0.108 aqua to 0.189 lime), hue 35 deg off punch
+     and 47 deg off zest, so it belongs to the page without being any
+     category's colour.
+
+     What it will not do is carry small text. The face measures 3.67:1 on
+     white, which clears the 3:1 a filled shape needs and misses the 4.5:1
+     text needs. So the split here is the same one the category inks run:
+     --action is a fill, --action-edge is the ink. Every warning that sits
+     on a card — the over-allocation banner, the peso sign, a destructive
+     hover — takes --action-edge at 5.58:1. Setting any of them in
+     --action puts 3.67:1 text on a white card.
+
+     Known and accepted: the button's own white label measures 3.67:1
+     against this fill, under the 4.5:1 a 15px/700 label wants. Darkening
+     the fill one step to #b55f37 (same hue, same chroma, L 0.58) takes it
+     to 4.51:1 and is near-indistinguishable in isolation. */
+  --action: #c66e46;
+  --action-edge: #9a5637;
+
+  /* Not a category ink either: the focus ring and the saved state, kept
+     off the palette so a ring never lands on a ground of its own colour.
+
+     It went from #2563eb to #1e429f when the faces went light, and that
+     was a correctness fix rather than a taste one. A focus ring has to
+     clear 3:1 against whatever it is drawn on, and it is drawn on a
+     category head — outline-offset puts it outside the box, which on a
+     card head is still the face. Against the old dark inks #2563eb had
+     room; against punch it measured 2.39 and against violet 2.25, because
+     both moved up into the same luminance band the ring was in. #1e429f
+     clears every face with the worst at 3.92, and the saved button it
+     also grounds carries its white label at 8.99 instead of 5.17. The
+     rule that matters is unchanged: the ring is never a category ink. */
+  --blue: #1e429f;
+  --blue-edge: #17337c;
 
   /* --- washes, scrims, tints --- */
-  --clay-tint: #bc5b5b16;
+  --action-tint: #c66e4616;
   --scrim: rgba(35, 33, 30, 0.4);
-  /* hover washes for icon targets, on white and on a category ground */
+  /* Hover washes for icon targets, on white and on a category ground.
+     Both are ink now: a white wash on a light face is invisible, which is
+     the same reason --on-color flipped. */
   --wash-ink: rgba(35, 33, 30, 0.06);
-  --wash-color: rgba(255, 255, 255, 0.2);
+  --wash-color: rgba(35, 33, 30, 0.1);
 
   /* --- elevation ---
      Surfaces carry no shadow at all; they are told apart by fill and a
      hairline. The one exception is a button, which keeps a solid edge
      under it — no blur — so it still reads as pressable and can travel
      down onto the page when clicked. */
-  --sh-action: 0 4px 0 var(--clay-edge);
-  --sh-action-lift: 0 6px 0 var(--clay-edge);
-  --sh-action-press: 0 0 0 var(--clay-edge);
+  --sh-action: 0 4px 0 var(--action-edge);
+  --sh-action-lift: 0 6px 0 var(--action-edge);
+  --sh-action-press: 0 0 0 var(--action-edge);
   --sh-action-blue: 0 4px 0 var(--blue-edge);
   --sh-action-blue-lift: 0 6px 0 var(--blue-edge);
   --sh-action-blue-press: 0 0 0 var(--blue-edge);

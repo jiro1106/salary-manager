@@ -76,7 +76,7 @@ function display(value: number): string {
  * 44px target, and clicking anywhere in that label focuses the input.
  *
  * The unit sits inside the chip on purpose: on a category ground, a
- * loose "%" beside the field would be normal-weight text on clay at
+ * loose "%" beside the field would be normal-weight text on a category face at
  * 3.65:1, which fails. Inside, it sits on card.
  *
  * The input is `text` rather than `number`, and it holds its own draft

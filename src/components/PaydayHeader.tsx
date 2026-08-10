@@ -8,18 +8,18 @@ import IconButton from "./IconButton";
 import { pct, pesoRound } from "../lib/format";
 import type { Category } from "../types";
 
-// A radial spread of small dots in the four category inks, popping out
+// A radial spread of small dots in the five category inks, popping out
 // from the Save button on a successful save. Fixed, not randomized, so
 // the burst is the same shape every time rather than jittering on re-render.
 const BURST_DOTS: { dx: number; dy: number; color: string; delay: number }[] = [
-  { dx: -28, dy: -14, color: "bg-clay", delay: 0 },
-  { dx: -10, dy: -32, color: "bg-slate", delay: 30 },
-  { dx: 14, dy: -30, color: "bg-moss", delay: 10 },
-  { dx: 30, dy: -10, color: "bg-sand", delay: 45 },
-  { dx: 26, dy: 16, color: "bg-clay", delay: 15 },
-  { dx: 6, dy: 30, color: "bg-slate", delay: 40 },
-  { dx: -18, dy: 26, color: "bg-moss", delay: 5 },
-  { dx: -32, dy: 4, color: "bg-sand", delay: 25 },
+  { dx: -28, dy: -14, color: "bg-punch", delay: 0 },
+  { dx: -10, dy: -32, color: "bg-zest", delay: 30 },
+  { dx: 14, dy: -30, color: "bg-lime", delay: 10 },
+  { dx: 30, dy: -10, color: "bg-aqua", delay: 45 },
+  { dx: 26, dy: 16, color: "bg-violet", delay: 15 },
+  { dx: 6, dy: 30, color: "bg-punch", delay: 40 },
+  { dx: -18, dy: 26, color: "bg-lime", delay: 5 },
+  { dx: -32, dy: 4, color: "bg-aqua", delay: 25 },
 ];
 
 interface PaydayHeaderProps {
@@ -184,7 +184,7 @@ export default function PaydayHeader({
   const displaySalary = formatWithCommas(rawValue);
   // Nothing entered yet, or entered as nothing. Either way the figure is a
   // prompt rather than a number, and it drops to soft ink to say so — the
-  // ₱ with it, since a clay peso sign in front of a grey zero reads as a
+  // ₱ with it, since a coloured peso sign in front of a grey zero reads as a
   // real amount that happens to be zero.
   const isBlank = rawValue === "" || Number(rawValue) === 0;
   const isOver = totalPercent > 100;
@@ -212,7 +212,7 @@ export default function PaydayHeader({
             Take-home pay
           </p>
           {/* The field is editable, so it reads as one: a recessed ground
-              with real padding round the figure, and the sand rule along
+              with real padding round the figure, and the zest rule along
               the bottom carrying the accent the underline used to. */}
           <span
             className={[
@@ -222,7 +222,10 @@ export default function PaydayHeader({
               // the ₱ and the figure carry the same size and leading and
               // so centre to the same place their baselines did.
               "mt-2 inline-flex h-control max-w-full items-center rounded-slab bg-sunk",
-              "border-b-[3px] border-sand px-5",
+              // zest's deep shade, not zest. The rule has to be seen on a
+              // recessed grey, and the face itself measures 1.4:1 there —
+              // the deep is the same ink one step down, at 4.5:1.
+              "border-b-[3px] border-zest-deep px-5",
               "font-display text-hero font-extrabold",
               "focus-within:outline focus-within:outline-[3px]",
               "focus-within:outline-blue focus-within:outline-offset-[3px]",
@@ -233,7 +236,7 @@ export default function PaydayHeader({
               aria-hidden="true"
               className={[
                 "mr-[0.1em]",
-                isBlank ? "text-ink-faint" : "text-clay-edge",
+                isBlank ? "text-ink-faint" : "text-action-edge",
               ].join(" ")}
             >
               ₱
@@ -284,7 +287,7 @@ export default function PaydayHeader({
         {/*
           No pull. Both faces are h-control, so items-end lands their tops
           and their bottoms together and the two read as one pair. The 4px
-          clay edge below the button is depth, not misalignment: it is the
+          action edge below the button is depth, not misalignment: it is the
           underside of the only raised object on the page. Pulling the
           button up to tuck that edge in would buy a shared bottom line at
           the price of a 4px step across the tops, which is the worse of
@@ -353,7 +356,7 @@ export default function PaydayHeader({
       */}
       <div role="status">
         {isOver && (
-          <p className="mt-3.5 max-w-prose rounded-control bg-clay-tint px-3.5 py-[9px] font-display text-meta font-semibold text-clay-edge">
+          <p className="mt-3.5 max-w-prose rounded-control bg-action-tint px-3.5 py-[9px] font-display text-meta font-semibold text-action-edge">
             Over by {pct(totalPercent - 100)}% ·{" "}
             <b className="font-bold">{pesoRound(overAmount)}</b> more than this
             payday

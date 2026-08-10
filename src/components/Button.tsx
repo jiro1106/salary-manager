@@ -17,9 +17,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // onto it when pressed. Colour never animates; position does.
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-clay text-on-color shadow-action hover:shadow-action-lift active:shadow-action-press",
+    "bg-action text-on-action shadow-action hover:shadow-action-lift active:shadow-action-press",
   saved:
-    "bg-blue text-on-color shadow-action-blue hover:shadow-action-blue-lift active:shadow-action-blue-press",
+    "bg-blue text-on-action shadow-action-blue hover:shadow-action-blue-lift active:shadow-action-blue-press",
   alt: "bg-card text-ink shadow-alt hover:shadow-alt-lift active:shadow-alt-press",
 };
 

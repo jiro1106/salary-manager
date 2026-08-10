@@ -1,6 +1,6 @@
 import { Category, SubCategory } from "../types";
 import { uid } from "./format";
-import { BRICK, GOLD, MOSS, SLATE } from "./palette";
+import { AQUA, LIME, PUNCH, ZEST } from "./palette";
 
 export type TemplateSubCategory = Omit<SubCategory, "id">;
 export type TemplateCategoryDef = Omit<Category, "id" | "subs"> & {
@@ -14,9 +14,16 @@ export interface Template {
   categories: TemplateCategoryDef[];
 }
 
-// One ink per job, held steady across every template: needs are slate,
-// wants are brick, savings are moss, and gold marks the category you are
-// setting aside rather than spending.
+// One ink per job, held steady across every template: needs are punch,
+// wants are zest, savings are lime. Those three are the palette's opening
+// run and they are what a reader sees before touching anything.
+//
+// A template that carries a fourth category — the money you set aside
+// rather than spend — takes aqua, which is the next ink along. That is the
+// same order `App.addCategory` walks, so the fourth card a template ships
+// and the fourth card a reader adds come out the same colour rather than
+// two different ones. Violet closes the run and belongs to no template; it
+// is the fifth, and the first ink past anything shipped.
 export const TEMPLATES: Template[] = [
   {
     id: "default",
@@ -26,7 +33,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Needs",
         icon: "Wallet",
-        color: SLATE,
+        color: PUNCH,
         percent: 50,
         subs: [
           { name: "Rent", percent: 40 },
@@ -38,7 +45,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Wants",
         icon: "ShoppingBag",
-        color: BRICK,
+        color: ZEST,
         percent: 30,
         subs: [
           { name: "Dining out", percent: 40 },
@@ -49,7 +56,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Savings",
         icon: "PiggyBank",
-        color: MOSS,
+        color: LIME,
         percent: 20,
         subs: [
           { name: "Emergency fund", percent: 60 },
@@ -66,7 +73,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Needs",
         icon: "GraduationCap",
-        color: SLATE,
+        color: PUNCH,
         percent: 30,
         subs: [
           { name: "School supplies", percent: 30 },
@@ -78,7 +85,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Wants",
         icon: "ShoppingBag",
-        color: BRICK,
+        color: ZEST,
         percent: 40,
         subs: [
           { name: "Food & snacks", percent: 35 },
@@ -90,7 +97,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Savings",
         icon: "PiggyBank",
-        color: MOSS,
+        color: LIME,
         percent: 30,
         subs: [
           { name: "Emergency fund", percent: 70 },
@@ -107,7 +114,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Needs",
         icon: "Wallet",
-        color: SLATE,
+        color: PUNCH,
         percent: 40,
         subs: [
           { name: "Rent", percent: 40 },
@@ -119,7 +126,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Tax & buffer",
         icon: "Landmark",
-        color: GOLD,
+        color: AQUA,
         percent: 15,
         subs: [
           { name: "Tax set-aside", percent: 70 },
@@ -129,7 +136,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Wants",
         icon: "ShoppingBag",
-        color: BRICK,
+        color: ZEST,
         percent: 20,
         subs: [
           { name: "Dining out", percent: 40 },
@@ -140,7 +147,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Savings",
         icon: "PiggyBank",
-        color: MOSS,
+        color: LIME,
         percent: 25,
         subs: [
           { name: "Emergency fund", percent: 50 },
@@ -157,7 +164,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Needs",
         icon: "Wallet",
-        color: SLATE,
+        color: PUNCH,
         percent: 50,
         subs: [
           { name: "Rent", percent: 40 },
@@ -169,7 +176,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Wants",
         icon: "ShoppingBag",
-        color: BRICK,
+        color: ZEST,
         percent: 10,
         subs: [
           { name: "Dining out", percent: 50 },
@@ -179,7 +186,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Debt payoff",
         icon: "CreditCard",
-        color: GOLD,
+        color: AQUA,
         percent: 20,
         subs: [
           { name: "Credit card", percent: 60 },
@@ -189,7 +196,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Savings",
         icon: "PiggyBank",
-        color: MOSS,
+        color: LIME,
         percent: 20,
         subs: [{ name: "Emergency fund", percent: 100 }],
       },
@@ -203,7 +210,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Needs",
         icon: "Wallet",
-        color: SLATE,
+        color: PUNCH,
         percent: 40,
         subs: [
           { name: "Rent", percent: 45 },
@@ -215,7 +222,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Wants",
         icon: "ShoppingBag",
-        color: BRICK,
+        color: ZEST,
         percent: 15,
         subs: [
           { name: "Dining out", percent: 50 },
@@ -225,7 +232,7 @@ export const TEMPLATES: Template[] = [
       {
         name: "Savings & investments",
         icon: "TrendingUp",
-        color: MOSS,
+        color: LIME,
         percent: 45,
         subs: [
           { name: "Emergency fund", percent: 20 },

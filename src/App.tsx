@@ -88,7 +88,18 @@ export default function App() {
     setCategories((cs) => cs.filter((c) => c.id !== id));
 
   const addCategory = () => {
-    const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length];
+    // The next ink in the palette's own order that is not already on
+    // screen, so a fresh card never arrives wearing a colour the reader
+    // is already looking at. Keyed on what is in use rather than on
+    // `categories.length`, which was the same thing right up until
+    // something was deleted: drop the middle card of three and the length
+    // falls back to 2, and the next add hands out the ink the third card
+    // is still wearing. Falls through to the length rotation once all five
+    // are taken, where a repeat is unavoidable and the order is the point.
+    const used = new Set(categories.map((c) => c.color));
+    const color =
+      CATEGORY_COLORS.find((c) => !used.has(c)) ??
+      CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length];
     setCategories((cs) => [
       ...cs,
       {

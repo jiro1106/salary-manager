@@ -264,13 +264,13 @@ export default function CutDial({
                 className={[
                   "font-display font-extrabold leading-none",
                   figureSize,
-                  isOver ? "text-clay-edge" : "text-ink",
+                  isOver ? "text-action-edge" : "text-ink",
                 ].join(" ")}
               >
                 {figure}
               </b>
               {isOver ? (
-                <small className="mt-1 whitespace-nowrap text-label tracking-normal text-clay-edge">
+                <small className="mt-1 whitespace-nowrap text-label tracking-normal text-action-edge">
                   over by {pct(totalPercent - 100)}%
                 </small>
               ) : (
