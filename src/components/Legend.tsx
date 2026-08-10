@@ -76,7 +76,10 @@ export default function Legend({
               {seg.name}
             </span>
             {isBiggest && (
-              <span className="flex-none inline-flex items-center gap-1 rounded-control bg-ink px-2 py-[3px] text-label font-bold uppercase tracking-tag text-on-color">
+              <span
+                aria-label="Biggest"
+                className="flex-none inline-flex items-center gap-1 rounded-control bg-ink px-2 py-[3px] text-label font-bold uppercase tracking-tag text-on-color"
+              >
                 {/* the one gold thing on the page; sand on ink, not on white,
                     which is the only ground it clears */}
                 <Crown
@@ -85,7 +88,10 @@ export default function Legend({
                   aria-hidden="true"
                   className="text-sand"
                 />
-                Biggest
+                {/* Below 700px the row's fixed items already outrun the card,
+                    so the word goes and the crown alone carries the tag. The
+                    aria-label above says it either way. */}
+                <span className="max-[700px]:hidden">Biggest</span>
               </span>
             )}
             {/* Floors, not fixed widths. These are the measures the two
@@ -100,7 +106,7 @@ export default function Legend({
             <span className="ml-auto min-w-[5ch] flex-none text-right text-meta text-ink-soft">
               {pct(seg.percent)}%
             </span>
-            <span className="min-w-[10ch] flex-none text-right font-display text-title font-bold">
+            <span className="min-w-[10ch] max-[700px]:min-w-[7ch] flex-none text-right font-display text-title font-bold">
               {pesoRound((salary * (Number(seg.percent) || 0)) / 100)}
             </span>
           </div>
