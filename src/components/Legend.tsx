@@ -47,7 +47,13 @@ export default function Legend({
             onPointerEnter={() => onHover(seg.id)}
             onPointerLeave={() => onHover(null)}
             className={[
-              "flex items-center gap-[13px] rounded-control py-[11px]",
+              // Below 700px the figures drop to a second line (see the
+              // group further down), so the row has to be allowed to wrap.
+              // The row gap is set apart from the column gap: 13px between
+              // columns is a separator, 13px between the two lines of one
+              // row would read as two rows.
+              "flex items-center gap-x-[13px] gap-y-1 rounded-control py-[11px]",
+              "max-[700px]:flex-wrap",
               // The tint needs room the column does not have, so the row
               // grows into the gutter on both sides and pads its content
               // back to where it was.
@@ -66,47 +72,67 @@ export default function Legend({
             <span
               aria-hidden="true"
               className={[
-                "grid h-[28px] w-[28px] flex-none place-items-center",
+                "relative grid h-[28px] w-[28px] flex-none place-items-center",
                 "rounded-control bg-cat text-on-color",
               ].join(" ")}
             >
               <Mark size={14} strokeWidth={2} />
+              {/* The biggest share is crowned on its pip rather than tagged
+                  beside its name. A tag is an inline word, and its width came
+                  out of the name column on one row only — so the one category
+                  that most deserved reading was the one that truncated. On
+                  the pip the mark costs the row nothing at any width, and it
+                  sits on the object it qualifies: the wedge's key. Sand on
+                  ink, not on white, which is the only ground it clears. */}
+              {isBiggest && (
+                <span className="absolute -right-[5px] -top-[5px] grid h-[15px] w-[15px] place-items-center rounded-full bg-ink">
+                  <Crown size={9} strokeWidth={2.6} className="text-sand" />
+                </span>
+              )}
             </span>
-            <span className="min-w-0 truncate text-body font-bold">
+            <span className="min-w-0 flex-1 truncate text-body font-bold">
               {seg.name}
             </span>
-            {isBiggest && (
-              <span
-                aria-label="Biggest"
-                className="flex-none inline-flex items-center gap-1 rounded-control bg-ink px-2 py-[3px] text-label font-bold uppercase tracking-tag text-on-color"
-              >
-                {/* the one gold thing on the page; sand on ink, not on white,
-                    which is the only ground it clears */}
-                <Crown
-                  size={11}
-                  strokeWidth={2.4}
-                  aria-hidden="true"
-                  className="text-sand"
-                />
-                {/* Below 700px the row's fixed items already outrun the card,
-                    so the word goes and the crown alone carries the tag. The
-                    aria-label above says it either way. */}
-                <span className="max-[700px]:hidden">Biggest</span>
-              </span>
-            )}
+            {/* The pip is aria-hidden, so the crown says nothing on its own. */}
+            {isBiggest && <span className="sr-only">Biggest</span>}
+
+            {/* Below 700px four columns do not fit: a floor of 5ch plus one
+                of 10ch plus the pip and the gaps left the name so little
+                that every template name this app ships with truncated to
+                two characters. So the percent, and only the percent, drops
+                to a second line — it is what the row can spare, because it
+                is a description of the category rather than the figure the
+                reader came for.
+
+                It goes under the *name*, left, at the pip's 28px plus the
+                13px gap, which reads as a subtitle to the thing it
+                describes. Two arrangements were tried and reverted: both
+                figures wrapped together left the name a line of its own and
+                the money a line of its own, which is two rows pretending to
+                be one; both wrapped hard right left the percent floating in
+                the middle of an otherwise empty line, keyed to nothing.
+
+                The peso never leaves the first line, because it is the
+                money column the "unassigned" figure in the foot lines up
+                with, and a column that moves at a breakpoint is not one. */}
             {/* Floors, not fixed widths. These are the measures the two
                 columns line up on, and every realistic figure sits inside
                 them, so the common case is identical. But the app caps
                 neither the payday nor a share, and a figure wider than a
                 fixed box does not clip — right-aligned, the excess hangs
-                off the *left*, straight across the name beside it. A floor
-                keeps the column and lets the rare ₱1,000,000+ row push
-                instead of overlap; the right edges stay aligned either
-                way, because the block is what ml-auto pushes. */}
-            <span className="ml-auto min-w-[5ch] flex-none text-right text-meta text-ink-soft">
+                off the *left*, straight across whatever is beside it. A
+                floor keeps the column and lets the rare ₱1,000,000+ row
+                push instead of overlap. */}
+            <span
+              className={[
+                "min-w-[5ch] flex-none text-right text-meta text-ink-soft",
+                "max-[700px]:order-last max-[700px]:w-full",
+                "max-[700px]:pl-[41px] max-[700px]:text-left",
+              ].join(" ")}
+            >
               {pct(seg.percent)}%
             </span>
-            <span className="min-w-[10ch] max-[700px]:min-w-[7ch] flex-none text-right font-display text-title font-bold">
+            <span className="min-w-[10ch] flex-none text-right font-display text-title font-bold">
               {pesoRound((salary * (Number(seg.percent) || 0)) / 100)}
             </span>
           </div>
@@ -119,7 +145,7 @@ export default function Legend({
         </span>
         <span className="font-display font-bold text-ink">
           {pesoRound(unassigned)}{" "}
-          <span className="font-normal text-ink-soft">unassigned</span>
+          <span className="font-normal text-ink-soft"> unassigned</span>
         </span>
       </p>
     </div>

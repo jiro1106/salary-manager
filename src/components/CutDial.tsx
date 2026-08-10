@@ -181,10 +181,20 @@ export default function CutDial({
           ? `${pct(totalPercent)}% assigned, over by ${pct(totalPercent - 100)}%`
           : `${pct(totalPercent)}% of this payday assigned`
       }
+      // A finger produces no pointermove before it lands, so touch needs
+      // pointerdown or the dial is inert on the device most readers open
+      // this on. Nothing latches either way: the wedge is lit while the
+      // finger is on it and dark when it lifts, which is the same rule the
+      // pointer already follows. Cancel clears it because a drag that
+      // turns into a page scroll takes the pointer without a leave.
+      onPointerDown={(e) =>
+        onHover(wedgeAt(e, e.currentTarget.getBoundingClientRect()))
+      }
       onPointerMove={(e) =>
         onHover(wedgeAt(e, e.currentTarget.getBoundingClientRect()))
       }
       onPointerLeave={() => onHover(null)}
+      onPointerCancel={() => onHover(null)}
     >
       {slices.map((s) => {
         const isActive = s.key === activeId;

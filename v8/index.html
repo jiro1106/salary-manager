@@ -1,136 +1,256 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nala — Your split</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="nala.css">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nala — Your split</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="nala.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="mast sits">
+        <!-- IMAGE SLOT A · 1:1 · brand mark. Sits on the deck's top edge. -->
+        <span class="mark cat"><img src="logo.png" alt="Nala" /></span>
+        <span class="wordmark">
+          <b>Nala</b>
+          <span class="sub">Salary manager</span>
+        </span>
 
-<div class="wrap">
+        <!-- which split you are working from, and the way to change it -->
+        <a
+          class="tplchip"
+          href="templates.html"
+          aria-label="Change template. Currently Default, 50 / 30 / 20"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="2" />
+            <rect x="3" y="15" width="8" height="6" rx="2" />
+            <rect x="15" y="3" width="6" height="18" rx="2" />
+          </svg>
+          Default <span>· 50 / 30 / 20</span>
+          <i>›</i>
+        </a>
+      </header>
 
-  <header class="mast sits">
-    <!-- IMAGE SLOT A · 1:1 · brand mark. Sits on the deck's top edge. -->
-    <span class="mark cat"><img src="logo.png" alt="Nala"></span>
-    <span class="wordmark">
-      <b>Nala</b>
-      <span class="sub">Salary manager</span>
-    </span>
+      <!-- THE DECK · amount, action, dial and legend on one slab -->
+      <section class="slab a deck">
+        <div class="deck-top">
+          <div>
+            <p class="eyebrow">Payday amount</p>
+            <span class="amount"><i>₱</i>30,000</span>
+          </div>
+          <button class="btn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 3h11l3 3v15H5V3Zm3 0v6h7V3H8Zm1 11h6v5H9v-5Z" />
+            </svg>
+            Save this payday
+          </button>
+        </div>
 
-    <!-- which split you are working from, and the way to change it -->
-    <a class="tplchip" href="templates.html" aria-label="Change template. Currently Default, 50 / 30 / 20">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/><rect x="15" y="3" width="6" height="18" rx="2"/></svg>
-      Default <span>· 50 / 30 / 20</span>
-      <i>›</i>
-    </a>
-  </header>
+        <hr class="deck-rule" />
 
-  <!-- THE DECK · amount, action, dial and legend on one slab -->
-  <section class="slab a deck">
-    <div class="deck-top">
-      <div>
-        <p class="eyebrow">Payday amount</p>
-        <span class="amount"><i>₱</i>30,000</span>
+        <div class="deck-split">
+          <div class="dial">
+            <i class="w-needs"></i><i class="w-wants"></i><i class="w-save"></i>
+            <span class="core"><b>100%</b><small>assigned</small></span>
+          </div>
+          <div class="legend">
+            <div class="leg">
+              <span class="pip a"></span><span class="leg-name">Needs</span
+              ><span class="tag">Biggest</span><span class="leg-pct">50%</span
+              ><span class="leg-amt">₱15,000</span>
+            </div>
+            <div class="leg">
+              <span class="pip b"></span><span class="leg-name">Wants</span
+              ><span class="leg-pct">30%</span
+              ><span class="leg-amt">₱9,000</span>
+            </div>
+            <div class="leg">
+              <span class="pip c"></span><span class="leg-name">Savings</span
+              ><span class="leg-pct">20%</span
+              ><span class="leg-amt">₱6,000</span>
+            </div>
+            <p class="leg-foot">
+              <span>3 categories</span><span><b>₱0</b> unassigned</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="cats">
+        <article
+          class="slab a cat open"
+          style="--c: var(--teal); --ce: var(--teal-e)"
+        >
+          <div class="cat-body">
+            <div class="cat-top">
+              <span class="glyph"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3 2 11h3v10h6v-6h2v6h6V11h3L12 3Z" /></svg
+              ></span>
+              <h3>Needs</h3>
+              <button class="pen" aria-label="Rename Needs">
+                <svg viewBox="0 0 24 24">
+                  <path d="m15 4 5 5L9 20H4v-5L15 4Z" />
+                </svg>
+              </button>
+              <button class="x" aria-label="Delete Needs">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+                </svg>
+              </button>
+            </div>
+            <div class="cat-fig">
+              <span class="field">50</span><span class="unit">%</span>
+              <span class="cat-amt">₱15,000.00</span>
+            </div>
+          </div>
+          <button class="cat-foot" aria-expanded="true">
+            4 items · all assigned <i>⌄</i>
+          </button>
+          <div class="cat-items">
+            <div class="item">
+              <span class="item-name">Rent</span><span class="field">40</span
+              ><span class="unit">%</span><span class="item-amt">₱6,000</span>
+            </div>
+            <div class="item">
+              <span class="item-name">Utilities</span
+              ><span class="field">15</span><span class="unit">%</span
+              ><span class="item-amt">₱2,250</span>
+            </div>
+            <div class="item">
+              <span class="item-name">Groceries</span
+              ><span class="field">25</span><span class="unit">%</span
+              ><span class="item-amt">₱3,750</span>
+            </div>
+            <div class="item">
+              <span class="item-name">Transportation</span
+              ><span class="field">20</span><span class="unit">%</span
+              ><span class="item-amt">₱3,000</span>
+            </div>
+            <button class="add-item">+ Add an item</button>
+          </div>
+        </article>
+
+        <article
+          class="slab b cat"
+          style="--c: var(--clay); --ce: var(--clay-e)"
+        >
+          <div class="cat-body">
+            <div class="cat-top">
+              <span class="glyph"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M4 8h16l-1.4 13H5.4L4 8Zm4 0a4 4 0 0 1 8 0h-2a2 2 0 0 0-4 0H8Z"
+                  /></svg
+              ></span>
+              <h3>Wants</h3>
+              <button class="pen" aria-label="Rename Wants">
+                <svg viewBox="0 0 24 24">
+                  <path d="m15 4 5 5L9 20H4v-5L15 4Z" />
+                </svg>
+              </button>
+              <button class="x" aria-label="Delete Wants">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+                </svg>
+              </button>
+            </div>
+            <div class="cat-fig">
+              <span class="field">30</span><span class="unit">%</span>
+              <span class="cat-amt">₱9,000.00</span>
+            </div>
+          </div>
+          <button class="cat-foot" aria-expanded="false">
+            3 items · <b>₱900.00</b> left to assign <i>⌄</i>
+          </button>
+        </article>
+
+        <article
+          class="slab c cat"
+          style="--c: var(--plum); --ce: var(--plum-e)"
+        >
+          <div class="cat-body">
+            <div class="cat-top">
+              <span class="glyph"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M17 6c2 .9 3.4 2.8 3.4 5 0 1.6-.7 3-1.9 4V18h-2.6l-.5-1.4a9 9 0 0 1-4.4 0L10.5 18H7.9v-2.8a6.5 6.5 0 0 1-2.3-3.6H4v-3h1.7C6.6 6.5 9 5 12 5h5.6L17 6Zm-1.4 4.2a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                  /></svg
+              ></span>
+              <h3>Savings</h3>
+              <button class="pen" aria-label="Rename Savings">
+                <svg viewBox="0 0 24 24">
+                  <path d="m15 4 5 5L9 20H4v-5L15 4Z" />
+                </svg>
+              </button>
+              <button class="x" aria-label="Delete Savings">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+                </svg>
+              </button>
+            </div>
+            <div class="cat-fig">
+              <span class="field">20</span><span class="unit">%</span>
+              <span class="cat-amt">₱6,000.00</span>
+            </div>
+          </div>
+          <button class="cat-foot warn" aria-expanded="false">
+            2 items · over by <b>₱600.00</b> <i>⌄</i>
+          </button>
+        </article>
+
+        <button class="add-cat"><i>+</i>Add category</button>
       </div>
-      <button class="btn">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5V3Zm3 0v6h7V3H8Zm1 11h6v5H9v-5Z"/></svg>
-        Save this payday
-      </button>
+
+      <section class="hist open">
+        <button class="hist-tog" aria-expanded="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4" />
+            <path d="M12 8v4l3 2" />
+          </svg>
+          Payday history (12)
+          <i>⌄</i>
+        </button>
+        <div class="slab c">
+          <div class="hrow">
+            <span class="hamt">₱30,000</span
+            ><span class="hdate">Jul 15, 2026</span
+            ><span class="hbrk">Needs 50% · Wants 30% · Savings 20%</span
+            ><button class="x" aria-label="Delete entry">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+              </svg>
+            </button>
+          </div>
+          <div class="hrow">
+            <span class="hamt">₱28,500</span
+            ><span class="hdate">Jun 30, 2026</span
+            ><span class="hbrk">Needs 55% · Wants 25% · Savings 20%</span
+            ><button class="x" aria-label="Delete entry">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+              </svg>
+            </button>
+          </div>
+          <div class="hrow">
+            <span class="hamt">₱30,000</span
+            ><span class="hdate">Jun 15, 2026</span
+            ><span class="hbrk">Needs 50% · Wants 30% · Savings 20%</span
+            ><button class="x" aria-label="Delete entry">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <hr class="deck-rule">
-
-    <div class="deck-split">
-      <div class="dial">
-        <i class="w-needs"></i><i class="w-wants"></i><i class="w-save"></i>
-        <span class="core"><b>100%</b><small>assigned</small></span>
-      </div>
-      <div class="legend">
-        <div class="leg"><span class="pip a"></span><span class="leg-name">Needs</span><span class="tag">Biggest</span><span class="leg-pct">50%</span><span class="leg-amt">₱15,000</span></div>
-        <div class="leg"><span class="pip b"></span><span class="leg-name">Wants</span><span class="leg-pct">30%</span><span class="leg-amt">₱9,000</span></div>
-        <div class="leg"><span class="pip c"></span><span class="leg-name">Savings</span><span class="leg-pct">20%</span><span class="leg-amt">₱6,000</span></div>
-        <p class="leg-foot"><span>3 categories</span><span><b>₱0</b> unassigned</span></p>
-      </div>
-    </div>
-  </section>
-
-  <div class="cats">
-
-    <article class="slab a cat open" style="--c:var(--teal);--ce:var(--teal-e)">
-      <div class="cat-body">
-        <div class="cat-top">
-          <span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 11h3v10h6v-6h2v6h6V11h3L12 3Z"/></svg></span>
-          <h3>Needs</h3>
-          <button class="pen" aria-label="Rename Needs"><svg viewBox="0 0 24 24"><path d="m15 4 5 5L9 20H4v-5L15 4Z"/></svg></button>
-          <button class="x" aria-label="Delete Needs"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button>
-        </div>
-        <div class="cat-fig">
-          <span class="field">50</span><span class="unit">%</span>
-          <span class="cat-amt">₱15,000.00</span>
-        </div>
-      </div>
-      <button class="cat-foot" aria-expanded="true">4 items · all assigned <i>⌄</i></button>
-      <div class="cat-items">
-        <div class="item"><span class="item-name">Rent</span><span class="field">40</span><span class="unit">%</span><span class="item-amt">₱6,000</span></div>
-        <div class="item"><span class="item-name">Utilities</span><span class="field">15</span><span class="unit">%</span><span class="item-amt">₱2,250</span></div>
-        <div class="item"><span class="item-name">Groceries</span><span class="field">25</span><span class="unit">%</span><span class="item-amt">₱3,750</span></div>
-        <div class="item"><span class="item-name">Transportation</span><span class="field">20</span><span class="unit">%</span><span class="item-amt">₱3,000</span></div>
-        <button class="add-item">+ Add an item</button>
-      </div>
-    </article>
-
-    <article class="slab b cat" style="--c:var(--clay);--ce:var(--clay-e)">
-      <div class="cat-body">
-        <div class="cat-top">
-          <span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16l-1.4 13H5.4L4 8Zm4 0a4 4 0 0 1 8 0h-2a2 2 0 0 0-4 0H8Z"/></svg></span>
-          <h3>Wants</h3>
-          <button class="pen" aria-label="Rename Wants"><svg viewBox="0 0 24 24"><path d="m15 4 5 5L9 20H4v-5L15 4Z"/></svg></button>
-          <button class="x" aria-label="Delete Wants"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button>
-        </div>
-        <div class="cat-fig">
-          <span class="field">30</span><span class="unit">%</span>
-          <span class="cat-amt">₱9,000.00</span>
-        </div>
-      </div>
-      <button class="cat-foot" aria-expanded="false">3 items · <b>₱900.00</b> left to assign <i>⌄</i></button>
-    </article>
-
-    <article class="slab c cat" style="--c:var(--plum);--ce:var(--plum-e)">
-      <div class="cat-body">
-        <div class="cat-top">
-          <span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6c2 .9 3.4 2.8 3.4 5 0 1.6-.7 3-1.9 4V18h-2.6l-.5-1.4a9 9 0 0 1-4.4 0L10.5 18H7.9v-2.8a6.5 6.5 0 0 1-2.3-3.6H4v-3h1.7C6.6 6.5 9 5 12 5h5.6L17 6Zm-1.4 4.2a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg></span>
-          <h3>Savings</h3>
-          <button class="pen" aria-label="Rename Savings"><svg viewBox="0 0 24 24"><path d="m15 4 5 5L9 20H4v-5L15 4Z"/></svg></button>
-          <button class="x" aria-label="Delete Savings"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button>
-        </div>
-        <div class="cat-fig">
-          <span class="field">20</span><span class="unit">%</span>
-          <span class="cat-amt">₱6,000.00</span>
-        </div>
-      </div>
-      <button class="cat-foot warn" aria-expanded="false">2 items · over by <b>₱600.00</b> <i>⌄</i></button>
-    </article>
-
-    <button class="add-cat"><i>+</i>Add category</button>
-  </div>
-
-  <section class="hist open">
-    <button class="hist-tog" aria-expanded="true">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>
-      Payday history (12)
-      <i>⌄</i>
-    </button>
-    <div class="slab c">
-      <div class="hrow"><span class="hamt">₱30,000</span><span class="hdate">Jul 15, 2026</span><span class="hbrk">Needs 50% · Wants 30% · Savings 20%</span><button class="x" aria-label="Delete entry"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button></div>
-      <div class="hrow"><span class="hamt">₱28,500</span><span class="hdate">Jun 30, 2026</span><span class="hbrk">Needs 55% · Wants 25% · Savings 20%</span><button class="x" aria-label="Delete entry"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button></div>
-      <div class="hrow"><span class="hamt">₱30,000</span><span class="hdate">Jun 15, 2026</span><span class="hbrk">Needs 50% · Wants 30% · Savings 20%</span><button class="x" aria-label="Delete entry"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 14h8l1-14"/></svg></button></div>
-    </div>
-  </section>
-
-</div>
-</body>
+  </body>
 </html>
