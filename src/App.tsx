@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Undo2 } from "lucide-react";
 import { Category, Config, HistoryEntry } from "./types";
 import { uid } from "./lib/format";
 import { storage } from "./lib/storage";
@@ -9,6 +10,7 @@ import {
   matchTemplate,
   splitOf,
 } from "./lib/templates";
+import Button from "./components/Button";
 import Masthead from "./components/Masthead";
 import PaydayHeader from "./components/PaydayHeader";
 import TemplateGallery from "./components/TemplateGallery";
@@ -40,6 +42,23 @@ export default function App() {
   // flash has to replay on the second click as much as the first and a
   // boolean would already be true.
   const [restoreTick, setRestoreTick] = useState(0);
+  // The last destructive edit to the split, and what it produced. Deleting
+  // a category, deleting one of its items and applying a template are the
+  // three acts here that throw work away, and until now the only thing
+  // standing in front of any of them was a dialog — which asks the reader
+  // to be certain in advance instead of letting them find out.
+  //
+  // `next` is kept so the offer can expire on its own: it is the exact
+  // array the act produced, and the bar shows only while `categories` is
+  // still that array. Any later edit builds a new one and the offer is
+  // gone, which is the honest expiry — undoing after an edit would restore
+  // a split from before that edit and quietly destroy it, so the undo
+  // would be the second destructive act rather than the cure for the first.
+  const [undo, setUndo] = useState<{
+    prev: Category[];
+    next: Category[];
+    label: string;
+  } | null>(null);
   const skipSave = useRef(true);
 
   useEffect(() => {
@@ -100,8 +119,37 @@ export default function App() {
       cs.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     );
 
-  const removeCategory = (id: string) =>
-    setCategories((cs) => cs.filter((c) => c.id !== id));
+  // Every act that throws part of the split away goes through here, so
+  // there is one place that knows how to put it back.
+  const replaceCategories = (next: Category[], label: string) => {
+    setCategories(next);
+    setUndo({ prev: categories, next, label });
+  };
+
+  const removeCategory = (id: string) => {
+    const gone = categories.find((c) => c.id === id);
+    replaceCategories(
+      categories.filter((c) => c.id !== id),
+      `Deleted "${gone?.name ?? "category"}"`,
+    );
+  };
+
+  // Lives here rather than inside the card for the same reason every other
+  // mutation does: it produces a whole new categories array, and only this
+  // level can hand that array to the undo latch.
+  const removeSub = (catId: string, subId: string) => {
+    const gone = categories
+      .find((c) => c.id === catId)
+      ?.subs.find((s) => s.id === subId);
+    replaceCategories(
+      categories.map((c) =>
+        c.id === catId
+          ? { ...c, subs: c.subs.filter((s) => s.id !== subId) }
+          : c,
+      ),
+      `Deleted "${gone?.name ?? "item"}"`,
+    );
+  };
 
   const addCategory = () => {
     // The next ink in the palette's own order that is not already on
@@ -129,8 +177,15 @@ export default function App() {
     ]);
   };
 
+  // The most destructive act in the app: it replaces the split wholesale,
+  // and it is the only one that never asked first. It still doesn't — the
+  // gallery is a room you walk into on purpose — but the split you had is
+  // now one press away on the other side.
   const applyTemplate = (template: Template) => {
-    setCategories(instantiateTemplate(template));
+    replaceCategories(
+      instantiateTemplate(template),
+      `Replaced your split with ${template.name}`,
+    );
     setView("home");
   };
 
@@ -220,13 +275,47 @@ export default function App() {
           onSave={savePaycheck}
           savedFlash={savedFlash}
           categories={categories}
+          onResizeCategory={(id, percent) => updateCategory(id, { percent })}
         />
+
+        {/* Mounted empty, like the over-allocation banner above it and for
+            the same reason: a live region has to be registered before
+            anything lands in it or the first message goes unread. Empty it
+            draws no box and takes no margin, so the deck and the cards sit
+            exactly where they did.
+
+            It sits between the deck and the cards because that is where
+            the loss is visible — a deleted card left a gap in the grid
+            below, and a replaced split redrew the dial above. Nothing
+            times it out: an offer that expires while the reader is still
+            working out what happened is not an offer. */}
+        <div role="status">
+          {undo !== null && undo.next === categories && (
+            <div className="mt-stack flex flex-wrap items-center justify-between gap-3 rounded-slab border border-line bg-card px-[22px] py-3.5">
+              <p className="font-display text-meta font-semibold text-ink-soft">
+                {undo.label}
+              </p>
+              <Button
+                small
+                variant="alt"
+                onClick={() => {
+                  setCategories(undo.prev);
+                  setUndo(null);
+                }}
+              >
+                <Undo2 size={15} strokeWidth={2.2} aria-hidden="true" />
+                Undo
+              </Button>
+            </div>
+          )}
+        </div>
 
         <CategoryList
           categories={categories}
           salary={salary}
           onChangeCategory={updateCategory}
           onRemoveCategory={removeCategory}
+          onRemoveSub={removeSub}
           onAddCategory={addCategory}
         />
 

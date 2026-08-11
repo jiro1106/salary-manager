@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { SubCategory } from "../types";
-import ConfirmDialog from "./ConfirmDialog";
 import EditableName from "./EditableName";
 import IconButton from "./IconButton";
 import NumberField from "./NumberField";
@@ -21,6 +19,14 @@ interface SubCategoryRowProps {
   sub: SubCategory;
   catAmount: number;
   onChange: (patch: Partial<SubCategory>) => void;
+  /**
+   * Deletes the item outright, with no dialog in front of it. There was
+   * one, and it went when the undo bar arrived: a modal is a demand to be
+   * certain in advance, and it was standing in front of the cheapest,
+   * most-repeated act on the page — one line, deleted, offered back. What
+   * still keeps its dialog is deleting a whole category, which takes every
+   * item under it along.
+   */
   onRemove: () => void;
 }
 
@@ -30,7 +36,6 @@ export default function SubCategoryRow({
   onChange,
   onRemove,
 }: SubCategoryRowProps) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const pesoValue = (catAmount * Number(sub.percent || 0)) / 100;
   // Nothing to divide up yet, so the peso field has no base to work from.
   const pesoDisabled = catAmount <= 0;
@@ -38,11 +43,6 @@ export default function SubCategoryRow({
   const handlePesoChange = (value: number) => {
     if (catAmount <= 0) return;
     onChange({ percent: (value / catAmount) * 100 });
-  };
-
-  const confirmDelete = () => {
-    setConfirmOpen(false);
-    onRemove();
   };
 
   return (
@@ -84,23 +84,10 @@ export default function SubCategoryRow({
           width="w-[6ch]"
           disabled={pesoDisabled}
         />
-        <IconButton
-          label={`Delete ${sub.name}`}
-          onClick={() => setConfirmOpen(true)}
-          danger
-        >
+        <IconButton label={`Delete ${sub.name}`} onClick={onRemove} danger>
           <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
         </IconButton>
       </div>
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title={`Delete "${sub.name}"?`}
-        description="The share it holds goes back to this category."
-        confirmLabel="Delete item"
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmOpen(false)}
-      />
     </div>
   );
 }

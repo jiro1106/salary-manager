@@ -16,6 +16,7 @@ interface CategoryCardProps {
   salary: number;
   onChange: (patch: Partial<Category>) => void;
   onRemove: () => void;
+  onRemoveSub: (subId: string) => void;
 }
 
 export default function CategoryCard({
@@ -23,6 +24,7 @@ export default function CategoryCard({
   salary,
   onChange,
   onRemove,
+  onRemoveSub,
 }: CategoryCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -52,9 +54,6 @@ export default function CategoryCard({
     onChange({
       subs: cat.subs.map((s) => (s.id === subId ? { ...s, ...patch } : s)),
     });
-
-  const removeSub = (subId: string) =>
-    onChange({ subs: cat.subs.filter((s) => s.id !== subId) });
 
   const addSub = () =>
     onChange({
@@ -178,7 +177,7 @@ export default function CategoryCard({
               sub={sub}
               catAmount={catAmount}
               onChange={(patch) => updateSub(sub.id, patch)}
-              onRemove={() => removeSub(sub.id)}
+              onRemove={() => onRemoveSub(sub.id)}
             />
           ))}
           <button
@@ -203,7 +202,11 @@ export default function CategoryCard({
             ? `Delete "${cat.name}" and its ${cat.subs.length} item${cat.subs.length !== 1 ? "s" : ""}?`
             : `Delete "${cat.name}"?`
         }
-        description={`Its ${Math.round(Number(cat.percent) || 0)}% goes back to unassigned. This cannot be undone.`}
+        // The dialog survives undo because the two answer different
+        // questions: it names what is about to go (a card, and everything
+        // filed under it), and the undo bar catches the reader who said
+        // yes to that and meant no.
+        description={`Its ${Math.round(Number(cat.percent) || 0)}% goes back to unassigned. You can undo this straight after.`}
         confirmLabel="Delete category"
         onConfirm={confirmDelete}
         onCancel={() => setConfirmOpen(false)}
