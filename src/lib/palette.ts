@@ -14,7 +14,7 @@
  *   - `--ink` (#23211e) on the face clears 4.5:1. Lowest here is violet
  *     at 6.99, so the category name, the amount and every icon are safe
  *     at any size, not just at large-text sizes.
- *   - the deep shade clears 4.5:1 on white. Lowest here is punch at 4.50,
+ *   - the deep shade clears 4.5:1 on white. Lowest here is lime at 4.51,
  *     because the deep is what carries small text on a card and the pip
  *     glyph beside the dial.
  *

@@ -55,7 +55,7 @@
        - --ink on the face clears 4.5:1, not 3:1. The old dark faces were
          held to 3:1 because only large text and icons ever sat on them;
          these clear the small-text bar outright, lowest violet at 6.99.
-       - the deep clears 4.5:1 on white, lowest punch at 4.50, because the
+       - the deep clears 4.5:1 on white, lowest lime at 4.51, because the
          deep is what carries small text on a card and the pip glyph.
 
      The deep is no longer a fixed 22% darkening. Darkening a light face
@@ -145,10 +145,12 @@
   --sh-field: inset 0 0 0 1px var(--field-line);
 
   /* --- radii ---
-     Two values, and only two: every surface is 10px and every control is
-     6px. Nothing here is per-component, so nothing can drift out of step
-     with the rest. Circles use rounded-full, which is a shape, not a
-     corner. --- */
+     Two values, and only two: every surface is --r and every control is
+     --r-sm. Named rather than restated, because the prose under the old
+     figures went stale the moment the figures moved and then sat two lines
+     above the values contradicting them. Nothing here is per-component, so
+     nothing can drift out of step with the rest. Circles use rounded-full,
+     which is a shape, not a corner. --- */
   --r: 12px;
   --r-sm: 8px;
 
@@ -198,7 +200,7 @@
     overflow-x: hidden;
   }
 
-  /* Blue clears white, card and all four category grounds */
+  /* Blue clears white, card and all five category faces; worst is 3.92 */
   :focus-visible {
     outline: 3px solid var(--blue);
     outline-offset: 3px;
@@ -234,6 +236,24 @@
   100% {
     transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
     opacity: 0;
+  }
+}
+
+/* The payday field, receiving. A history row sits at the foot of the page
+   and writes to this field at the head of it, so the reader is scrolled
+   back up here and has to be told what landed. The wash is what says it:
+   it starts on the action tint every other consequence on this page is
+   drawn in and settles onto the field's own resting ground, so the field
+   is lit rather than recoloured. It has to run when the figure *doesn't*
+   change too — restoring the newest payday usually restores the amount
+   already in the field, and a control that does nothing visible on the
+   most common click reads as broken. */
+@keyframes nala-restore {
+  from {
+    background-color: var(--action-tint);
+  }
+  to {
+    background-color: var(--sunk);
   }
 }
 

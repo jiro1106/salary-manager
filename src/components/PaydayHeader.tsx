@@ -25,6 +25,19 @@ const BURST_DOTS: { dx: number; dy: number; color: string; delay: number }[] = [
 interface PaydayHeaderProps {
   salary: number;
   onSalaryChange: (value: number) => void;
+  /**
+   * Owned by `App` rather than declared here, because restoring a payday
+   * from the history panel at the foot of the page has to be able to send
+   * the reader back to this field. Focus is the whole feedback: it scrolls
+   * the field into view and paints the ring, which is what makes the click
+   * legible even when the figure it restored is the one already there.
+   */
+  inputRef: React.RefObject<HTMLInputElement>;
+  /**
+   * A count of history restores, not a flag. The field flashes on every
+   * one of them, and a boolean would already be true on the second click.
+   */
+  restoreTick?: number;
   totalPercent: number;
   onSave: () => void;
   savedFlash: boolean;
@@ -94,12 +107,13 @@ function formatWithCommas(rawValue: string): string {
 export default function PaydayHeader({
   salary,
   onSalaryChange,
+  inputRef,
+  restoreTick = 0,
   totalPercent,
   onSave,
   savedFlash,
   categories = [],
 }: PaydayHeaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<number | null>(null);
 
   // Local raw string mirrors `salary` but preserves in-progress typing
@@ -156,6 +170,38 @@ export default function PaydayHeader({
     cursorRef.current = newPos;
   };
 
+  /**
+   * Arrow stepping, in the stride this field actually moves in. The share
+   * chips step ±1 / ±10 because a percent is read in points; a payday is
+   * not, and a take-home pay that nudges by one peso is a stepper nobody
+   * would press twice. ±100 and ±1,000 are the units a person actually
+   * revises a payday by.
+   *
+   * Different strides on the same gesture is the point rather than an
+   * inconsistency: the two fields carry different units, and matching the
+   * numbers would mean mismatching what the numbers mean.
+   *
+   * Goes through the same digit ceiling a keystroke does, so stepping
+   * cannot reach a figure typing could not, and floors at zero. It leaves
+   * `cursorRef` alone: this does not edit the string around a caret, so
+   * the restore in the layout effect below has nothing to put back.
+   */
+  const handleSalaryKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+
+    const delta = (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 1000 : 100);
+    const base = rawValue === "" ? 0 : Number(rawValue);
+    const ceiling = 10 ** MAX_INT_DIGITS - 1;
+    const next = Math.min(
+      ceiling,
+      Math.max(0, Math.round(((Number.isFinite(base) ? base : 0) + delta) * 100) / 100),
+    );
+
+    setRawValue(next === 0 ? "" : String(next));
+    onSalaryChange(next);
+  };
+
   useLayoutEffect(() => {
     if (inputRef.current && cursorRef.current !== null) {
       inputRef.current.setSelectionRange(cursorRef.current, cursorRef.current);
@@ -173,6 +219,22 @@ export default function PaydayHeader({
   // nothing, so no stale id can light a wedge.
   const activeId =
     hovered && categories.some((c) => c.id === hovered) ? hovered : null;
+
+  // Held as state rather than keyed on the tick, because a key on the field
+  // wrapper would remount the input the tick is meant to draw attention to
+  // — and remounting it drops the focus App just placed and the caret with
+  // it. Adding and removing a class animates the same box instead. Dropped
+  // after the run so the next restore can add it again; an animation that
+  // is already applied does not replay.
+  const [flash, setFlash] = useState(false);
+  const prevTick = useRef(restoreTick);
+  useEffect(() => {
+    if (restoreTick === prevTick.current) return;
+    prevTick.current = restoreTick;
+    setFlash(true);
+    const t = setTimeout(() => setFlash(false), 600);
+    return () => clearTimeout(t);
+  }, [restoreTick]);
 
   const clearSalary = () => {
     setRawValue("");
@@ -230,6 +292,11 @@ export default function PaydayHeader({
               "focus-within:outline focus-within:outline-[3px]",
               "focus-within:outline-blue focus-within:outline-offset-[3px]",
               isBlank ? "text-ink-faint" : "text-ink",
+              // Lit on arrival from a history row. The focus ring App
+              // places says "you are here"; this says "and this is what
+              // landed", which is the half the ring cannot carry when the
+              // restored figure is the one already in the field.
+              flash ? "animate-[nala-restore_600ms_var(--ease)]" : "",
             ].join(" ")}
           >
             <span
@@ -248,6 +315,7 @@ export default function PaydayHeader({
               aria-label="Take-home pay in pesos"
               value={displaySalary}
               onChange={handleSalaryChange}
+              onKeyDown={handleSalaryKeyDown}
               placeholder="0"
               // Fixed at 10ch, and no inline width: the box does not track
               // what is typed. A width that grew with the figure moved the

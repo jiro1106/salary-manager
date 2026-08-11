@@ -26,6 +26,20 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [savedFlash, setSavedFlash] = useState(false);
+  // Flipped by the first write that comes back false. Every edit on this
+  // page still applies to the screen when storage is blocked, so without
+  // this the app looks saved and isn't — the reader finds out by closing
+  // the tab. Latching rather than clearing: a browser that refused one
+  // write is not a browser to reassure anyone about.
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  // The payday field, held here because two screens' worth of page separate
+  // it from the history panel that sends the reader back to it.
+  const paydayRef = useRef<HTMLInputElement>(null);
+  // Bumped on every restore, including one that restores the figure already
+  // in the field. It is a count of clicks rather than a flag, because the
+  // flash has to replay on the second click as much as the first and a
+  // boolean would already be true.
+  const [restoreTick, setRestoreTick] = useState(0);
   const skipSave = useRef(true);
 
   useEffect(() => {
@@ -47,7 +61,9 @@ export default function App() {
     // mount pass, so nothing would be attached until the first edit.
     const save = () => {
       if (skipSave.current) return;
-      storage.set<Config>(CONFIG_KEY, { salary, categories });
+      if (!storage.set<Config>(CONFIG_KEY, { salary, categories })) {
+        setStorageBlocked(true);
+      }
     };
     const t = setTimeout(save, 400);
     // Close the 400ms window: an edit made just before the tab is hidden or
@@ -131,7 +147,9 @@ export default function App() {
     };
     const next = [entry, ...history].slice(0, 50);
     setHistory(next);
-    storage.set<HistoryEntry[]>(HISTORY_KEY, next);
+    if (!storage.set<HistoryEntry[]>(HISTORY_KEY, next)) {
+      setStorageBlocked(true);
+    }
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1600);
   };
@@ -139,7 +157,9 @@ export default function App() {
   const deleteEntry = (id: string) => {
     const next = history.filter((h) => h.id !== id);
     setHistory(next);
-    storage.set<HistoryEntry[]>(HISTORY_KEY, next);
+    if (!storage.set<HistoryEntry[]>(HISTORY_KEY, next)) {
+      setStorageBlocked(true);
+    }
   };
 
   if (view === "templates") {
@@ -173,9 +193,29 @@ export default function App() {
           wrapper, so the deck still rises into the mark's overlap exactly
           as it did. */}
       <main>
+        {/* The one thing on this page that is genuinely broken rather than
+            merely over-allocated, so it takes `alert` and sits above the
+            deck instead of inside it: it is not about this payday, it is
+            about every payday. It names what stopped working and what that
+            costs, and offers no dismissal — there is nothing the reader can
+            do here, and a warning about silent data loss that can be
+            silenced is the same bug again. */}
+        {storageBlocked && (
+          <p
+            role="alert"
+            className="mt-3 rounded-slab border border-line bg-action-tint px-4 py-3 text-meta font-semibold text-action-edge"
+          >
+            This browser is blocking local storage, so your split and your
+            payday history are not being saved. They will be gone when you
+            close the tab.
+          </p>
+        )}
+
         <PaydayHeader
           salary={salary}
           onSalaryChange={setSalary}
+          inputRef={paydayRef}
+          restoreTick={restoreTick}
           totalPercent={totalPercent}
           onSave={savePaycheck}
           savedFlash={savedFlash}
@@ -190,7 +230,51 @@ export default function App() {
           onAddCategory={addCategory}
         />
 
-        <HistoryPanel history={history} onDelete={deleteEntry} />
+        {/* Restores the payday figure and nothing else. The split is not
+            restored on purpose: a saved entry carries the categories as
+            they were *named and weighted then*, and putting those back
+            would silently replace whatever the reader has since built —
+            the one destructive act in this app that would happen without a
+            dialog. The amount is the part that is safe to hand back, and
+            it is the part worth re-entering.
+
+            The focus call is not a nicety, it is the feedback. This panel
+            sits at the foot of the page and the field it writes to is at
+            the head of it, so a bare setSalary changed a number the reader
+            could not see. Worse, the row they are most likely to click is
+            the newest one, whose amount is usually the amount already in
+            the field — React bails on the identical value and the row
+            reads as a dead control. Focusing scrolls the field into view
+            and paints the ring either way, so the click always lands
+            visibly, whether or not the figure moved. */}
+        <HistoryPanel
+          history={history}
+          onDelete={deleteEntry}
+          onRestore={(value) => {
+            setSalary(value);
+            setRestoreTick((n) => n + 1);
+
+            const field = paydayRef.current;
+            if (!field) return;
+            // preventScroll and then scroll on purpose. focus() on its own
+            // snaps the page to the field in one frame, which is the jump
+            // this replaces — the two steps are one gesture split so the
+            // travel can be eased.
+            field.focus({ preventScroll: true });
+            field.scrollIntoView({
+              // The global reduced-motion block in index.css kills CSS
+              // transitions and animations, and this is neither: an
+              // explicit behavior:"smooth" is honoured by the browser
+              // whatever the preference says, so it is asked here directly.
+              // Same check CutDial makes before tweening its wedges.
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                .matches
+                ? "auto"
+                : "smooth",
+              block: "center",
+            });
+          }}
+        />
       </main>
     </div>
   );

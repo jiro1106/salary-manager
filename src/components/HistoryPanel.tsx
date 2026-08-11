@@ -7,9 +7,23 @@ import IconButton from "./IconButton";
 interface HistoryPanelProps {
   history: HistoryEntry[];
   onDelete: (id: string) => void;
+  /** Puts a past payday's amount back in the field. Amount only. */
+  onRestore: (salary: number) => void;
 }
 
-export default function HistoryPanel({ history, onDelete }: HistoryPanelProps) {
+/** The largest share in a saved entry, which is all a phone has room for. */
+function topShare(entry: HistoryEntry) {
+  return entry.breakdown.reduce<HistoryEntry["breakdown"][number] | null>(
+    (best, b) => (best === null || b.percent > best.percent ? b : best),
+    null,
+  );
+}
+
+export default function HistoryPanel({
+  history,
+  onDelete,
+  onRestore,
+}: HistoryPanelProps) {
   const [showHistory, setShowHistory] = useState(false);
 
   return (
@@ -43,40 +57,78 @@ export default function HistoryPanel({ history, onDelete }: HistoryPanelProps) {
               No paydays saved yet. Hit Save payday and this is where it lands.
             </p>
           ) : (
-            history.map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center gap-4 py-3 [&+&]:border-t [&+&]:border-line"
-              >
-                {/* A floor rather than a fixed width: the column lines up
-                    on 9ch, which every ordinary payday fits inside, and a
-                    larger one pushes the date along rather than running
-                    underneath it. */}
-                <span className="min-w-[9ch] flex-none font-display text-body font-bold">
-                  {pesoRound(h.salary)}
-                </span>
-                <span className="w-[14ch] flex-none text-meta text-ink-soft">
-                  {new Date(h.date).toLocaleDateString("en-PH", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-meta text-ink-soft max-[700px]:hidden">
-                  {h.breakdown
-                    .map((b) => `${b.name} ${pct(b.percent)}%`)
-                    .join(" · ")}
-                </span>
-                <IconButton
-                  label={`Delete the payday saved on ${new Date(h.date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}`}
-                  onClick={() => onDelete(h.id)}
-                  danger
-                  className="ml-auto"
+            history.map((h) => {
+              const when = new Date(h.date).toLocaleDateString("en-PH", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              });
+              const top = topShare(h);
+
+              return (
+                // py-0.5 rather than py-3: the row's height now comes from
+                // the 44px target inside it, and the two arrive at the same
+                // 48px the padding pair used to.
+                <div
+                  key={h.id}
+                  className="flex items-center gap-4 py-0.5 [&+&]:border-t [&+&]:border-line"
                 >
-                  <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                </IconButton>
-              </div>
-            ))
+                  {/* The row is the way back to a past amount. Only the
+                      figure and its date are the control — the delete keeps
+                      its own target beside it, because a button inside a
+                      button is not a thing. */}
+                  <button
+                    type="button"
+                    onClick={() => onRestore(h.salary)}
+                    aria-label={`Use ${pesoRound(h.salary)} from ${when} as this payday's amount`}
+                    className={[
+                      "group/row flex min-h-hit min-w-0 flex-1 items-center gap-4",
+                      "rounded-control text-left",
+                    ].join(" ")}
+                  >
+                    {/* A floor rather than a fixed width: the column lines
+                        up on 9ch, which every ordinary payday fits inside,
+                        and a larger one pushes the date along rather than
+                        running underneath it. */}
+                    <span
+                      className={[
+                        "min-w-[9ch] flex-none font-display text-body font-bold",
+                        "transition-colors duration-fast ease-paper",
+                        "group-hover/row:text-action-edge",
+                      ].join(" ")}
+                    >
+                      {pesoRound(h.salary)}
+                    </span>
+                    <span className="w-[14ch] flex-none text-meta text-ink-soft">
+                      {when}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-meta text-ink-soft max-[700px]:hidden">
+                      {h.breakdown
+                        .map((b) => `${b.name} ${pct(b.percent)}%`)
+                        .join(" · ")}
+                    </span>
+                    {/* A phone has room for one share, not the run of them.
+                        It used to have room for none — the full string was
+                        simply hidden below 700px, which left a history row
+                        showing a figure and a date and nothing about how it
+                        was split. The largest share is the one worth the
+                        space. */}
+                    {top && (
+                      <span className="hidden min-w-0 flex-1 truncate text-meta text-ink-soft max-[700px]:block">
+                        {top.name} {pct(top.percent)}%
+                      </span>
+                    )}
+                  </button>
+                  <IconButton
+                    label={`Delete the payday saved on ${when}`}
+                    onClick={() => onDelete(h.id)}
+                    danger
+                  >
+                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                  </IconButton>
+                </div>
+              );
+            })
           )}
         </div>
       )}

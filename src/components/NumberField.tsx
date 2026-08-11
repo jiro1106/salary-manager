@@ -131,6 +131,43 @@ export default function NumberField({
     selectedOnFocus.current = false;
   };
 
+  /**
+   * Arrow stepping, restored by hand because the input is `type="text"`.
+   * The switch away from `type="number"` was made for the leading-zero bug
+   * documented above, and it silently took the stepper with it — which
+   * costs more than it looks, since nudging a share up or down is the most
+   * repeated gesture in this app and without this it is select-and-retype
+   * every time.
+   *
+   * Shift is the coarse step. The same ±1 / ±10 pair serves both units:
+   * a percent moves in points and a sub-item's peso figure is bounded by
+   * a category that is itself a percent of the payday, so neither wants
+   * the payday field's much larger stride.
+   *
+   * Clamped at both ends. Zero is the floor because a negative share is
+   * not a state this app has; the ceiling is the same digit cap a
+   * keystroke gets, so stepping cannot reach a figure typing could not.
+   * The result is rounded to 2dp so a step off a back-computed percent
+   * (33.33333333333333 + 1) lands on a figure rather than on its dust.
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+
+    const delta = (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 10 : 1);
+    const base = Number(draft ?? value);
+    const ceiling = 10 ** MAX_INT_DIGITS[unit] - 1;
+    const next = Math.min(
+      ceiling,
+      Math.max(0, Math.round(((Number.isFinite(base) ? base : 0) + delta) * 100) / 100),
+    );
+
+    // The draft is in-progress typing and this is not typing; dropping it
+    // puts the chip back on the canonical figure the step just produced.
+    setDraft(null);
+    onChange(next);
+  };
+
   // Ground is fill and ink only — the boundary is unconditional and lives
   // on the chip below, so every field on the page is drawn the same way.
   // The white chip on a category ink is its own boundary already and does
@@ -186,6 +223,7 @@ export default function NumberField({
           onChange={handleChange}
           onFocus={handleFocus}
           onMouseUp={handleMouseUp}
+          onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           className={[
             // Preflight already hands inputs the surrounding font and colour.

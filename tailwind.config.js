@@ -60,24 +60,55 @@ export default {
         // display figures, which are set apart by weight and size.
         display: ["Plus Jakarta Sans", "ui-rounded", "Segoe UI", "sans-serif"],
       },
+      // Seven distinct measures — 11 / 13 / 16 / 19 / 23 / 28 / 32 — and no
+      // two of them are within 1.14 of each other. Ten names still resolve
+      // onto those seven, because a name is where a component says what a
+      // thing *is* and merging the names would mean editing every call site
+      // to say the same thing in fewer words.
+      //
+      // It used to be nine measures inside 11–29, three of which were
+      // invisible: ui/body were 15 and 16, total/title were 20 and 19, and
+      // hero/wordmark were 24 and 24. A step you cannot see is not a step,
+      // and the crowding cost the one figure that mattered — see `hero`.
       fontSize: {
         label: ["0.6875rem", { lineHeight: "1.4", letterSpacing: "0.14em" }],
         meta: ["0.8125rem", { lineHeight: "1.5" }],
-        ui: ["0.9375rem", { lineHeight: "1.4" }],
+        // Same measure as `body`, kept as a separate name because it marks
+        // a different thing: a control's own label (button, field, sub-item
+        // row) rather than prose. It was 15 against body's 16, which is a
+        // 1.07 step — under any threshold at which two sizes read as two.
+        ui: ["1rem", { lineHeight: "1.4" }],
         body: ["1rem", { lineHeight: "1.6" }],
         title: ["1.1875rem", { lineHeight: "1.2", letterSpacing: "-0.015em" }],
         amt: ["1.4375rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
-        sec: ["1.8125rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
-        // `total` is the dial's percentage and `hero` the payday figure —
-        // the two display numbers that sit side by side in the deck. They
-        // are one rung apart from each other and one rung down from where
-        // they started, so the deck leads without shouting.
-        total: ["1.25rem", { lineHeight: "1.05", letterSpacing: "-0.025em" }],
+        sec: ["1.75rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        // The dial's percentage, on `title`'s measure. It was 20 against
+        // title's 19 and it is read inside a 110px disc, where a rung of
+        // size buys nothing the disc doesn't already give it. CutDial's
+        // `figureSize` guard still steps a runaway total down to `text-title`
+        // — the two are the same size now, so that guard is a no-op rather
+        // than a bug, and it stays for the day the measures diverge again.
+        total: ["1.1875rem", { lineHeight: "1.2", letterSpacing: "-0.025em" }],
+        // The payday figure, and the reason the whole scale moved. Every
+        // other number on the page is `salary * percent / 100`, so this is
+        // the source and the rest are derivatives — but at a 24px ceiling it
+        // tied `amt` (23) exactly, and there are three to five cards each
+        // printing an `amt`. The source was outweighed by its own output,
+        // N to 1. At 32 it clears `amt` by 1.39 and there is only one of it.
+        //
+        // The ceiling is 2rem and not higher because the field is
+        // `h-control` (48px) and shares that row with the Save button:
+        // 32px at 1.05 is 33.6px of content, which centres inside 48 with
+        // room. Going past this means moving --control-h, which moves the
+        // button too.
         hero: [
-          "clamp(1.25rem, 3vw, 1.5rem)",
+          "clamp(1.75rem, 3.5vw, 2rem)",
           { lineHeight: "1.05", letterSpacing: "-0.03em" },
         ],
-        wordmark: ["1.5rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
+        // On `amt`'s measure. It was 24, which tied the old hero — the
+        // brand and the money read at one level. The payday now leads it
+        // by 1.39, which is the ordering this screen wants.
+        wordmark: ["1.4375rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
       },
       borderRadius: {
         // Two only. `slab` is every surface, `control` is every control.
