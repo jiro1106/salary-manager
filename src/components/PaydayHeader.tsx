@@ -45,8 +45,6 @@ interface PaydayHeaderProps {
   // salary row. Optional so the header still works before this is wired
   // up everywhere.
   categories?: Category[];
-  /** Passed straight to the dial: a dragged wedge sets a category's share. */
-  onResizeCategory?: (id: string, percent: number) => void;
 }
 
 /**
@@ -115,7 +113,6 @@ export default function PaydayHeader({
   onSave,
   savedFlash,
   categories = [],
-  onResizeCategory,
 }: PaydayHeaderProps) {
   const cursorRef = useRef<number | null>(null);
 
@@ -446,7 +443,6 @@ export default function PaydayHeader({
               salary={salary}
               activeId={activeId}
               onHover={setHovered}
-              onResize={onResizeCategory}
             />
             <Legend
               segments={categories}

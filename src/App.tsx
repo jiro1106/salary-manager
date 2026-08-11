@@ -275,7 +275,6 @@ export default function App() {
           onSave={savePaycheck}
           savedFlash={savedFlash}
           categories={categories}
-          onResizeCategory={(id, percent) => updateCategory(id, { percent })}
         />
 
         {/* Mounted empty, like the over-allocation banner above it and for
