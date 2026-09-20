@@ -1,9 +1,27 @@
-# Salary manager
+# Nala — Salary Manager
 
-A personal payday budget splitter — divide your salary into Savings / Needs /
-Wants (or whatever categories you want), with editable percentages and
-sub-category breakdowns. Runs entirely on your machine; nothing is sent
-anywhere.
+> A simple payday budget splitter for turning one salary into a clear spending
+> plan.
+
+[Open the live app](https://nala-salary-manager.vercel.app/)
+
+![Nala Salary Manager preview](public/thumbnail.png)
+
+Nala divides a take-home paycheck into editable categories such as Needs,
+Wants, and Savings. Each category can have its own percentage and sub-category
+breakdown, so you can plan a payday without a spreadsheet.
+
+## What it does
+
+- Start from a ready-made split template or create your own.
+- Enter a payday amount and see the allocation update instantly.
+- Add, rename, and delete categories and sub-categories.
+- Save payday snapshots and restore them from local history.
+- Keep data private in the browser with no backend or account required.
+
+## Built with
+
+React, TypeScript, Vite, Tailwind CSS, and Lucide icons.
 
 ## Run it
 
@@ -26,12 +44,11 @@ localStorage under the `salary-manager:` prefix. This means:
 - Clearing your browser's site data for `localhost` will erase it.
 - It does not sync across devices or browsers.
 
-## Build for later use offline
+## Build for production
 
 ```bash
 npm run build
 npm run preview
 ```
 
-This creates a `dist/` folder with a static build you can open without
-running the dev server.
+This creates a static `dist/` build suitable for deployment.
