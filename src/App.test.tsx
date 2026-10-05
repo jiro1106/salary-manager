@@ -31,6 +31,7 @@ describe("expense tracking in App", () => {
     render(<App />);
 
     await waitFor(() => expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("1,000"));
+    expect(screen.getByRole("button", { name: "Clear salary amount" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Lunch" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250.50" } });
@@ -79,7 +80,19 @@ describe("expense tracking in App", () => {
     }));
     render(<App />);
     await screen.findByText("Groceries");
-    expect(screen.getByText("₱-50.25")).toBeTruthy();
+    expect(screen.getByText("₱-50.25").className).toContain("text-action-edge");
+  });
+
+  it("explains why adding an expense is unavailable without categories", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories: [], expenses: [] }));
+    render(<App />);
+    await waitFor(() => expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("1,000"));
+    const add = screen.getByRole("button", { name: "Add expense" }) as HTMLButtonElement;
+    expect(add.disabled).toBe(true);
+    const explanation = screen.getByText(/add a category before recording expenses/i);
+    expect(add.getAttribute("aria-describedby")).toBe(explanation.id);
+    fireEvent.click(add);
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("does not offer payday saving or payday history", () => {

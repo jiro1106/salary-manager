@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "saved" | "alt";
+type Variant = "primary" | "alt";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -18,8 +18,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-action text-on-action shadow-action hover:shadow-action-lift active:shadow-action-press",
-  saved:
-    "bg-blue text-on-action shadow-action-blue hover:shadow-action-blue-lift active:shadow-action-blue-press",
   alt: "bg-card text-ink shadow-alt hover:shadow-alt-lift active:shadow-alt-press",
 };
 
@@ -42,8 +40,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
         "inline-flex items-center justify-center gap-[9px] rounded-control",
         "font-display font-extrabold leading-none",
         "transition-[transform,box-shadow] duration-fast ease-paper",
-        // Full size has one consumer, the Save button, where it sits
-        // opposite the payday field. At px-7 the two came out the same
+        // Full size has one consumer, Add expense, where it sits
+        // opposite the salary field. At px-7 the two came out the same
         // width and the action out-weighed the figure it acts on, so the
         // padding came in. The height is h-control rather than a py pair
         // because the field it has to match cannot be sized by padding at

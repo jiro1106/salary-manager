@@ -16,7 +16,7 @@ breakdown, so you can plan a payday without a spreadsheet.
 - Start from a ready-made split template or create your own.
 - Enter a payday amount and see the allocation update instantly.
 - Add, rename, and delete categories and sub-categories.
-- Save payday snapshots and restore them from local history.
+- Record expenses by category, review them, and see what remains from your salary.
 - Keep data private in the browser with no backend or account required.
 
 ## Built with
@@ -36,7 +36,7 @@ Then open the URL it prints (usually http://localhost:5173) in your browser.
 
 ## Data storage
 
-Your categories, percentages, and payday history are saved in your browser's
+Your salary, categories, percentages, and expenses are saved in your browser's
 localStorage under the `salary-manager:` prefix. This means:
 
 - Data persists between sessions, as long as you use the same browser on the

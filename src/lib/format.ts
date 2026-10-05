@@ -1,6 +1,6 @@
 export const uid = (): string => Math.random().toString(36).slice(2, 10);
 
-/** Full precision: the figure on a category card, a saved payday. */
+/** Full precision for category cards, expenses, and balance totals. */
 export const peso = (n: number): string =>
   "₱" +
   (Math.round(n * 100) / 100).toLocaleString("en-PH", {

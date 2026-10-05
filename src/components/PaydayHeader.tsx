@@ -278,7 +278,7 @@ export default function PaydayHeader({
                 doesn't carry a dead control on an empty amount. */}
             {rawValue !== "" && (
               <IconButton
-                label="Clear payday amount"
+                label="Clear salary amount"
                 onClick={clearSalary}
                 className="ml-3 self-center"
               >
@@ -293,15 +293,23 @@ export default function PaydayHeader({
           The action and salary field share h-control, so they align when
           this row has room and wrap cleanly on smaller screens.
         */}
-        <span className="inline-flex max-[700px]:w-full">
+        <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
           <Button
             onClick={onAddExpense}
+            inert={categories.length === 0}
+            disabled={categories.length === 0}
+            aria-describedby={categories.length === 0 ? "add-expense-help" : undefined}
             className="max-[700px]:w-full"
           >
             <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
             Add expense
           </Button>
-        </span>
+          {categories.length === 0 && (
+            <p id="add-expense-help" className="text-meta text-ink-soft">
+              Add a category before recording expenses.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 max-[450px]:gap-2">
@@ -311,7 +319,9 @@ export default function PaydayHeader({
         </div>
         <div>
           <p className="text-label uppercase tracking-caps text-ink-soft">Left</p>
-          <p className="mt-1 font-display text-title font-bold text-ink">{peso(remaining)}</p>
+          <p className={`mt-1 font-display text-title font-bold ${remaining < 0 ? "text-action-edge" : "text-ink"}`}>
+            {peso(remaining)}
+          </p>
         </div>
       </div>
 
