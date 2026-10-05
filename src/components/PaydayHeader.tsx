@@ -315,11 +315,11 @@ export default function PaydayHeader({
       <div className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 max-[450px]:gap-2">
         <div>
           <p className="text-label uppercase tracking-caps text-ink-soft">Spent</p>
-          <p className="mt-1 font-display text-title font-bold text-ink">{peso(spent)}</p>
+          <p className="mt-1 font-display text-title font-bold text-action-edge">{peso(spent)}</p>
         </div>
         <div>
           <p className="text-label uppercase tracking-caps text-ink-soft">Left</p>
-          <p className={`mt-1 font-display text-title font-bold ${remaining < 0 ? "text-action-edge" : "text-ink"}`}>
+          <p className={`mt-1 font-display text-title font-bold ${remaining < 0 ? "text-action-edge" : "text-lime-deep"}`}>
             {peso(remaining)}
           </p>
         </div>

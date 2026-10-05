@@ -83,6 +83,20 @@ describe("expense tracking in App", () => {
     expect(screen.getByText("₱-50.25").className).toContain("text-action-edge");
   });
 
+  it("uses warm spent and green remaining amounts", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({
+      salary: 500, categories, expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z")],
+    }));
+    render(<App />);
+    await screen.findByText("Lunch");
+    const spent = screen.getByText("Spent").parentElement?.lastElementChild;
+    const left = screen.getByText("Left").parentElement?.lastElementChild;
+    expect(spent?.textContent).toBe("₱200.00");
+    expect(spent?.className).toContain("text-action-edge");
+    expect(left?.textContent).toBe("₱300.00");
+    expect(left?.className).toContain("text-lime-deep");
+  });
+
   it("explains why adding an expense is unavailable without categories", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories: [], expenses: [] }));
     render(<App />);
