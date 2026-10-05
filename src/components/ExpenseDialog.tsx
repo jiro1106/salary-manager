@@ -19,6 +19,7 @@ export default function ExpenseDialog({ categories, onClose, onSubmit }: Expense
   const panelRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const descriptionId = useId();
   const amountId = useId();
   const categoryId = useId();
   const onCloseRef = useRef(onClose);
@@ -68,16 +69,18 @@ export default function ExpenseDialog({ categories, onClose, onSubmit }: Expense
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim px-page-x" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim px-page-x py-4" onClick={onClose}>
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-dialog rounded-slab border border-line bg-card px-[26px] py-6"
+        aria-describedby={descriptionId}
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-dialog overflow-y-auto rounded-slab border border-line bg-card px-[26px] py-6"
         onClick={(event) => event.stopPropagation()}
       >
         <h2 id={titleId} className="font-display text-title font-bold text-ink">Add expense</h2>
+        <p id={descriptionId} className="mt-2 text-meta text-ink-soft">Record spending against your salary.</p>
         <form className="mt-5 space-y-4" onSubmit={submit} noValidate>
           <div>
             <label htmlFor={`${titleId}-field`} className="text-meta font-bold text-ink">Title</label>
@@ -123,8 +126,8 @@ export default function ExpenseDialog({ categories, onClose, onSubmit }: Expense
             {errors.categoryId && <p id={`${categoryId}-error`} className="mt-1 text-meta text-action-edge">{errors.categoryId}</p>}
           </div>
           <div className="flex flex-wrap justify-end gap-3 pt-2">
-            <Button variant="alt" small onClick={onClose}>Cancel</Button>
-            <Button type="submit" small>Save expense</Button>
+            <Button variant="alt" onClick={onClose}>Cancel</Button>
+            <Button type="submit">Save expense</Button>
           </div>
         </form>
       </div>

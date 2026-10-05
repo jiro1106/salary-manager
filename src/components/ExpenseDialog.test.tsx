@@ -40,7 +40,10 @@ describe("ExpenseDialog", () => {
     render(<Harness />);
     openDialog();
 
-    expect(screen.getByRole("dialog", { name: "Add expense" }).getAttribute("aria-modal")).toBe("true");
+    const dialog = screen.getByRole("dialog", { name: "Add expense" });
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    const description = screen.getByText("Record spending against your salary.");
+    expect(dialog.getAttribute("aria-describedby")).toBe(description.id);
     expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Title" }));
     expect(Array.from((screen.getByRole("combobox", { name: "Category" }) as HTMLSelectElement).options).map((option) => [option.value, option.textContent])).toEqual([
       ["", "Choose a category"],
