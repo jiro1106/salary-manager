@@ -1,46 +1,19 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
-import { Check, History, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import CutDial from "./CutDial";
 import Legend from "./Legend";
 import Button from "./Button";
 import IconButton from "./IconButton";
-import { pct, pesoRound } from "../lib/format";
+import { pct, peso, pesoRound } from "../lib/format";
 import type { Category } from "../types";
-
-// A radial spread of small dots in the five category inks, popping out
-// from the Save button on a successful save. Fixed, not randomized, so
-// the burst is the same shape every time rather than jittering on re-render.
-const BURST_DOTS: { dx: number; dy: number; color: string; delay: number }[] = [
-  { dx: -28, dy: -14, color: "bg-punch", delay: 0 },
-  { dx: -10, dy: -32, color: "bg-zest", delay: 30 },
-  { dx: 14, dy: -30, color: "bg-lime", delay: 10 },
-  { dx: 30, dy: -10, color: "bg-aqua", delay: 45 },
-  { dx: 26, dy: 16, color: "bg-violet", delay: 15 },
-  { dx: 6, dy: 30, color: "bg-punch", delay: 40 },
-  { dx: -18, dy: 26, color: "bg-lime", delay: 5 },
-  { dx: -32, dy: 4, color: "bg-aqua", delay: 25 },
-];
 
 interface PaydayHeaderProps {
   salary: number;
   onSalaryChange: (value: number) => void;
-  /**
-   * Owned by `App` rather than declared here, because restoring a payday
-   * from the history panel at the foot of the page has to be able to send
-   * the reader back to this field. Focus is the whole feedback: it scrolls
-   * the field into view and paints the ring, which is what makes the click
-   * legible even when the figure it restored is the one already there.
-   */
-  inputRef: React.RefObject<HTMLInputElement>;
-  /**
-   * A count of history restores, not a flag. The field flashes on every
-   * one of them, and a boolean would already be true on the second click.
-   */
-  restoreTick?: number;
   totalPercent: number;
-  onSave: () => void;
-  savedFlash: boolean;
+  spent: number;
+  remaining: number;
+  onAddExpense: () => void;
   // Top-level categories, used to render the dial and legend below the
   // salary row. Optional so the header still works before this is wired
   // up everywhere.
@@ -107,13 +80,13 @@ function formatWithCommas(rawValue: string): string {
 export default function PaydayHeader({
   salary,
   onSalaryChange,
-  inputRef,
-  restoreTick = 0,
   totalPercent,
-  onSave,
-  savedFlash,
+  spent,
+  remaining,
+  onAddExpense,
   categories = [],
 }: PaydayHeaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<number | null>(null);
 
   // Local raw string mirrors `salary` but preserves in-progress typing
@@ -123,9 +96,8 @@ export default function PaydayHeader({
     salary ? String(salary) : "",
   );
 
-  // Keep local state in sync if `salary` changes from outside this
-  // component (e.g. loading a saved payday from history). Skip if the
-  // change originated from our own typing (values already match).
+  // Keep local state in sync when a stored salary loads. Skip changes
+  // originating from typing so in-progress decimals remain intact.
   useEffect(() => {
     const currentNumeric = rawValue === "" ? 0 : Number(rawValue);
     if (currentNumeric !== salary) {
@@ -220,22 +192,6 @@ export default function PaydayHeader({
   const activeId =
     hovered && categories.some((c) => c.id === hovered) ? hovered : null;
 
-  // Held as state rather than keyed on the tick, because a key on the field
-  // wrapper would remount the input the tick is meant to draw attention to
-  // — and remounting it drops the focus App just placed and the caret with
-  // it. Adding and removing a class animates the same box instead. Dropped
-  // after the run so the next restore can add it again; an animation that
-  // is already applied does not replay.
-  const [flash, setFlash] = useState(false);
-  const prevTick = useRef(restoreTick);
-  useEffect(() => {
-    if (restoreTick === prevTick.current) return;
-    prevTick.current = restoreTick;
-    setFlash(true);
-    const t = setTimeout(() => setFlash(false), 600);
-    return () => clearTimeout(t);
-  }, [restoreTick]);
-
   const clearSalary = () => {
     setRawValue("");
     onSalaryChange(0);
@@ -252,26 +208,12 @@ export default function PaydayHeader({
   const isOver = totalPercent > 100;
   const overAmount = (salary * (totalPercent - 100)) / 100;
 
-  // Fires the dot burst the instant savedFlash flips on, not on every
-  // render while it's held true.
-  const [burst, setBurst] = useState<number | null>(null);
-  const prevSavedFlash = useRef(savedFlash);
-  useEffect(() => {
-    const justSaved = savedFlash && !prevSavedFlash.current;
-    prevSavedFlash.current = savedFlash;
-    if (!justSaved) return;
-    const id = Date.now();
-    setBurst(id);
-    const t = setTimeout(() => setBurst(null), 700);
-    return () => clearTimeout(t);
-  }, [savedFlash]);
-
   return (
     <section className="relative rounded-slab border border-line bg-card px-deck-x py-[26px]">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
           <p className="text-label uppercase tracking-caps text-ink-soft">
-            Take-home pay
+            Salary
           </p>
           {/* The field is editable, so it reads as one: a recessed ground
               with real padding round the figure, and the zest rule along
@@ -292,11 +234,6 @@ export default function PaydayHeader({
               "focus-within:outline focus-within:outline-[3px]",
               "focus-within:outline-blue focus-within:outline-offset-[3px]",
               isBlank ? "text-ink-faint" : "text-ink",
-              // Lit on arrival from a history row. The focus ring App
-              // places says "you are here"; this says "and this is what
-              // landed", which is the half the ring cannot carry when the
-              // restored figure is the one already in the field.
-              flash ? "animate-[nala-restore_600ms_var(--ease)]" : "",
             ].join(" ")}
           >
             <span
@@ -319,7 +256,7 @@ export default function PaydayHeader({
               placeholder="0"
               // Fixed at 10ch, and no inline width: the box does not track
               // what is typed. A width that grew with the figure moved the
-              // Save button beside it on every keystroke and, past seven
+              // action beside it on every keystroke and, past seven
               // figures, wrapped it onto its own line. 10ch holds
               // "9,999,999" and its separators with a character to spare,
               // which is every salary this app is for.
@@ -353,57 +290,29 @@ export default function PaydayHeader({
         </div>
 
         {/*
-          No pull. Both faces are h-control, so items-end lands their tops
-          and their bottoms together and the two read as one pair. The 4px
-          action edge below the button is depth, not misalignment: it is the
-          underside of the only raised object on the page. Pulling the
-          button up to tuck that edge in would buy a shared bottom line at
-          the price of a 4px step across the tops, which is the worse of
-          the two mismatches because the faces are the same size.
+          The action and salary field share h-control, so they align when
+          this row has room and wrap cleanly on smaller screens.
         */}
-        <span className="relative inline-flex max-[700px]:w-full">
+        <span className="inline-flex max-[700px]:w-full">
           <Button
-            variant={savedFlash ? "saved" : "primary"}
-            onClick={onSave}
+            onClick={onAddExpense}
             className="max-[700px]:w-full"
           >
-            {savedFlash ? (
-              <Check size={17} aria-hidden="true" strokeWidth={2.4} />
-            ) : (
-              // The same mark the history disclosure carries, so the two
-              // read as one destination. It is now the only thing naming
-              // that destination — the label names the object instead —
-              // which is why it stays and why it stays this mark.
-              <History size={17} aria-hidden="true" strokeWidth={2.2} />
-            )}
-            {savedFlash ? "Saved" : "Save payday"}
+            <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
+            Add expense
           </Button>
-          {burst !== null && (
-            <span
-              key={burst}
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
-            >
-              {BURST_DOTS.map((d, i) => (
-                <i
-                  key={i}
-                  className={[
-                    "absolute left-1/2 top-1/2 h-[7px] w-[7px] rounded-full",
-                    "animate-[nala-burst_620ms_var(--ease)_forwards]",
-                    d.color,
-                  ].join(" ")}
-                  style={
-                    {
-                      "--dx": `${d.dx}px`,
-                      "--dy": `${d.dy}px`,
-                      animationDelay: `${d.delay}ms`,
-                    } as CSSProperties
-                  }
-                />
-              ))}
-            </span>
-          )}
         </span>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 max-[450px]:gap-2">
+        <div>
+          <p className="text-label uppercase tracking-caps text-ink-soft">Spent</p>
+          <p className="mt-1 font-display text-title font-bold text-ink">{peso(spent)}</p>
+        </div>
+        <div>
+          <p className="text-label uppercase tracking-caps text-ink-soft">Left</p>
+          <p className="mt-1 font-display text-title font-bold text-ink">{peso(remaining)}</p>
+        </div>
       </div>
 
       {/*
@@ -414,13 +323,7 @@ export default function PaydayHeader({
         the banner's own top margin collapses through it, so the spacing
         is what it was.
 
-        The banner names the consequence once, in pesos, instead of saying
-        the same number twice. It sits under the whole row rather than
-        inside the amount column, for two reasons: it warns about what the
-        Save button is about to write, not just about the figure, and left
-        inside that column it became the column's bottom edge, so
-        items-end would hang the button off a banner that is only
-        sometimes there.
+        The banner names the allocation consequence once, in pesos.
       */}
       <div role="status">
         {isOver && (

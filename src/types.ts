@@ -20,19 +20,6 @@ export interface Category {
   subs: SubCategory[];
 }
 
-export interface HistoryBreakdownItem {
-  name: string;
-  percent: number;
-  amount: number;
-}
-
-export interface HistoryEntry {
-  id: string;
-  date: string;
-  salary: number;
-  breakdown: HistoryBreakdownItem[];
-}
-
 export interface Expense {
   id: string;
   title: string;

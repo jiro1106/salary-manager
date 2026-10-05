@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Undo2 } from "lucide-react";
-import { Category, Config, HistoryEntry } from "./types";
+import type { Category, Config, Expense, ExpenseDraft } from "./types";
 import { uid } from "./lib/format";
 import { storage } from "./lib/storage";
+import { expenseSummary, makeExpense } from "./lib/expenses";
 import { CATEGORY_COLORS, defaultCategories } from "./lib/defaultCategories";
 import {
   Template,
@@ -15,10 +16,10 @@ import Masthead from "./components/Masthead";
 import PaydayHeader from "./components/PaydayHeader";
 import TemplateGallery from "./components/TemplateGallery";
 import CategoryList from "./components/CategoryList";
-import HistoryPanel from "./components/HistoryPanel";
+import ExpenseDialog from "./components/ExpenseDialog";
+import ExpenseHistory from "./components/ExpenseHistory";
 
 const CONFIG_KEY = "salary-manager:config";
-const HISTORY_KEY = "salary-manager:history";
 
 type View = "home" | "templates";
 
@@ -26,22 +27,15 @@ export default function App() {
   const [view, setView] = useState<View>("home");
   const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [savedFlash, setSavedFlash] = useState(false);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [expenseUndo, setExpenseUndo] = useState<{ expense: Expense; index: number; next: Expense[] } | null>(null);
   // Flipped by the first write that comes back false. Every edit on this
   // page still applies to the screen when storage is blocked, so without
   // this the app looks saved and isn't — the reader finds out by closing
   // the tab. Latching rather than clearing: a browser that refused one
   // write is not a browser to reassure anyone about.
   const [storageBlocked, setStorageBlocked] = useState(false);
-  // The payday field, held here because two screens' worth of page separate
-  // it from the history panel that sends the reader back to it.
-  const paydayRef = useRef<HTMLInputElement>(null);
-  // Bumped on every restore, including one that restores the figure already
-  // in the field. It is a count of clicks rather than a flag, because the
-  // flash has to replay on the second click as much as the first and a
-  // boolean would already be true.
-  const [restoreTick, setRestoreTick] = useState(0);
   // The last destructive edit to the split, and what it produced. Deleting
   // a category, deleting one of its items and applying a template are the
   // three acts here that throw work away, and until now the only thing
@@ -66,9 +60,8 @@ export default function App() {
     if (cfg) {
       if (cfg.salary != null) setSalary(cfg.salary);
       if (cfg.categories) setCategories(cfg.categories);
+      setExpenses(cfg.expenses ?? []);
     }
-    const hist = storage.get<HistoryEntry[]>(HISTORY_KEY);
-    if (hist) setHistory(hist);
     setTimeout(() => {
       skipSave.current = false;
     }, 0);
@@ -80,7 +73,7 @@ export default function App() {
     // mount pass, so nothing would be attached until the first edit.
     const save = () => {
       if (skipSave.current) return;
-      if (!storage.set<Config>(CONFIG_KEY, { salary, categories })) {
+      if (!storage.set<Config>(CONFIG_KEY, { salary, categories, expenses })) {
         setStorageBlocked(true);
       }
     };
@@ -103,7 +96,9 @@ export default function App() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", flush);
     };
-  }, [salary, categories]);
+  }, [salary, categories, expenses]);
+
+  const { spent, remaining } = expenseSummary(salary, expenses);
 
   const totalPercent = categories.reduce(
     (s, c) => s + Number(c.percent || 0),
@@ -189,32 +184,21 @@ export default function App() {
     setView("home");
   };
 
-  const savePaycheck = () => {
-    const entry: HistoryEntry = {
-      id: uid(),
-      date: new Date().toISOString(),
-      salary,
-      breakdown: categories.map((c) => ({
-        name: c.name,
-        percent: c.percent,
-        amount: (salary * c.percent) / 100,
-      })),
-    };
-    const next = [entry, ...history].slice(0, 50);
-    setHistory(next);
-    if (!storage.set<HistoryEntry[]>(HISTORY_KEY, next)) {
-      setStorageBlocked(true);
+  const addExpense = (draft: ExpenseDraft) => {
+    const { expense, errors } = makeExpense(draft, categories, crypto.randomUUID(), new Date().toISOString());
+    if (expense) {
+      setExpenses((current) => [...current, expense]);
+      setExpenseUndo(null);
     }
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 1600);
+    return errors;
   };
 
-  const deleteEntry = (id: string) => {
-    const next = history.filter((h) => h.id !== id);
-    setHistory(next);
-    if (!storage.set<HistoryEntry[]>(HISTORY_KEY, next)) {
-      setStorageBlocked(true);
-    }
+  const deleteExpense = (id: string) => {
+    const index = expenses.findIndex((expense) => expense.id === id);
+    if (index < 0) return;
+    const next = expenses.filter((expense) => expense.id !== id);
+    setExpenses(next);
+    setExpenseUndo({ expense: expenses[index], index, next });
   };
 
   if (view === "templates") {
@@ -260,8 +244,8 @@ export default function App() {
             role="alert"
             className="mt-3 rounded-slab border border-line bg-action-tint px-4 py-3 text-meta font-semibold text-action-edge"
           >
-            This browser is blocking local storage, so your split and your
-            payday history are not being saved. They will be gone when you
+            This browser is blocking local storage, so your split and expenses
+            are not being saved. They will be gone when you
             close the tab.
           </p>
         )}
@@ -269,11 +253,10 @@ export default function App() {
         <PaydayHeader
           salary={salary}
           onSalaryChange={setSalary}
-          inputRef={paydayRef}
-          restoreTick={restoreTick}
           totalPercent={totalPercent}
-          onSave={savePaycheck}
-          savedFlash={savedFlash}
+          spent={spent}
+          remaining={remaining}
+          onAddExpense={() => setExpenseDialogOpen(true)}
           categories={categories}
         />
 
@@ -318,52 +301,26 @@ export default function App() {
           onAddCategory={addCategory}
         />
 
-        {/* Restores the payday figure and nothing else. The split is not
-            restored on purpose: a saved entry carries the categories as
-            they were *named and weighted then*, and putting those back
-            would silently replace whatever the reader has since built —
-            the one destructive act in this app that would happen without a
-            dialog. The amount is the part that is safe to hand back, and
-            it is the part worth re-entering.
-
-            The focus call is not a nicety, it is the feedback. This panel
-            sits at the foot of the page and the field it writes to is at
-            the head of it, so a bare setSalary changed a number the reader
-            could not see. Worse, the row they are most likely to click is
-            the newest one, whose amount is usually the amount already in
-            the field — React bails on the identical value and the row
-            reads as a dead control. Focusing scrolls the field into view
-            and paints the ring either way, so the click always lands
-            visibly, whether or not the figure moved. */}
-        <HistoryPanel
-          history={history}
-          onDelete={deleteEntry}
-          onRestore={(value) => {
-            setSalary(value);
-            setRestoreTick((n) => n + 1);
-
-            const field = paydayRef.current;
-            if (!field) return;
-            // preventScroll and then scroll on purpose. focus() on its own
-            // snaps the page to the field in one frame, which is the jump
-            // this replaces — the two steps are one gesture split so the
-            // travel can be eased.
-            field.focus({ preventScroll: true });
-            field.scrollIntoView({
-              // The global reduced-motion block in index.css kills CSS
-              // transitions and animations, and this is neither: an
-              // explicit behavior:"smooth" is honoured by the browser
-              // whatever the preference says, so it is asked here directly.
-              // Same check CutDial makes before tweening its wedges.
-              behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
-                .matches
-                ? "auto"
-                : "smooth",
-              block: "center",
-            });
+        <ExpenseHistory
+          expenses={expenses}
+          undoExpense={expenseUndo?.next === expenses ? expenseUndo.expense : null}
+          onDelete={deleteExpense}
+          onUndo={() => {
+            if (!expenseUndo || expenseUndo.next !== expenses) return;
+            const next = [...expenses];
+            next.splice(expenseUndo.index, 0, expenseUndo.expense);
+            setExpenses(next);
+            setExpenseUndo(null);
           }}
         />
       </main>
+      {expenseDialogOpen && (
+        <ExpenseDialog
+          categories={categories}
+          onClose={() => setExpenseDialogOpen(false)}
+          onSubmit={addExpense}
+        />
+      )}
     </div>
   );
 }

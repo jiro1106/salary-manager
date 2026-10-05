@@ -43,7 +43,7 @@
   /* The label on a chrome button, which is a different surface with a
      different answer: --action below is dark, so its label stays white.
      Splitting this off --on-color is what let the faces go light without
-     turning the Save button's word to ink on ink. */
+     turning the primary button's word to ink on ink. */
   --on-action: #ffffff;
 
   /* --- category inks, face + a deeper shade for text on white ---
@@ -75,7 +75,7 @@
 
   /* Not a category ink: the committing action, and every warning that
      names its consequence. Kept off the rotation for the same reason
-     --blue is — a Save button drawn on a ground of its own colour stops
+     --blue is — a primary button drawn on a ground of its own colour stops
      being a button — and kept dark because that is what a primary control
      and a small warning both need.
 
@@ -100,8 +100,8 @@
   --action: #c66e46;
   --action-edge: #9a5637;
 
-  /* Not a category ink either: the focus ring and the saved state, kept
-     off the palette so a ring never lands on a ground of its own colour.
+  /* Not a category ink either: the focus ring, kept off the palette so a
+     ring never lands on a ground of its own colour.
 
      It went from #2563eb to #1e429f when the faces went light, and that
      was a correctness fix rather than a taste one. A focus ring has to
@@ -110,9 +110,8 @@
      card head is still the face. Against the old dark inks #2563eb had
      room; against punch it measured 2.39 and against violet 2.25, because
      both moved up into the same luminance band the ring was in. #1e429f
-     clears every face with the worst at 3.92, and the saved button it
-     also grounds carries its white label at 8.99 instead of 5.17. The
-     rule that matters is unchanged: the ring is never a category ink. */
+     clears every face with the worst at 3.92. The rule that matters is
+     unchanged: the ring is never a category ink. */
   --blue: #1e429f;
   --blue-edge: #17337c;
 
@@ -166,11 +165,11 @@
   /* The deck's inner column. The masthead reads as the deck's own title
      rather than a floating page header, so when Nala sits on the card she
      takes this inset too and her drawing starts on the same vertical as
-     "Take-home pay" below her. Two consumers, one measure — change it and
+     "Salary" below her. Two consumers, one measure — change it and
      both move together. */
   --deck-x: 28px;
   /* Every full-size control is exactly this tall, set as a height rather
-     than fallen out of padding. The payday field and the Save button sit
+     than fallen out of padding. The salary field and Add expense button sit
      on one row and have to match, and padding could not get them there:
      Chrome forces line-height:normal on a text input regardless of what
      the parent sets, so the field's box came out 33.6px of content where
@@ -224,41 +223,7 @@
   }
 }
 
-/* A handful of category-ink dots pop out from the Save button on a
-   successful save, the one milestone moment on the page. --dx/--dy are
-   set per-dot from PaydayHeader; the reduced-motion block below disables
-   this like every other animation. */
-@keyframes nala-burst {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
-    opacity: 0;
-  }
-}
-
-/* The payday field, receiving. A history row sits at the foot of the page
-   and writes to this field at the head of it, so the reader is scrolled
-   back up here and has to be told what landed. The wash is what says it:
-   it starts on the action tint every other consequence on this page is
-   drawn in and settles onto the field's own resting ground, so the field
-   is lit rather than recoloured. It has to run when the figure *doesn't*
-   change too — restoring the newest payday usually restores the amount
-   already in the field, and a control that does nothing visible on the
-   most common click reads as broken. */
-@keyframes nala-restore {
-  from {
-    background-color: var(--action-tint);
-  }
-  to {
-    background-color: var(--sunk);
-  }
-}
-
-/* Disclosure content (category sub-items, history rows) rises and fades
-   in on mount instead of popping into place. */
+/* Disclosure content rises and fades in on mount instead of popping into place. */
 @keyframes nala-reveal {
   from {
     opacity: 0;

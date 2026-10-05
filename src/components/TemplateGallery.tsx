@@ -164,7 +164,7 @@ export default function TemplateGallery({
       <ConfirmDialog
         open={pending !== null}
         title={pending ? `Replace your split with "${pending.name}"?` : ""}
-        description="Your current categories and all their items are replaced. Your payday amount and saved paydays stay as they are."
+        description="Your current categories and all their items are replaced. Your salary and expenses stay as they are."
         confirmLabel="Replace my split"
         onConfirm={() => {
           if (pending) onSelect(pending);
