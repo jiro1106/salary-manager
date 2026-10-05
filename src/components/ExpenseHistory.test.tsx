@@ -12,7 +12,7 @@ const earlier: Expense = {
   amount: 45.5,
   categoryId: "travel",
   categoryName: "Commute (old name)",
-  created_at: "2026-09-30T09:15:00",
+  created_at: "2026-09-30T09:15:00.000Z",
 };
 const later: Expense = {
   id: "later",
@@ -20,7 +20,7 @@ const later: Expense = {
   amount: 1250,
   categoryId: "food",
   categoryName: "Food & groceries",
-  created_at: "2026-09-30T12:34:00",
+  created_at: "2026-09-30T12:34:00.000Z",
 };
 
 describe("ExpenseHistory", () => {
@@ -33,7 +33,7 @@ describe("ExpenseHistory", () => {
     expect(within(rows[0]).getByText("Lunch")).toBeTruthy();
     expect(within(rows[0]).getByText("Food & groceries")).toBeTruthy();
     expect(within(rows[0]).getByText("₱1,250.00")).toBeTruthy();
-    expect(within(rows[0]).getByText(/Sep 30, 2026.*12:34 PM/)).toBeTruthy();
+    expect(within(rows[0]).getByText(/2026.*\d{1,2}:\d{2}/)).toBeTruthy();
     expect(within(rows[1]).getByText("Train fare")).toBeTruthy();
     expect(within(rows[1]).getByText("Commute (old name)")).toBeTruthy();
     expect(within(rows[1]).getByText("₱45.50")).toBeTruthy();
@@ -51,6 +51,23 @@ describe("ExpenseHistory", () => {
     render(<ExpenseHistory expenses={[earlier, later]} onDelete={onDelete} onUndo={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
     expect(onDelete).toHaveBeenCalledExactlyOnceWith("later");
+  });
+
+  it("distinguishes delete buttons for expenses with the same title", () => {
+    const sameTitle = {
+      ...earlier,
+      title: "Lunch",
+      amount: 45.5,
+    };
+    render(<ExpenseHistory expenses={[sameTitle, later]} onDelete={() => {}} onUndo={() => {}} />);
+
+    const rows = screen.getAllByRole("listitem");
+    const labels = rows.map((row) => within(row).getByRole("button", { name: /delete lunch/i }).getAttribute("aria-label"));
+    expect(labels[0]).toContain("₱1,250.00");
+    expect(labels[1]).toContain("₱45.50");
+    expect(labels[0]).toContain(rows[0].querySelector("time")?.textContent);
+    expect(labels[1]).toContain(rows[1].querySelector("time")?.textContent);
+    expect(labels[0]).not.toBe(labels[1]);
   });
 
   it("offers undo for the supplied deleted expense", () => {

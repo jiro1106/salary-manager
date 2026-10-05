@@ -70,7 +70,9 @@ export default function ExpenseHistory({
                   <div className="min-w-[12ch] flex-[1_1_12rem]">
                     <p className="break-words text-body font-bold">{expense.title}</p>
                     <div className="flex flex-wrap gap-x-3 text-meta text-ink-soft">
-                      <span className="break-words">{expense.categoryName}</span>
+                      <span className="min-w-0 [overflow-wrap:anywhere]">
+                        {expense.categoryName}
+                      </span>
                       <time dateTime={expense.created_at}>{when}</time>
                     </div>
                   </div>
@@ -79,7 +81,7 @@ export default function ExpenseHistory({
                       {peso(expense.amount)}
                     </span>
                     <IconButton
-                      label={`Delete ${expense.title}`}
+                      label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}`}
                       onClick={() => onDelete(expense.id)}
                       danger
                     >
