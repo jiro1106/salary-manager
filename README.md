@@ -1,7 +1,6 @@
-# Nala — Salary Manager
+# Nala - Salary Manager
 
-> A simple payday budget splitter for turning one salary into a clear spending
-> plan.
+A simple payday budget splitter for turning one salary into a clear spending plan.
 
 [Open the live app](https://nala-salary-manager.vercel.app/)
 
