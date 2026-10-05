@@ -74,27 +74,28 @@ describe("expense tracking in App", () => {
     expect(screen.getByText("₱0.00")).toBeTruthy();
   });
 
-  it("shows a negative amount left when expenses exceed salary", async () => {
+  it("shows the amount over budget when expenses exceed salary", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
       salary: 100, categories, expenses: [expense("over", "Groceries", 150.25, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
     await screen.findByText("Groceries");
-    expect(screen.getByText("₱-50.25").className).toContain("text-action-edge");
+    expect(screen.getByText("Over budget")).toBeTruthy();
+    expect(screen.getByText("₱50.25").className).toContain("text-spent");
   });
 
-  it("uses warm spent and green remaining amounts", async () => {
+  it("uses cranberry spent and green available amounts", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
       salary: 500, categories, expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
     await screen.findByText("Lunch");
     const spent = screen.getByText("Spent").parentElement?.lastElementChild;
-    const left = screen.getByText("Left").parentElement?.lastElementChild;
+    const available = screen.getByText("Available").parentElement?.lastElementChild;
     expect(spent?.textContent).toBe("₱200.00");
-    expect(spent?.className).toContain("text-action-edge");
-    expect(left?.textContent).toBe("₱300.00");
-    expect(left?.className).toContain("text-lime-deep");
+    expect(spent?.className).toContain("text-spent");
+    expect(available?.textContent).toBe("₱300.00");
+    expect(available?.className).toContain("text-lime-deep");
   });
 
   it("explains why adding an expense is unavailable without categories", async () => {

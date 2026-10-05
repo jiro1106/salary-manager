@@ -100,6 +100,11 @@
   --action: #c66e46;
   --action-edge: #9a5637;
 
+  /* Expense totals need their own semantic ink: action is terracotta for
+     buttons and warnings, while this deeper cranberry reads as money that
+     has already gone without competing with destructive UI. */
+  --spent: #a43d4d;
+
   /* Not a category ink either: the focus ring, kept off the palette so a
      ring never lands on a ground of its own colour.
 

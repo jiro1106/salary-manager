@@ -35,6 +35,7 @@ export default {
         action: "var(--action)",
         "action-edge": "var(--action-edge)",
         "action-tint": "var(--action-tint)",
+        spent: "var(--spent)",
         punch: "var(--punch)",
         "punch-deep": "var(--punch-deep)",
         zest: "var(--zest)",
