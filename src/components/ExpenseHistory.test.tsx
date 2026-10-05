@@ -70,6 +70,24 @@ describe("ExpenseHistory", () => {
     expect(labels[0]).not.toBe(labels[1]);
   });
 
+  it("keeps delete labels unique for otherwise identical expenses in one minute", () => {
+    const sameMinute = { ...later, id: "same-minute", created_at: "2026-09-30T12:34:30.000Z" };
+    const sameTimestamp = { ...later, id: "same-timestamp" };
+    render(
+      <ExpenseHistory
+        expenses={[later, sameMinute, sameTimestamp]}
+        onDelete={() => {}}
+        onUndo={() => {}}
+      />,
+    );
+
+    const labels = screen.getAllByRole("button", { name: /delete lunch/i }).map((button) => button.getAttribute("aria-label"));
+    expect(new Set(labels).size).toBe(3);
+    expect(labels.some((label) => label?.includes("later"))).toBe(true);
+    expect(labels.some((label) => label?.includes("same-minute"))).toBe(true);
+    expect(labels.some((label) => label?.includes("same-timestamp"))).toBe(true);
+  });
+
   it("offers undo for the supplied deleted expense", () => {
     const onUndo = vi.fn();
     render(<ExpenseHistory expenses={[]} undoExpense={later} onDelete={() => {}} onUndo={onUndo} />);

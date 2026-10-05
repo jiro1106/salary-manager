@@ -81,7 +81,7 @@ export default function ExpenseHistory({
                       {peso(expense.amount)}
                     </span>
                     <IconButton
-                      label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}`}
+                      label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
                       onClick={() => onDelete(expense.id)}
                       danger
                     >
