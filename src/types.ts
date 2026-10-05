@@ -33,7 +33,29 @@ export interface HistoryEntry {
   breakdown: HistoryBreakdownItem[];
 }
 
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  categoryId: string;
+  categoryName: string;
+  created_at: string;
+}
+
+export interface ExpenseDraft {
+  title: string;
+  amount: string;
+  categoryId: string;
+}
+
+export interface ExpenseErrors {
+  title?: string;
+  amount?: string;
+  categoryId?: string;
+}
+
 export interface Config {
   salary: number;
   categories: Category[];
+  expenses?: Expense[];
 }
