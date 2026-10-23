@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import CutDial from "./CutDial";
 import Legend from "./Legend";
-import Button from "./Button";
 import IconButton from "./IconButton";
-import { pct, peso, pesoRound } from "../lib/format";
+import SpendSummary from "./SpendSummary";
 import type { Category } from "../types";
 
 interface PaydayHeaderProps {
@@ -13,7 +12,6 @@ interface PaydayHeaderProps {
   totalPercent: number;
   spent: number;
   remaining: number;
-  onAddExpense: () => void;
   // Top-level categories, used to render the dial and legend below the
   // salary row. Optional so the header still works before this is wired
   // up everywhere.
@@ -83,7 +81,6 @@ export default function PaydayHeader({
   totalPercent,
   spent,
   remaining,
-  onAddExpense,
   categories = [],
 }: PaydayHeaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -205,8 +202,6 @@ export default function PaydayHeader({
   // ₱ with it, since a coloured peso sign in front of a grey zero reads as a
   // real amount that happens to be zero.
   const isBlank = rawValue === "" || Number(rawValue) === 0;
-  const isOver = totalPercent > 100;
-  const overAmount = (salary * (totalPercent - 100)) / 100;
 
   return (
     <section className="relative rounded-slab border border-line bg-card px-deck-x py-[26px]">
@@ -286,66 +281,14 @@ export default function PaydayHeader({
               </IconButton>
             )}
           </span>
-
-        </div>
-
-        {/*
-          The action and salary field share h-control, so they align when
-          this row has room and wrap cleanly on smaller screens.
-        */}
-        <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
-          <Button
-            onClick={onAddExpense}
-            inert={categories.length === 0}
-            disabled={categories.length === 0}
-            aria-describedby={categories.length === 0 ? "add-expense-help" : undefined}
-            className="max-[700px]:w-full"
-          >
-            <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
-            Add expense
-          </Button>
-          {categories.length === 0 && (
-            <p id="add-expense-help" className="text-meta text-ink-soft">
-              Add a category before recording expenses.
-            </p>
-          )}
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 max-[450px]:gap-2">
-        <div>
-          <p className="text-label uppercase tracking-caps text-ink-soft">Spent</p>
-          <p className="mt-1 font-display text-amt font-extrabold text-spent">{peso(spent)}</p>
-        </div>
-        <div>
-          <p className="text-label uppercase tracking-caps text-ink-soft">
-            {remaining < 0 ? "Over budget" : "Available"}
-          </p>
-          <p className={`mt-1 font-display text-amt font-extrabold ${remaining < 0 ? "text-spent" : "text-lime-deep"}`}>
-            {peso(Math.abs(remaining))}
-          </p>
-        </div>
-      </div>
-
-      {/*
-        The live region is always in the DOM, empty when the split fits,
-        because a status region has to be registered before content lands
-        in it or the first message goes unread — mounting the banner and
-        its role together announces nothing. Empty it draws no box, and
-        the banner's own top margin collapses through it, so the spacing
-        is what it was.
-
-        The banner names the allocation consequence once, in pesos.
-      */}
-      <div role="status">
-        {isOver && (
-          <p className="mt-3.5 max-w-prose rounded-control bg-action-tint px-3.5 py-[9px] font-display text-meta font-semibold text-action-edge">
-            Over by {pct(totalPercent - 100)}% ·{" "}
-            <b className="font-bold">{pesoRound(overAmount)}</b> more than this
-            payday
-          </p>
-        )}
-      </div>
+      <SpendSummary
+        spent={spent}
+        remaining={remaining}
+        className="mt-5 border-t border-line pt-4"
+      />
 
       {/* No categories: the deck collapses to the amount row alone. */}
       {categories.length > 0 && (

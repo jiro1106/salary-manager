@@ -14,6 +14,7 @@ import NumberField from "./NumberField";
 interface CategoryCardProps {
   category: Category;
   salary: number;
+  spent: number;
   onChange: (patch: Partial<Category>) => void;
   onRemove: () => void;
   onRemoveSub: (subId: string) => void;
@@ -22,6 +23,7 @@ interface CategoryCardProps {
 export default function CategoryCard({
   category: cat,
   salary,
+  spent,
   onChange,
   onRemove,
   onRemoveSub,
@@ -122,8 +124,18 @@ export default function CategoryCard({
             tone="card"
             width="w-[3ch]"
           />
-          <span className="ml-auto font-display text-amt font-extrabold text-on-color">
-            {peso(catAmount)}
+          {/* The headline is what is left after expenses; the share's own
+              amount stays the base for the items below, so a sub-item
+              percent keeps meaning the same thing as money is spent. */}
+          <span className="ml-auto text-right">
+            <span className="block font-display text-amt font-extrabold text-on-color">
+              {peso(catAmount - spent)}
+            </span>
+            {spent > 0 && (
+              <span className="block font-display text-meta text-on-color">
+                {peso(spent)} spent of {peso(catAmount)}
+              </span>
+            )}
           </span>
         </div>
       </div>

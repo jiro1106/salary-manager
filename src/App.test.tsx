@@ -30,8 +30,7 @@ describe("expense tracking in App", () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
     render(<App />);
 
-    await waitFor(() => expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("1,000"));
-    expect(screen.getByRole("button", { name: "Clear salary amount" })).toBeTruthy();
+    await screen.findByRole("tab", { name: "Expenses", selected: true });
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Lunch" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250.50" } });
@@ -69,9 +68,10 @@ describe("expense tracking in App", () => {
   it("loads an old config without expenses as an empty history", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 500, categories }));
     render(<App />);
-    await waitFor(() => expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("500"));
-    expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
+    expect(await screen.findByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.getByText("₱0.00")).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Salary" }));
+    expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("500");
   });
 
   it("shows the amount over budget when expenses exceed salary", async () => {
@@ -101,7 +101,7 @@ describe("expense tracking in App", () => {
   it("explains why adding an expense is unavailable without categories", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories: [], expenses: [] }));
     render(<App />);
-    await waitFor(() => expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("1,000"));
+    await screen.findByRole("tab", { name: "Expenses", selected: true });
     const add = screen.getByRole("button", { name: "Add expense" }) as HTMLButtonElement;
     expect(add.disabled).toBe(true);
     const explanation = screen.getByText(/add a category before recording expenses/i);
@@ -114,5 +114,38 @@ describe("expense tracking in App", () => {
     render(<App />);
     expect(screen.queryByRole("button", { name: /save payday/i })).toBeNull();
     expect(screen.queryByText(/payday history/i)).toBeNull();
+  });
+});
+
+describe("tabs", () => {
+  it("opens on Salary with nothing saved and shows one job at a time", () => {
+    render(<App />);
+    expect(screen.getByRole("tab", { name: "Salary", selected: true })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Take-home pay in pesos" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Add expense" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /add category/i })).toBeNull();
+  });
+
+  it("moves between tabs with the arrow keys, wrapping at the ends", () => {
+    render(<App />);
+    const salary = screen.getByRole("tab", { name: "Salary" });
+    fireEvent.keyDown(salary, { key: "ArrowRight" });
+    expect(screen.getByRole("tab", { name: "Split", selected: true })).toBeTruthy();
+    expect(screen.getByRole("tabpanel").getAttribute("aria-labelledby")).toBe("tab-split");
+    fireEvent.keyDown(screen.getByRole("tab", { name: "Split" }), { key: "End" });
+    expect(screen.getByRole("tab", { name: "Expenses", selected: true })).toBeTruthy();
+    fireEvent.keyDown(screen.getByRole("tab", { name: "Expenses" }), { key: "ArrowRight" });
+    expect(screen.getByRole("tab", { name: "Salary", selected: true })).toBeTruthy();
+  });
+
+  it("reports over-allocation on the Split tab", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({
+      salary: 1000, categories: [{ ...categories[0], percent: 120 }], expenses: [],
+    }));
+    render(<App />);
+    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    expect(screen.queryByText(/over by 20%/i)).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Split" }));
+    expect(screen.getByText(/over by 20%/i)).toBeTruthy();
   });
 });

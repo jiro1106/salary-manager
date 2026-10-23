@@ -5,6 +5,8 @@ import CategoryCard from "./CategoryCard";
 interface CategoryListProps {
   categories: Category[];
   salary: number;
+  /** Expenses recorded against each category id. */
+  spent: Record<string, number>;
   onChangeCategory: (id: string, patch: Partial<Category>) => void;
   onRemoveCategory: (id: string) => void;
   /**
@@ -46,6 +48,7 @@ function AddCategoryTile({
 export default function CategoryList({
   categories,
   salary,
+  spent,
   onChangeCategory,
   onRemoveCategory,
   onRemoveSub,
@@ -64,6 +67,7 @@ export default function CategoryList({
               key={cat.id}
               category={cat}
               salary={salary}
+              spent={spent[cat.id] ?? 0}
               onChange={(patch) => onChangeCategory(cat.id, patch)}
               onRemove={() => onRemoveCategory(cat.id)}
               onRemoveSub={(subId) => onRemoveSub(cat.id, subId)}

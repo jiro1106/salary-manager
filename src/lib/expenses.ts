@@ -36,3 +36,10 @@ export function expenseSummary(salary: number, expenses: Expense[]) {
   const spentCents = expenses.reduce((sum, expense) => sum + Math.round(expense.amount * 100), 0);
   return { spent: spentCents / 100, remaining: (Math.round(salary * 100) - spentCents) / 100 };
 }
+
+/** Spent per category id, summed in cents like `expenseSummary`. */
+export function spentByCategory(expenses: Expense[]): Record<string, number> {
+  const cents: Record<string, number> = {};
+  for (const e of expenses) cents[e.categoryId] = (cents[e.categoryId] ?? 0) + Math.round(e.amount * 100);
+  return Object.fromEntries(Object.entries(cents).map(([id, c]) => [id, c / 100]));
+}

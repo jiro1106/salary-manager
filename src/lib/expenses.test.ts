@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Category, Expense } from "../types";
-import { expenseSummary, makeExpense } from "./expenses";
+import { expenseSummary, makeExpense, spentByCategory } from "./expenses";
 
 const categories: Category[] = [
   {
@@ -75,5 +75,17 @@ describe("expenseSummary", () => {
       },
     ];
     expect(expenseSummary(1000, expenses)).toEqual({ spent: 1600, remaining: -600 });
+  });
+});
+
+describe("spentByCategory", () => {
+  it("sums each category without float dust", () => {
+    const e = (id: string, amount: number, categoryId: string): Expense => ({
+      id, title: id, amount, categoryId, categoryName: categoryId, created_at: createdAt,
+    });
+    expect(spentByCategory([e("1", 0.1, "food"), e("2", 0.2, "food"), e("3", 5, "rent")])).toEqual({
+      food: 0.3,
+      rent: 5,
+    });
   });
 });

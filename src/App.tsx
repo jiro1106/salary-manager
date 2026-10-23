@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Undo2 } from "lucide-react";
+import { Plus, Undo2 } from "lucide-react";
 import type { Category, Config, Expense, ExpenseDraft } from "./types";
-import { uid } from "./lib/format";
+import { pct, peso, pesoRound, uid } from "./lib/format";
 import { storage } from "./lib/storage";
-import { expenseSummary, makeExpense } from "./lib/expenses";
+import { expenseSummary, makeExpense, spentByCategory } from "./lib/expenses";
 import { CATEGORY_COLORS, defaultCategories } from "./lib/defaultCategories";
 import {
   Template,
@@ -18,13 +18,15 @@ import TemplateGallery from "./components/TemplateGallery";
 import CategoryList from "./components/CategoryList";
 import ExpenseDialog from "./components/ExpenseDialog";
 import ExpenseHistory from "./components/ExpenseHistory";
+import SpendSummary from "./components/SpendSummary";
+import ViewTabs, { Tab, panelId, tabId } from "./components/ViewTabs";
 
 const CONFIG_KEY = "salary-manager:config";
 
-type View = "home" | "templates";
+type View = Tab | "templates";
 
 export default function App() {
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>("salary");
   const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -62,6 +64,10 @@ export default function App() {
       if (cfg.categories) setCategories(cfg.categories);
       setExpenses(cfg.expenses ?? []);
     }
+    // Opens on the daily job once there is a payday to spend against, and
+    // on the salary until then. Derived from the data rather than stored,
+    // so there is no second thing to save or to fail saving.
+    if (cfg?.salary) setView("expenses");
     setTimeout(() => {
       skipSave.current = false;
     }, 0);
@@ -104,6 +110,7 @@ export default function App() {
     (s, c) => s + Number(c.percent || 0),
     0,
   );
+  const overAmount = (salary * (totalPercent - 100)) / 100;
 
   // Derived rather than stored, so the masthead chip and the gallery's
   // "already your split" state stay honest the moment a figure changes.
@@ -181,7 +188,7 @@ export default function App() {
       instantiateTemplate(template),
       `Replaced your split with ${template.name}`,
     );
-    setView("home");
+    setView("split");
   };
 
   const addExpense = (draft: ExpenseDraft) => {
@@ -205,7 +212,7 @@ export default function App() {
     return (
       <TemplateGallery
         onSelect={applyTemplate}
-        onBack={() => setView("home")}
+        onBack={() => setView("split")}
         currentTemplateId={currentTemplate?.id ?? null}
       />
     );
@@ -213,24 +220,29 @@ export default function App() {
 
   return (
     <div className="mx-auto w-full max-w-content px-page-x pb-[90px]">
+      {/* The wordmark stands on the tabletop rather than resting on a
+          deck: the tab bar is what sits under her now, and it is too
+          shallow to take the 28px overlap. The template chip is only on
+          the Split tab, because it is the split it names. */}
       <Masthead
-        sits
         titles
-        template={{
-          // Nothing allocated yet reads as an invitation, not as a split
-          // called "Custom" with no figures behind it.
-          name:
-            currentTemplate?.name ??
-            (categories.length > 0 ? "Custom" : "Choose a template"),
-          split: splitOf(categories),
-        }}
+        template={
+          view === "split"
+            ? {
+                // Nothing allocated yet reads as an invitation, not as a
+                // split called "Custom" with no figures behind it.
+                name:
+                  currentTemplate?.name ??
+                  (categories.length > 0 ? "Custom" : "Choose a template"),
+                split: splitOf(categories),
+              }
+            : undefined
+        }
         onOpenGallery={() => setView("templates")}
       />
 
-      {/* The masthead is the banner and stays outside this; everything
-          below it is the one task the screen exists for. A plain block
-          wrapper, so the deck still rises into the mark's overlap exactly
-          as it did. */}
+      <ViewTabs active={view} onChange={setView} />
+
       <main>
         {/* The one thing on this page that is genuinely broken rather than
             merely over-allocated, so it takes `alert` and sits above the
@@ -250,69 +262,130 @@ export default function App() {
           </p>
         )}
 
-        <PaydayHeader
-          salary={salary}
-          onSalaryChange={setSalary}
-          totalPercent={totalPercent}
-          spent={spent}
-          remaining={remaining}
-          onAddExpense={() => setExpenseDialogOpen(true)}
-          categories={categories}
-        />
+        {/* The Salary tab edits this figure; every other tab still names
+            it, so what the split and the expenses are measured against is
+            never out of sight. */}
+        {view !== "salary" && (
+          <p className="mt-stack flex items-baseline justify-between gap-3 rounded-slab border border-line bg-card px-deck-x py-3.5">
+            <span className="text-label uppercase tracking-caps text-ink-soft">Salary</span>
+            <span className="font-display text-title font-extrabold text-ink">{peso(salary)}</span>
+          </p>
+        )}
 
-        {/* Mounted empty, like the over-allocation banner above it and for
-            the same reason: a live region has to be registered before
-            anything lands in it or the first message goes unread. Empty it
-            draws no box and takes no margin, so the deck and the cards sit
-            exactly where they did.
-
-            It sits between the deck and the cards because that is where
-            the loss is visible — a deleted card left a gap in the grid
-            below, and a replaced split redrew the dial above. Nothing
-            times it out: an offer that expires while the reader is still
-            working out what happened is not an offer. */}
-        <div role="status">
-          {undo !== null && undo.next === categories && (
-            <div className="mt-stack flex flex-wrap items-center justify-between gap-3 rounded-slab border border-line bg-card px-[22px] py-3.5">
-              <p className="font-display text-meta font-semibold text-ink-soft">
-                {undo.label}
-              </p>
-              <Button
-                small
-                variant="alt"
-                onClick={() => {
-                  setCategories(undo.prev);
-                  setUndo(null);
-                }}
-              >
-                <Undo2 size={15} strokeWidth={2.2} aria-hidden="true" />
-                Undo
-              </Button>
+        {/* One panel, relabelled per tab: only the selected tab's content
+            is ever mounted, so there is never a hidden panel to point at. */}
+        <div role="tabpanel" id={panelId(view)} aria-labelledby={tabId(view)}>
+          {view === "salary" && (
+            <div className="mt-stack">
+              <PaydayHeader
+                salary={salary}
+                onSalaryChange={setSalary}
+                totalPercent={totalPercent}
+                spent={spent}
+                remaining={remaining}
+                categories={categories}
+              />
             </div>
           )}
+
+          {view === "split" && (
+            <>
+              {/* Always mounted while this tab is, empty when the split fits:
+                  a live region has to be registered before content lands in
+                  it or the first message goes unread. The banner names the
+                  allocation consequence once, in pesos. */}
+              <div role="status">
+                {totalPercent > 100 && (
+                  <p className="mt-stack max-w-prose rounded-control bg-action-tint px-3.5 py-[9px] font-display text-meta font-semibold text-action-edge">
+                    Over by {pct(totalPercent - 100)}% ·{" "}
+                    <b className="font-bold">{pesoRound(overAmount)}</b> more
+                    than this payday
+                  </p>
+                )}
+              </div>
+
+              {/* Mounted empty, like the over-allocation banner above it and for
+                  the same reason: a live region has to be registered before
+                  anything lands in it or the first message goes unread. Empty it
+                  draws no box and takes no margin.
+
+                  It sits above the cards because that is where the loss is
+                  visible — a deleted card leaves a gap in the grid below.
+                  Switching tabs does not expire it either, since it expires on
+                  identity and a tab switch builds no new array. Nothing
+                  times it out: an offer that expires while the reader is still
+                  working out what happened is not an offer. */}
+              <div role="status">
+                {undo !== null && undo.next === categories && (
+                  <div className="mt-stack flex flex-wrap items-center justify-between gap-3 rounded-slab border border-line bg-card px-[22px] py-3.5">
+                    <p className="font-display text-meta font-semibold text-ink-soft">
+                      {undo.label}
+                    </p>
+                    <Button
+                      small
+                      variant="alt"
+                      onClick={() => {
+                        setCategories(undo.prev);
+                        setUndo(null);
+                      }}
+                    >
+                      <Undo2 size={15} strokeWidth={2.2} aria-hidden="true" />
+                      Undo
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <CategoryList
+                categories={categories}
+                salary={salary}
+                spent={spentByCategory(expenses)}
+                onChangeCategory={updateCategory}
+                onRemoveCategory={removeCategory}
+                onRemoveSub={removeSub}
+                onAddCategory={addCategory}
+              />
+            </>
+          )}
+
+          {view === "expenses" && (
+            <>
+              <section className="mt-stack flex flex-wrap items-end justify-between gap-6 rounded-slab border border-line bg-card px-deck-x py-[26px]">
+                <SpendSummary spent={spent} remaining={remaining} className="min-w-0 flex-1" />
+                <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
+                  <Button
+                    onClick={() => setExpenseDialogOpen(true)}
+                    inert={categories.length === 0}
+                    disabled={categories.length === 0}
+                    aria-describedby={categories.length === 0 ? "add-expense-help" : undefined}
+                    className="max-[700px]:w-full"
+                  >
+                    <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
+                    Add expense
+                  </Button>
+                  {categories.length === 0 && (
+                    <p id="add-expense-help" className="text-meta text-ink-soft">
+                      Add a category before recording expenses.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <ExpenseHistory
+                expenses={expenses}
+                undoExpense={expenseUndo?.next === expenses ? expenseUndo.expense : null}
+                onDelete={deleteExpense}
+                onUndo={() => {
+                  if (!expenseUndo || expenseUndo.next !== expenses) return;
+                  const next = [...expenses];
+                  next.splice(expenseUndo.index, 0, expenseUndo.expense);
+                  setExpenses(next);
+                  setExpenseUndo(null);
+                }}
+              />
+            </>
+          )}
         </div>
-
-        <CategoryList
-          categories={categories}
-          salary={salary}
-          onChangeCategory={updateCategory}
-          onRemoveCategory={removeCategory}
-          onRemoveSub={removeSub}
-          onAddCategory={addCategory}
-        />
-
-        <ExpenseHistory
-          expenses={expenses}
-          undoExpense={expenseUndo?.next === expenses ? expenseUndo.expense : null}
-          onDelete={deleteExpense}
-          onUndo={() => {
-            if (!expenseUndo || expenseUndo.next !== expenses) return;
-            const next = [...expenses];
-            next.splice(expenseUndo.index, 0, expenseUndo.expense);
-            setExpenses(next);
-            setExpenseUndo(null);
-          }}
-        />
       </main>
       {expenseDialogOpen && (
         <ExpenseDialog
