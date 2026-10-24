@@ -335,9 +335,9 @@ export default function App() {
 
         {/* The Salary tab edits this figure; every other tab still names
             it, so what the split and the expenses are measured against is
-            never out of sight. */}
-        {view !== "salary" && (
-          <p className="mt-stack flex items-baseline justify-between gap-3 rounded-slab border border-line bg-card px-deck-x py-3.5">
+            never out of sight. Expenses carries it in its own figures row. */}
+        {view === "split" && (
+          <p className="mt-stack flex items-baseline gap-3 border-b border-line pb-3.5">
             <span className="text-label uppercase tracking-caps text-ink-soft">Salary</span>
             <span className="font-display text-title font-extrabold text-ink">{peso(salary)}</span>
           </p>
@@ -422,8 +422,14 @@ export default function App() {
 
           {view === "expenses" && (
             <>
-              <section className="mt-stack flex flex-wrap items-end justify-between gap-6 rounded-slab border border-line bg-card px-deck-x py-[26px]">
-                <SpendSummary spent={spent} remaining={remaining} className="min-w-0 flex-1" />
+              <section className="mt-stack flex flex-wrap items-end justify-between gap-6 border-b border-line pb-[26px]">
+                <div className="grid min-w-0 flex-1 grid-cols-3 gap-4 max-[450px]:gap-2">
+                  <div>
+                    <p className="text-label uppercase tracking-caps text-ink-soft">Salary</p>
+                    <p className="mt-1 font-display text-amt font-extrabold text-ink">{peso(salary)}</p>
+                  </div>
+                  <SpendSummary spent={spent} remaining={remaining} className="col-span-2" />
+                </div>
                 <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
                   <Button
                     onClick={() => setExpenseDialog("new")}

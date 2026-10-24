@@ -45,7 +45,7 @@ export default function ViewTabs({ active, onChange }: ViewTabsProps) {
     <div
       role="tablist"
       aria-label="Sections"
-      className="mt-stack flex gap-1 rounded-slab border border-line bg-card p-1"
+      className="mt-stack flex border-b border-line"
     >
       {TABS.map((tab, i) => {
         const selected = tab.id === active;
@@ -64,11 +64,11 @@ export default function ViewTabs({ active, onChange }: ViewTabsProps) {
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={[
-              "min-h-hit flex-1 rounded-control border-b-[3px] font-display text-ui",
+              "-mb-px min-h-hit flex-1 border-b-[3px] font-display text-ui",
               // The zest-deep rule is the salary field's accent, reused so
               // the selected state is a shape at 4.5:1 and not a tint alone.
               selected
-                ? "border-zest-deep bg-sunk font-bold text-ink"
+                ? "border-zest-deep font-bold text-ink"
                 : "border-transparent font-semibold text-ink-soft",
             ].join(" ")}
           >

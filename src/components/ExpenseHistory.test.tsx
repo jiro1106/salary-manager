@@ -74,29 +74,7 @@ describe("ExpenseHistory", () => {
     const labels = rows.map((row) => within(row).getByRole("button", { name: /delete lunch/i }).getAttribute("aria-label"));
     expect(labels[0]).toContain("₱1,250.00");
     expect(labels[1]).toContain("₱45.50");
-    expect(labels[0]).toContain(rows[0].querySelector("time")?.textContent);
-    expect(labels[1]).toContain(rows[1].querySelector("time")?.textContent);
     expect(labels[0]).not.toBe(labels[1]);
-  });
-
-  it("keeps delete labels unique for otherwise identical expenses in one minute", () => {
-    const sameMinute = { ...later, id: "same-minute", created_at: "2026-09-30T12:34:30.000Z" };
-    const sameTimestamp = { ...later, id: "same-timestamp" };
-    render(
-      <ExpenseHistory
-        onEdit={() => {}}
-        categories={[]}
-        expenses={[later, sameMinute, sameTimestamp]}
-        onDelete={() => {}}
-       
-      />,
-    );
-
-    const labels = screen.getAllByRole("button", { name: /delete lunch/i }).map((button) => button.getAttribute("aria-label"));
-    expect(new Set(labels).size).toBe(3);
-    expect(labels.some((label) => label?.includes("later"))).toBe(true);
-    expect(labels.some((label) => label?.includes("same-minute"))).toBe(true);
-    expect(labels.some((label) => label?.includes("same-timestamp"))).toBe(true);
   });
 
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {

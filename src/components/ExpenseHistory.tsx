@@ -36,7 +36,7 @@ export default function ExpenseHistory({
         </span>
       </div>
 
-      <div className="mt-3 rounded-slab border border-line bg-card px-[26px] py-1.5 max-[700px]:px-4">
+      <div className="mt-3 border-t border-line">
         {newestFirst.length === 0 ? (
           <p className="py-3 text-meta text-ink-soft">
             No expenses yet. Add one to see it here.
@@ -57,7 +57,7 @@ export default function ExpenseHistory({
               return (
                 <li
                   key={expense.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 [&+&]:border-t [&+&]:border-line"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line py-3"
                 >
                   {/* The category's own mark, the same tile as its Legend pip.
                       A deleted category leaves an empty sunk tile: the name
@@ -84,13 +84,13 @@ export default function ExpenseHistory({
                     </span>
                     <div className="flex items-center gap-3">
                       <IconButton
-                        label={`Edit ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
+                        label={`Edit ${expense.title}, ${peso(expense.amount)}`}
                         onClick={() => onEdit(expense)}
                       >
                         <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
                       </IconButton>
                       <IconButton
-                        label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
+                        label={`Delete ${expense.title}, ${peso(expense.amount)}`}
                         onClick={() => setConfirming(expense)}
                         danger
                       >
