@@ -2,9 +2,8 @@ import { useState } from "react";
 import type { CSSProperties } from "react";
 import { Plus, Trash2, ChevronDown } from "lucide-react";
 import { Category, SubCategory } from "../types";
-import { peso, uid } from "../lib/format";
+import { peso, plural, share, uid } from "../lib/format";
 import { iconOf } from "../lib/icons";
-import { edgeOf } from "../lib/palette";
 import SubCategoryRow from "./SubCategoryRow";
 import ConfirmDialog from "./ConfirmDialog";
 import EditableName from "./EditableName";
@@ -32,10 +31,10 @@ export default function CategoryCard({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const Icon = iconOf(cat.icon);
-  const catAmount = (salary * Number(cat.percent || 0)) / 100;
+  const catAmount = share(salary, cat.percent);
 
   const subTotal = cat.subs.reduce((s, x) => s + Number(x.percent || 0), 0);
-  const subPesoTotal = (catAmount * subTotal) / 100;
+  const subPesoTotal = share(catAmount, subTotal);
   const remaining = catAmount - subPesoTotal;
   // Judged against a tolerance rather than exactly. A sub-item percent
   // that was back-computed from a peso amount carries float dust: three
@@ -67,23 +66,23 @@ export default function CategoryCard({
     onRemove();
   };
 
-  const itemCount = `${cat.subs.length} item${cat.subs.length !== 1 ? "s" : ""}`;
+  const itemCount = plural(cat.subs.length, "item");
 
   return (
     <article
       className={[
         "relative rounded-slab border border-line bg-card",
-        "transition-[transform,border-color] duration-[180ms] ease-paper",
+        "transition-[transform,border-color] duration-mid ease-paper",
         "hover:-translate-y-[2px] hover:border-line-strong",
       ].join(" ")}
       // The data owns the colour; components never name an ink.
-      style={{ "--c": cat.color, "--ce": edgeOf(cat.color) } as CSSProperties}
+      style={{ "--c": cat.color } as CSSProperties}
     >
       {/* The category's own ink, filling the head of the card. It carries
           its own top radius rather than being clipped by the card, because
           overflow-hidden would cut the focus ring off the full-width
           disclosure below it. */}
-      <div className="rounded-t-slab bg-cat px-[22px] pb-[18px] pt-5 text-on-color">
+      <div className="rounded-t-slab bg-cat px-card-x pb-[18px] pt-5 text-on-color">
         <div className="flex items-center gap-[11px]">
           <span
             aria-hidden="true"
@@ -92,11 +91,9 @@ export default function CategoryCard({
             <Icon size={18} strokeWidth={2} className="text-on-color" />
           </span>
           {/* The category name is this card's heading, so the grid gives
-              a screen reader a real outline (the wordmark is the h1) and
-              not just a run of buttons. Preflight strips a heading's own
-              size, weight and margin, and the flex pair below hands the
-              name the same box it had as a bare child of the row, so this
-              is structure only — nothing moves. */}
+              a screen reader a real outline (the wordmark is the h1).
+              Preflight strips the heading's own styles, so it adds
+              structure only. */}
           <h2 className="flex min-w-0 flex-1">
             <EditableName
               value={cat.name}
@@ -146,7 +143,7 @@ export default function CategoryCard({
         onClick={() => setIsOpen((o) => !o)}
         aria-expanded={isOpen}
         className={[
-          "flex w-full items-center gap-3 px-[22px] py-[13px]",
+          "flex w-full items-center gap-3 px-card-x py-[13px]",
           "text-left font-display text-meta transition-colors duration-fast ease-paper",
           isOver ? "text-action-edge" : "text-ink-soft hover:text-ink",
         ].join(" ")}
@@ -182,7 +179,7 @@ export default function CategoryCard({
       </button>
 
       {isOpen && (
-        <div className="animate-[nala-reveal_200ms_var(--ease)_both] border-t border-line px-[22px] pb-5 pt-2">
+        <div className="animate-[nala-reveal_200ms_var(--ease)_both] border-t border-line px-card-x pb-5 pt-2">
           {cat.subs.map((sub) => (
             <SubCategoryRow
               key={sub.id}
@@ -211,7 +208,7 @@ export default function CategoryCard({
         open={confirmOpen}
         title={
           cat.subs.length > 0
-            ? `Delete "${cat.name}" and its ${cat.subs.length} item${cat.subs.length !== 1 ? "s" : ""}?`
+            ? `Delete "${cat.name}" and its ${itemCount}?`
             : `Delete "${cat.name}"?`
         }
         // The dialog survives undo because the two answer different

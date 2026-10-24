@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ArrowLeft, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import Button from "./Button";
 import ConfirmDialog from "./ConfirmDialog";
-import Masthead from "./Masthead";
+import SubScreen from "./SubScreen";
 import { Theme, setTheme, storedTheme } from "../lib/theme";
 
 const THEMES: { value: Theme; label: string }[] = [
@@ -28,80 +28,62 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
   const [theme, setThemeState] = useState<Theme>(storedTheme);
 
   return (
-    <div className="mx-auto w-full max-w-content px-page-x pb-[90px]">
-      <Masthead />
+    <SubScreen backLabel="Back" onBack={onBack}>
+      <h1 className="font-display text-sec font-extrabold">Settings</h1>
 
-      {/* Same shape as the templates screen: the wordmark is the brand
-          here and this screen names itself with its own h1. */}
-      <main>
-        <button
-          type="button"
-          onClick={onBack}
-          className={[
-            "mb-0.5 inline-flex min-h-hit items-center gap-2 rounded-control px-1 text-meta font-semibold",
-            "text-ink-soft transition-colors duration-fast ease-paper hover:text-ink",
-          ].join(" ")}
-        >
-          <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
-          Back
-        </button>
-
-        <h1 className="font-display text-sec font-extrabold">Settings</h1>
-
-        <div className="mt-4 divide-y divide-line">
-          {/* Native radios, so arrow keys and the group's name come free;
-              the input is visually hidden and the label is the chip. */}
-          <fieldset className={ROW}>
-            <legend className="sr-only">Theme</legend>
-            <div className="min-w-0">
-              <p aria-hidden="true" className={NAME}>Theme</p>
-              <p className={NOTE}>
-                System follows your device. Category colours stay the same in both.
-              </p>
-            </div>
-            <div className="inline-flex gap-1 rounded-control bg-sunk p-1">
-              {THEMES.map((t) => (
-                <label
-                  key={t.value}
-                  className={[
-                    "cursor-pointer rounded-control px-3.5 py-2 text-meta font-semibold",
-                    "transition-colors duration-fast ease-paper",
-                    "has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-[3px] has-[:focus-visible]:outline-blue",
-                    theme === t.value ? "bg-card text-ink shadow-field" : "text-ink-soft hover:text-ink",
-                  ].join(" ")}
-                >
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={t.value}
-                    checked={theme === t.value}
-                    onChange={() => {
-                      setThemeState(t.value);
-                      setTheme(t.value);
-                    }}
-                    className="sr-only"
-                  />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className={ROW}>
-            <div className="min-w-0">
-              <h2 className={NAME}>Reset all data</h2>
-              <p className={NOTE}>
-                Clears your salary, every category and every expense, and starts
-                over from the default split.
-              </p>
-            </div>
-            <Button small variant="danger" onClick={() => setConfirming(true)}>
-              <RotateCcw size={15} strokeWidth={2.2} aria-hidden="true" />
-              Reset
-            </Button>
+      <div className="mt-4 divide-y divide-line">
+        {/* Native radios, so arrow keys and the group's name come free;
+            the input is visually hidden and the label is the chip. */}
+        <fieldset className={ROW}>
+          <legend className="sr-only">Theme</legend>
+          <div className="min-w-0">
+            <p aria-hidden="true" className={NAME}>Theme</p>
+            <p className={NOTE}>
+              System follows your device. Category colours stay the same in both.
+            </p>
           </div>
+          <div className="inline-flex gap-1 rounded-control bg-sunk p-1">
+            {THEMES.map((t) => (
+              <label
+                key={t.value}
+                className={[
+                  "cursor-pointer rounded-control px-3.5 py-2 text-meta font-semibold",
+                  "transition-colors duration-fast ease-paper",
+                  "has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-[3px] has-[:focus-visible]:outline-blue",
+                  theme === t.value ? "bg-card text-ink shadow-field" : "text-ink-soft hover:text-ink",
+                ].join(" ")}
+              >
+                <input
+                  type="radio"
+                  name="theme"
+                  value={t.value}
+                  checked={theme === t.value}
+                  onChange={() => {
+                    setThemeState(t.value);
+                    setTheme(t.value);
+                  }}
+                  className="sr-only"
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className={ROW}>
+          <div className="min-w-0">
+            <h2 className={NAME}>Reset all data</h2>
+            <p className={NOTE}>
+              Clears your salary, every category and every expense, and starts
+              over from the default split.
+            </p>
+          </div>
+          <Button small variant="danger" onClick={() => setConfirming(true)}>
+            <RotateCcw size={15} strokeWidth={2.2} aria-hidden="true" />
+            Reset
+          </Button>
         </div>
-      </main>
+      </div>
 
       {/* The one act in the app with no undo behind it, so it keeps the
           dialog: there is nothing left for an undo bar to restore from. */}
@@ -117,6 +99,6 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
         }}
         onCancel={() => setConfirming(false)}
       />
-    </div>
+    </SubScreen>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Category } from "../types";
-import { pct, pesoRound } from "../lib/format";
+import { pct, pesoRound, share } from "../lib/format";
 
 interface CutDialProps {
   segments: Category[];
@@ -142,13 +142,10 @@ export default function CutDial({
   const slices = useEasedSlices(buildSlices(segments));
 
   const figure = `${pct(totalPercent)}%`;
-  // A runaway total (someone types 9999 into a share field) would otherwise
-  // run straight off the disc, so the figure steps down instead of clipping.
-  const figureSize = figure.length > 5 ? "text-title" : "text-total";
 
   const active = segments.find((s) => s.id === activeId) ?? null;
   const activeFigure = active
-    ? pesoRound((salary * (Number(active.percent) || 0)) / 100)
+    ? pesoRound(share(salary, active.percent))
     : "";
 
   /**
@@ -174,7 +171,7 @@ export default function CutDial({
 
   return (
     <div
-      className="relative aspect-square w-dial max-[700px]:w-[min(100%,190px)]"
+      className="relative aspect-square w-dial narrow:w-[min(100%,190px)]"
       role="img"
       aria-label={
         isOver
@@ -263,7 +260,7 @@ export default function CutDial({
               <b
                 className={[
                   "font-display font-extrabold leading-none",
-                  figureSize,
+                  "text-total",
                   isOver ? "text-action-edge" : "text-ink",
                 ].join(" ")}
               >

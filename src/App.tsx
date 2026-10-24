@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { CircleCheck, Plus, Trash2, Undo2 } from "lucide-react";
 import type { Category, Config, Expense, ExpenseDraft } from "./types";
-import { pct, peso, pesoRound, uid } from "./lib/format";
+import { pct, peso, pesoRound, share, uid } from "./lib/format";
 import { storage } from "./lib/storage";
 import { expenseSummary, makeExpense, spentByCategory } from "./lib/expenses";
-import { CATEGORY_COLORS, defaultCategories } from "./lib/defaultCategories";
+import { CATEGORY_COLORS } from "./lib/palette";
 import {
   Template,
+  defaultCategories,
   instantiateTemplate,
   matchTemplate,
   splitOf,
@@ -28,6 +29,7 @@ type View = Tab | "templates" | "settings";
 
 export default function App() {
   const [view, setView] = useState<View>("salary");
+  const addExpenseHelpId = useId();
   const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -41,8 +43,7 @@ export default function App() {
   const [storageBlocked, setStorageBlocked] = useState(false);
   // The last destructive edit to the split, and what it produced. Deleting
   // a category, deleting one of its items and applying a template are the
-  // three acts here that throw work away, and until now the only thing
-  // standing in front of any of them was a dialog — which asks the reader
+  // three acts here that throw work away. A dialog alone asks the reader
   // to be certain in advance instead of letting them find out.
   //
   // `next` is kept so the offer can expire on its own: it is the exact
@@ -124,7 +125,7 @@ export default function App() {
     (s, c) => s + Number(c.percent || 0),
     0,
   );
-  const overAmount = (salary * (totalPercent - 100)) / 100;
+  const overAmount = share(salary, totalPercent - 100);
 
   // Derived rather than stored, so the masthead chip and the gallery's
   // "already your split" state stay honest the moment a figure changes.
@@ -289,10 +290,10 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-content px-page-x pb-[90px]">
+    <div className="mx-auto w-full max-w-content px-page-x pb-page-b">
       {/* The wordmark stands on the tabletop rather than resting on a
-          deck: the tab bar is what sits under her now, and it is too
-          shallow to take the 28px overlap. The template chip is only on
+          deck: the tab bar sits under her and is too shallow to take the
+          28px overlap. The template chip is only on
           the Split tab, because it is the split it names. */}
       <Masthead
         titles
@@ -388,7 +389,7 @@ export default function App() {
                   working out what happened is not an offer. */}
               <div role="status">
                 {undo !== null && undo.next === categories && (
-                  <div className="mt-stack flex flex-wrap items-center justify-between gap-3 rounded-slab border border-line bg-card px-[22px] py-3.5">
+                  <div className="mt-stack flex flex-wrap items-center justify-between gap-3 rounded-slab border border-line bg-card px-card-x py-3.5">
                     <p className="font-display text-meta font-semibold text-ink-soft">
                       {undo.label}
                     </p>
@@ -422,7 +423,7 @@ export default function App() {
 
           {view === "expenses" && (
             <>
-              <section className="mt-stack flex flex-wrap items-end justify-between gap-6 border-b border-line pb-[26px]">
+              <section className="mt-stack flex flex-wrap items-end justify-between gap-6 border-b border-line pb-stack">
                 <div className="grid min-w-0 flex-1 grid-cols-3 gap-4 max-[450px]:gap-2">
                   <div>
                     <p className="text-label uppercase tracking-caps text-ink-soft">Salary</p>
@@ -430,19 +431,19 @@ export default function App() {
                   </div>
                   <SpendSummary spent={spent} remaining={remaining} className="col-span-2" />
                 </div>
-                <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
+                <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
                   <Button
                     onClick={() => setExpenseDialog("new")}
                     inert={categories.length === 0}
                     disabled={categories.length === 0}
-                    aria-describedby={categories.length === 0 ? "add-expense-help" : undefined}
-                    className="max-[700px]:w-full"
+                    aria-describedby={categories.length === 0 ? addExpenseHelpId : undefined}
+                    className="narrow:w-full"
                   >
                     <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
                     Add expense
                   </Button>
                   {categories.length === 0 && (
-                    <p id="add-expense-help" className="text-meta text-ink-soft">
+                    <p id={addExpenseHelpId} className="text-meta text-ink-soft">
                       Add a category before recording expenses.
                     </p>
                   )}

@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { SubCategory } from "../types";
+import { share } from "../lib/format";
 import EditableName from "./EditableName";
 import IconButton from "./IconButton";
 import NumberField from "./NumberField";
@@ -36,7 +37,7 @@ export default function SubCategoryRow({
   onChange,
   onRemove,
 }: SubCategoryRowProps) {
-  const pesoValue = (catAmount * Number(sub.percent || 0)) / 100;
+  const pesoValue = share(catAmount, sub.percent);
   // Nothing to divide up yet, so the peso field has no base to work from.
   const pesoDisabled = catAmount <= 0;
 

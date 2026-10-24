@@ -46,32 +46,15 @@
      turning the primary button's word to ink on ink. */
   --on-action: #ffffff;
 
-  /* --- category inks, face + a deeper shade for text on white ---
-     These five mirror CATEGORY_COLORS in src/lib/palette.ts exactly; the
-     data side stamps them onto categories, this side is the chrome that
-     has to sit next to them. Change one and change the other.
-
-     Two measured terms, both inverted from the palette this replaced:
-       - --ink on the face clears 4.5:1, not 3:1. The old dark faces were
-         held to 3:1 because only large text and icons ever sat on them;
-         these clear the small-text bar outright, lowest violet at 6.99.
-       - the deep clears 4.5:1 on white, lowest lime at 4.51, because the
-         deep is what carries small text on a card and the pip glyph.
-
-     The deep is no longer a fixed 22% darkening. Darkening a light face
-     22% leaves it light and clears nothing, so each deep is scaled down
-     until it passes — 55% to 69% of its face. The ratio is the invariant
-     now, not the multiplier. */
-  --punch: #ff8fa3;
-  --punch-deep: #ab606d;
+  /* --- chrome accents taken from two category inks ---
+     The category inks themselves are data and live only in
+     CATEGORY_COLORS (src/lib/palette.ts). These two faces are copies the
+     chrome needs: zest for the legend crown, lime for dark-mode money
+     text. Each deep clears 4.5:1 on white. */
   --zest: #ffd23f;
   --zest-deep: #8c7323;
   --lime: #a5e34d;
   --lime-deep: #5e812c;
-  --aqua: #5fd8d3;
-  --aqua-deep: #387f7c;
-  --violet: #b79bff;
-  --violet-deep: #7e6bb0;
 
   /* Not a category ink: the committing action, and every warning that
      names its consequence. Kept off the rotation for the same reason
@@ -107,19 +90,9 @@
   --spent-edge: #7b2e3a; /* the danger button's edge, --spent at 75% */
 
   /* Not a category ink either: the focus ring, kept off the palette so a
-     ring never lands on a ground of its own colour.
-
-     It went from #2563eb to #1e429f when the faces went light, and that
-     was a correctness fix rather than a taste one. A focus ring has to
-     clear 3:1 against whatever it is drawn on, and it is drawn on a
-     category head — outline-offset puts it outside the box, which on a
-     card head is still the face. Against the old dark inks #2563eb had
-     room; against punch it measured 2.39 and against violet 2.25, because
-     both moved up into the same luminance band the ring was in. #1e429f
-     clears every face with the worst at 3.92. The rule that matters is
-     unchanged: the ring is never a category ink. */
+     ring never lands on a ground of its own colour. It is drawn on
+     category heads too, so it has to clear 3:1 on every face (worst 3.92). */
   --blue: #1e429f;
-  --blue-edge: #17337c;
 
   /* Text set in a warning or money ink. In light these are the fills
      themselves; dark mode lifts them without touching the fills, which
@@ -151,9 +124,6 @@
   --sh-danger: 0 4px 0 var(--spent-edge);
   --sh-danger-lift: 0 6px 0 var(--spent-edge);
   --sh-danger-press: 0 0 0 var(--spent-edge);
-  --sh-action-blue: 0 4px 0 var(--blue-edge);
-  --sh-action-blue-lift: 0 6px 0 var(--blue-edge);
-  --sh-action-blue-press: 0 0 0 var(--blue-edge);
 
   --sh-alt: 0 0 0 1px var(--line-strong), 0 4px 0 var(--line-strong);
   --sh-alt-lift: 0 0 0 1px var(--line-strong), 0 6px 0 var(--line-strong);
@@ -182,6 +152,8 @@
   /* --- layout --- */
   --content: 800px;
   --page-x: 24px;
+  --page-b: 90px; /* room under the last card on every screen */
+  --card-x: 22px; /* inner inset of a category card and the undo bar */
   /* The deck's inner column. The masthead reads as the deck's own title
      rather than a floating page header, so when Nala sits on the card she
      takes this inset too and her drawing starts on the same vertical as

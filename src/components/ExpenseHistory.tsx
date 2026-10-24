@@ -1,9 +1,8 @@
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import { useId, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category, Expense } from "../types";
-import { peso } from "../lib/format";
-import { iconOf } from "../lib/icons";
+import { peso, plural } from "../lib/format";
+import CategoryMark from "./CategoryMark";
 import ConfirmDialog from "./ConfirmDialog";
 import IconButton from "./IconButton";
 
@@ -21,18 +20,19 @@ export default function ExpenseHistory({
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
+  const titleId = useId();
   const newestFirst = [...expenses].sort(
     (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
   );
 
   return (
-    <section aria-labelledby="expense-history-title" className="mt-split">
+    <section aria-labelledby={titleId} className="mt-split">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h2 id="expense-history-title" className="text-title font-bold">
+        <h2 id={titleId} className="text-title font-bold">
           Expense history
         </h2>
         <span className="text-meta text-ink-soft">
-          {expenses.length} {expenses.length === 1 ? "expense" : "expenses"}
+          {plural(expenses.length, "expense")}
         </span>
       </div>
 
@@ -52,7 +52,6 @@ export default function ExpenseHistory({
                 minute: "2-digit",
               });
               const category = categories.find((c) => c.id === expense.categoryId);
-              const Mark = category && iconOf(category.icon);
 
               return (
                 <li
@@ -62,13 +61,7 @@ export default function ExpenseHistory({
                   {/* The category's own mark, the same tile as its Legend pip.
                       A deleted category leaves an empty sunk tile: the name
                       beside it is stored on the expense, the look is not. */}
-                  <span
-                    aria-hidden="true"
-                    className={`grid h-[28px] w-[28px] flex-none place-items-center rounded-control ${Mark ? "bg-cat text-on-color" : "bg-sunk"}`}
-                    style={category ? ({ "--c": category.color } as CSSProperties) : undefined}
-                  >
-                    {Mark && <Mark size={14} strokeWidth={2} />}
-                  </span>
+                  <CategoryMark icon={category?.icon} color={category?.color} />
                   <div className="min-w-[12ch] flex-[1_1_12rem]">
                     <p className="break-words text-body font-bold">{expense.title}</p>
                     <div className="flex flex-wrap gap-x-3 text-meta text-ink-soft">

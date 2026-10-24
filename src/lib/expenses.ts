@@ -1,4 +1,5 @@
 import type { Category, Expense, ExpenseDraft, ExpenseErrors } from "../types";
+import { MAX_PESO_DIGITS } from "./numberInput";
 
 export function makeExpense(
   draft: ExpenseDraft,
@@ -39,7 +40,7 @@ export function amountError(amount: string): string | undefined {
   if (extra !== undefined || !/^\d*$/.test(whole) || !/^\d*$/.test(decimals ?? "") || !(whole || decimals)) {
     return "Enter a number, like 250 or 250.50.";
   }
-  if (whole.replace(/^0+(?=\d)/, "").length > 9) return "Too large. Use up to 9 digits before the decimal point.";
+  if (whole.replace(/^0+(?=\d)/, "").length > MAX_PESO_DIGITS) return `Too large. Use up to ${MAX_PESO_DIGITS} digits before the decimal point.`;
   if ((decimals ?? "").length > 2) return "Use up to 2 decimal places.";
   if (Number(amount) <= 0) return "Enter an amount more than 0.";
   return undefined;

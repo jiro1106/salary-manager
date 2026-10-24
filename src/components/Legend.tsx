@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 import { Crown } from "lucide-react";
 import type { Category } from "../types";
-import { pct, pesoRound } from "../lib/format";
-import { iconOf } from "../lib/icons";
+import { pct, plural, pesoRound, share } from "../lib/format";
+import CategoryMark from "./CategoryMark";
 
 interface LegendProps {
   segments: Category[];
@@ -24,14 +24,13 @@ export default function Legend({
   // Only the first category to hit the maximum carries the tag.
   let tagged = false;
 
-  const unassigned = Math.max(0, (salary * (100 - totalPercent)) / 100);
+  const unassigned = Math.max(0, share(salary, 100 - totalPercent));
 
   return (
-    <div className="min-w-0 max-[700px]:w-full">
+    <div className="min-w-0 narrow:w-full">
       {segments.map((seg) => {
         const isBiggest = !tagged && max > 0 && Number(seg.percent) === max;
         if (isBiggest) tagged = true;
-        const Mark = iconOf(seg.icon);
 
         const isActive = seg.id === activeId;
 
@@ -53,7 +52,7 @@ export default function Legend({
               // columns is a separator, 13px between the two lines of one
               // row would read as two rows.
               "flex items-center gap-x-[13px] gap-y-1 rounded-control py-[11px]",
-              "max-[700px]:flex-wrap",
+              "narrow:flex-wrap",
               // The tint needs room the column does not have, so the row
               // grows into the gutter on both sides and pads its content
               // back to where it was.
@@ -69,14 +68,7 @@ export default function Legend({
                 legend fills the tile with the ink so the pip still keys to
                 its wedge in the dial. Hidden from the reader either way —
                 the name is the next node along. */}
-            <span
-              aria-hidden="true"
-              className={[
-                "relative grid h-[28px] w-[28px] flex-none place-items-center",
-                "rounded-control bg-cat text-on-color",
-              ].join(" ")}
-            >
-              <Mark size={14} strokeWidth={2} />
+            <CategoryMark icon={seg.icon}>
               {/* The biggest share is crowned on its pip rather than tagged
                   beside its name. A tag is an inline word, and its width came
                   out of the name column on one row only — so the one category
@@ -89,7 +81,7 @@ export default function Legend({
                   <Crown size={9} strokeWidth={2.6} className="text-zest" />
                 </span>
               )}
-            </span>
+            </CategoryMark>
             <span className="min-w-0 flex-1 truncate text-body font-bold">
               {seg.name}
             </span>
@@ -126,14 +118,14 @@ export default function Legend({
             <span
               className={[
                 "min-w-[5ch] flex-none text-right text-meta text-ink-soft",
-                "max-[700px]:order-last max-[700px]:w-full",
-                "max-[700px]:pl-[41px] max-[700px]:text-left",
+                "narrow:order-last narrow:w-full",
+                "narrow:pl-[41px] narrow:text-left",
               ].join(" ")}
             >
               {pct(seg.percent)}%
             </span>
             <span className="min-w-[10ch] flex-none text-right font-display text-title font-bold">
-              {pesoRound((salary * (Number(seg.percent) || 0)) / 100)}
+              {pesoRound(share(salary, seg.percent))}
             </span>
           </div>
         );
@@ -141,7 +133,7 @@ export default function Legend({
 
       <p className="mt-[13px] flex justify-between gap-3 border-t border-line pt-3 text-meta text-ink-soft">
         <span>
-          {segments.length} categor{segments.length === 1 ? "y" : "ies"}
+          {plural(segments.length, "category", "categories")}
         </span>
         <span className="font-display font-bold text-ink">
           {pesoRound(unassigned)}{" "}

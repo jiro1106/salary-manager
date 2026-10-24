@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useId, useRef } from "react";
 import Button from "./Button";
+import Modal from "./Modal";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -30,91 +30,40 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const descId = useId();
 
-  useEffect(() => {
-    if (!open) return;
-
-    // Where focus came from, so it can go back there on close.
-    const opener = document.activeElement as HTMLElement | null;
-    cancelRef.current?.focus();
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onCancel();
-        return;
-      }
-      if (e.key !== "Tab") return;
-
-      // Trap: the dialog only ever holds two buttons, so cycling
-      // between the first and last focusable is the whole job.
-      const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([aria-disabled="true"]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      if (!focusable || focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      opener?.focus?.();
-    };
-  }, [open, onCancel]);
-
   if (!open) return null;
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim px-page-x"
-      onClick={onCancel}
+  return (
+    // Pointed at the real nodes rather than an aria-label carrying a copy
+    // of the title. Every one of these dialogs guards something that
+    // cannot be undone, and the consequence lives in the description —
+    // with a label alone that line is never read out.
+    <Modal
+      role="alertdialog"
+      labelledBy={titleId}
+      describedBy={description ? descId : undefined}
+      initialFocus={cancelRef}
+      onClose={onCancel}
     >
-      <div
-        ref={panelRef}
-        role="alertdialog"
-        aria-modal="true"
-        // Pointed at the real nodes rather than an aria-label carrying a
-        // copy of the title. Every one of these dialogs guards something
-        // that cannot be undone, and the consequence lives in the
-        // description — with a label alone that line is never read out,
-        // so the reader is asked to confirm a deletion having heard only
-        // its name.
-        aria-labelledby={titleId}
-        aria-describedby={description ? descId : undefined}
-        className="w-full max-w-dialog rounded-slab border border-line bg-card px-[26px] py-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <p id={titleId} className="font-display text-title font-bold text-ink">
-          {title}
+      <p id={titleId} className="font-display text-title font-bold text-ink">
+        {title}
+      </p>
+      {description && (
+        <p id={descId} className="mt-2 text-meta text-ink-soft">
+          {description}
         </p>
-        {description && (
-          <p id={descId} className="mt-2 text-meta text-ink-soft">
-            {description}
-          </p>
-        )}
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button ref={cancelRef} variant="alt" small onClick={onCancel}>
-            {cancelLabel}
-          </Button>
-          <Button variant={danger ? "danger" : "primary"} small onClick={onConfirm}>
-            {confirmLabel}
-          </Button>
-        </div>
+      )}
+      <div className="mt-6 flex flex-wrap justify-end gap-3">
+        <Button ref={cancelRef} variant="alt" small onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+        <Button variant={danger ? "danger" : "primary"} small onClick={onConfirm}>
+          {confirmLabel}
+        </Button>
       </div>
-    </div>,
-    document.body,
+    </Modal>
   );
 }

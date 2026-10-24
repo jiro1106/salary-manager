@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { MAX_PESO_DIGITS, arrowStep, sanitizeDecimal } from "../lib/numberInput";
 
 interface NumberFieldProps {
   value: number;
@@ -27,34 +28,8 @@ interface NumberFieldProps {
  */
 const MAX_INT_DIGITS: Record<NumberFieldProps["unit"], number> = {
   "%": 3,
-  "₱": 9,
+  "₱": MAX_PESO_DIGITS,
 };
-
-/**
- * Digits, at most one decimal point, and no leading zeros on the integer
- * part — so "05" typed into a fresh category is 5, not fifty. The integer
- * part is capped per unit; a keystroke past the cap is refused the same
- * way a typed letter is.
- *
- * Decimals are deliberately not capped here. `display()` rounds what it
- * prints, and the stored value has to keep every digit of a percent
- * back-computed from a peso amount for the round-trip to land.
- */
-function sanitize(input: string, maxIntDigits: number): string {
-  const cleaned = input.replace(/[^0-9.]/g, "");
-  const dot = cleaned.indexOf(".");
-  const oneDot =
-    dot === -1
-      ? cleaned
-      : cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, "");
-  // A zero in front of a digit is dead weight; a zero in front of a point
-  // is the whole number ("0.5" keeps its zero).
-  const [intRaw, ...decRest] = oneDot.split(".");
-  const intPart = intRaw.replace(/^0+(?=\d)/, "").slice(0, maxIntDigits);
-  // decRest is empty or a single element — the dots were collapsed above.
-  // An empty one is a trailing point mid-typing ("5."), which is kept.
-  return decRest.length > 0 ? `${intPart}.${decRest[0]}` : intPart;
-}
 
 /**
  * What the chip shows when nobody is typing into it. `value` is a number,
@@ -120,7 +95,10 @@ export default function NumberField({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = sanitize(e.target.value, MAX_INT_DIGITS[unit]);
+    // Decimals are deliberately not capped here. `display()` rounds what
+    // it prints, and the stored value has to keep every digit of a percent
+    // back-computed from a peso amount for the round-trip to land.
+    const next = sanitizeDecimal(e.target.value, MAX_INT_DIGITS[unit]);
     setDraft(next);
     const parsed = Number(next);
     onChange(next === "" || Number.isNaN(parsed) ? 0 : parsed);
@@ -132,35 +110,18 @@ export default function NumberField({
   };
 
   /**
-   * Arrow stepping, restored by hand because the input is `type="text"`.
-   * The switch away from `type="number"` was made for the leading-zero bug
-   * documented above, and it silently took the stepper with it — which
-   * costs more than it looks, since nudging a share up or down is the most
-   * repeated gesture in this app and without this it is select-and-retype
-   * every time.
+   * Arrow stepping by hand, because a `type="text"` input has no stepper
+   * and nudging a share is the most repeated gesture in this app.
    *
    * Shift is the coarse step. The same ±1 / ±10 pair serves both units:
    * a percent moves in points and a sub-item's peso figure is bounded by
    * a category that is itself a percent of the payday, so neither wants
    * the payday field's much larger stride.
-   *
-   * Clamped at both ends. Zero is the floor because a negative share is
-   * not a state this app has; the ceiling is the same digit cap a
-   * keystroke gets, so stepping cannot reach a figure typing could not.
-   * The result is rounded to 2dp so a step off a back-computed percent
-   * (33.33333333333333 + 1) lands on a figure rather than on its dust.
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    const next = arrowStep(e, Number(draft ?? value), [1, 10], MAX_INT_DIGITS[unit]);
+    if (next === null) return;
     e.preventDefault();
-
-    const delta = (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 10 : 1);
-    const base = Number(draft ?? value);
-    const ceiling = 10 ** MAX_INT_DIGITS[unit] - 1;
-    const next = Math.min(
-      ceiling,
-      Math.max(0, Math.round(((Number.isFinite(base) ? base : 0) + delta) * 100) / 100),
-    );
 
     // The draft is in-progress typing and this is not typing; dropping it
     // puts the chip back on the canonical figure the step just produced.

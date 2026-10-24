@@ -243,6 +243,9 @@ export const TEMPLATES: Template[] = [
   },
 ];
 
+export const defaultCategories = (): Category[] =>
+  instantiateTemplate(TEMPLATES[0]);
+
 export const instantiateTemplate = (template: Template): Category[] =>
   template.categories.map((c) => ({
     ...c,
