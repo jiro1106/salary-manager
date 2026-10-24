@@ -11,14 +11,11 @@ const THEMES: { value: Theme; label: string }[] = [
   { value: "dark", label: "Dark" },
 ];
 
-// One ladder, four steps: page title (sec 28) > group (title 19) >
-// setting (ui 16) > its note (meta 13). The group heading has to out-rank
-// the settings under it; tracked caps at 11px sat below them.
-const GROUP = "pb-3 font-display text-title font-bold text-ink";
-// No card: a setting is a row on the page, ruled off by hairlines, so a
-// new one is one more row rather than one more box.
-const ROW = "flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line py-[18px]";
-const NAME = "text-ui font-semibold text-ink";
+// No groups and no cards while there are only two: each setting is a row
+// on the page, split from the next by a hairline. Group them under
+// headings again once there are enough to need it.
+const ROW = "flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5";
+const NAME = "text-ui font-medium text-ink";
 const NOTE = "mt-1 max-w-prose text-meta text-ink-soft";
 
 interface SettingsScreenProps {
@@ -51,8 +48,7 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
 
         <h1 className="font-display text-sec font-extrabold">Settings</h1>
 
-        <section aria-labelledby="settings-appearance" className="mt-split">
-          <h2 id="settings-appearance" className={GROUP}>Appearance</h2>
+        <div className="mt-4 divide-y divide-line">
           {/* Native radios, so arrow keys and the group's name come free;
               the input is visually hidden and the label is the chip. */}
           <fieldset className={ROW}>
@@ -90,13 +86,10 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
               ))}
             </div>
           </fieldset>
-        </section>
 
-        <section aria-labelledby="settings-data" className="mt-12">
-          <h2 id="settings-data" className={GROUP}>Data</h2>
           <div className={ROW}>
             <div className="min-w-0">
-              <h3 className={NAME}>Reset all data</h3>
+              <h2 className={NAME}>Reset all data</h2>
               <p className={NOTE}>
                 Clears your salary, every category and every expense, and starts
                 over from the default split.
@@ -107,7 +100,7 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
               Reset
             </Button>
           </div>
-        </section>
+        </div>
       </main>
 
       {/* The one act in the app with no undo behind it, so it keeps the
