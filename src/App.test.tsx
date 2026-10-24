@@ -148,4 +148,18 @@ describe("tabs", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Split" }));
     expect(screen.getByText(/over by 20%/i)).toBeTruthy();
   });
+
+  it("confirms an added expense in a toast", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
+    render(<App />);
+
+    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Lunch" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Category" }), { target: { value: "food" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
+
+    expect(screen.getByText('Added "Lunch"')).toBeTruthy();
+  });
 });

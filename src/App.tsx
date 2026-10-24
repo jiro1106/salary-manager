@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Undo2 } from "lucide-react";
+import { CircleCheck, Plus, Trash2, Undo2 } from "lucide-react";
 import type { Category, Config, Expense, ExpenseDraft } from "./types";
 import { pct, peso, pesoRound, uid } from "./lib/format";
 import { storage } from "./lib/storage";
@@ -56,6 +56,19 @@ export default function App() {
     label: string;
   } | null>(null);
   const skipSave = useRef(true);
+  // A short confirmation after each act, so the reader knows it landed.
+  // `id` changes on every notice so a repeat of the same text restarts
+  // the timer and the entrance instead of silently extending the old one.
+  // `loss` marks an act that threw something away (red); everything else
+  // added or restored something (green).
+  const [toast, setToast] = useState<{ id: number; text: string; loss: boolean } | null>(null);
+  const notify = (text: string, loss = false) => setToast({ id: Date.now(), text, loss });
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     const cfg = storage.get<Config>(CONFIG_KEY);
@@ -126,6 +139,7 @@ export default function App() {
   const replaceCategories = (next: Category[], label: string) => {
     setCategories(next);
     setUndo({ prev: categories, next, label });
+    notify(label, true);
   };
 
   const removeCategory = (id: string) => {
@@ -177,6 +191,7 @@ export default function App() {
         subs: [],
       },
     ]);
+    notify("Category added");
   };
 
   // The most destructive act in the app: it replaces the split wholesale,
@@ -196,6 +211,7 @@ export default function App() {
     if (expense) {
       setExpenses((current) => [...current, expense]);
       setExpenseUndo(null);
+      notify(`Added "${expense.title}"`);
     }
     return errors;
   };
@@ -206,15 +222,42 @@ export default function App() {
     const next = expenses.filter((expense) => expense.id !== id);
     setExpenses(next);
     setExpenseUndo({ expense: expenses[index], index, next });
+    notify(`Deleted "${expenses[index].title}"`, true);
   };
+
+  // Always mounted, empty between notices: a live region has to be
+  // registered before content lands in it or the first message goes unread.
+  const toastRegion = (
+    <div
+      role="status"
+      className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-page-x"
+    >
+      {toast && (
+        <p
+          key={toast.id}
+          className={`flex items-center gap-2 rounded-control px-4 py-3 text-meta font-semibold text-on-action animate-[nala-reveal_200ms_var(--ease)_both] ${toast.loss ? "bg-spent" : "bg-lime-deep"}`}
+        >
+          {toast.loss ? (
+            <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+          ) : (
+            <CircleCheck size={16} strokeWidth={2.2} aria-hidden="true" />
+          )}
+          {toast.text}
+        </p>
+      )}
+    </div>
+  );
 
   if (view === "templates") {
     return (
+      <>
       <TemplateGallery
         onSelect={applyTemplate}
         onBack={() => setView("split")}
         currentTemplateId={currentTemplate?.id ?? null}
       />
+      {toastRegion}
+      </>
     );
   }
 
@@ -327,6 +370,7 @@ export default function App() {
                       onClick={() => {
                         setCategories(undo.prev);
                         setUndo(null);
+                        notify("Split restored");
                       }}
                     >
                       <Undo2 size={15} strokeWidth={2.2} aria-hidden="true" />
@@ -381,6 +425,7 @@ export default function App() {
                   next.splice(expenseUndo.index, 0, expenseUndo.expense);
                   setExpenses(next);
                   setExpenseUndo(null);
+                  notify(`Restored "${expenseUndo.expense.title}"`);
                 }}
               />
             </>
@@ -394,6 +439,7 @@ export default function App() {
           onSubmit={addExpense}
         />
       )}
+      {toastRegion}
     </div>
   );
 }
