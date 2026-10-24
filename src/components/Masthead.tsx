@@ -1,4 +1,5 @@
-import { ChevronRight, LayoutTemplate } from "lucide-react";
+import { ChevronRight, LayoutTemplate, Settings } from "lucide-react";
+import IconButton from "./IconButton";
 import logo from "../assets/logo.png";
 
 interface MastheadProps {
@@ -25,6 +26,8 @@ interface MastheadProps {
   /** The split you are working from, and the way to change it. */
   template?: { name: string; split: string };
   onOpenGallery?: () => void;
+  /** Home tabs only; the settings and templates screens have a back link. */
+  onOpenSettings?: () => void;
 }
 
 export default function Masthead({
@@ -32,6 +35,7 @@ export default function Masthead({
   titles = false,
   template,
   onOpenGallery,
+  onOpenSettings,
 }: MastheadProps) {
   // Preflight strips a heading's size, weight and margin, so this is the
   // same box either way — the tag carries structure, the classes carry
@@ -41,7 +45,7 @@ export default function Masthead({
   return (
     <header
       className={[
-        "flex flex-wrap items-end gap-0 pt-stack",
+        "relative flex flex-wrap items-end gap-0 pt-stack",
         // The inset is left-only and it is on every screen. The mark takes
         // the deck's column so her drawing starts on the same vertical as
         // "Take-home pay" below her; the -21px cancels 22px of transparent
@@ -115,6 +119,18 @@ export default function Masthead({
           </span>
         </span>
       </div>
+
+      {/* Pinned to the top corner rather than placed in the row, so the
+          template chip keeps its own place at the row's end below it. */}
+      {onOpenSettings && (
+        <IconButton
+          label="Settings"
+          onClick={onOpenSettings}
+          className="absolute right-2.5 top-[calc(var(--stack)+10px)]"
+        >
+          <Settings size={18} strokeWidth={2} aria-hidden="true" />
+        </IconButton>
+      )}
 
       {template && onOpenGallery && (
         <button

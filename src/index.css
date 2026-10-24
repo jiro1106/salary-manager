@@ -104,6 +104,7 @@
      buttons and warnings, while this deeper cranberry reads as money that
      has already gone without competing with destructive UI. */
   --spent: #a43d4d;
+  --spent-edge: #7b2e3a; /* the danger button's edge, --spent at 75% */
 
   /* Not a category ink either: the focus ring, kept off the palette so a
      ring never lands on a ground of its own colour.
@@ -119,6 +120,13 @@
      unchanged: the ring is never a category ink. */
   --blue: #1e429f;
   --blue-edge: #17337c;
+
+  /* Text set in a warning or money ink. In light these are the fills
+     themselves; dark mode lifts them without touching the fills, which
+     still carry a button edge and white toast text. */
+  --action-text: var(--action-edge);
+  --spent-text: var(--spent);
+  --lime-text: var(--lime-deep);
 
   /* --- washes, scrims, tints --- */
   --action-tint: #c66e4616;
@@ -137,6 +145,12 @@
   --sh-action: 0 4px 0 var(--action-edge);
   --sh-action-lift: 0 6px 0 var(--action-edge);
   --sh-action-press: 0 0 0 var(--action-edge);
+  /* A button that erases data wears the toast's loss red instead of
+     --action, so the act reads as a deletion before it is pressed. White
+     on --spent measures 6.26:1. */
+  --sh-danger: 0 4px 0 var(--spent-edge);
+  --sh-danger-lift: 0 6px 0 var(--spent-edge);
+  --sh-danger-press: 0 0 0 var(--spent-edge);
   --sh-action-blue: 0 4px 0 var(--blue-edge);
   --sh-action-blue-lift: 0 6px 0 var(--blue-edge);
   --sh-action-blue-press: 0 0 0 var(--blue-edge);
@@ -187,6 +201,41 @@
   --gutter: 22px;
   --split: 34px;
   --dial: 190px;
+}
+
+/* Dark mode moves the ground and the surfaces and nothing on a category
+   face: the five inks, --on-color and the frost tile are unchanged, so a
+   card head looks identical in both themes. What has to follow the
+   ground is everything set *on* it — ink, hairlines, washes — plus the
+   three text inks and the focus ring, which were tuned for white and
+   measure 1.7–3.4:1 on a dark card. Measured on --card: ink 13.3,
+   ink-soft 6.1, ink-faint 5.2, action-text 6.5, spent-text 6.8,
+   lime-text 10.0, blue 6.2, field-line 4.5 (unchanged). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #1a1917;
+  --card: #262522;
+  --sunk: #1f1e1b;
+  --sunk-deep: #2e2d29;
+  --line: #3a3834;
+  --line-soft: #32302c;
+  --line-strong: #4a4842;
+  --ink: #f1efea;
+  --ink-soft: #a8a39b;
+  --ink-faint: #9a958d;
+  --action-text: #e8956c;
+  --spent-text: #ff8a99;
+  --lime-text: var(--lime);
+  --blue: #7aa2ff;
+  --action-tint: #c66e4626;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --wash-ink: rgba(241, 239, 234, 0.08);
+}
+
+/* No one blue clears both a pastel face and a dark card (best found is
+   2.6:1), so a ring drawn on a face keeps the light theme's dark blue. */
+:root[data-theme="dark"] .bg-cat {
+  --blue: #1e429f;
 }
 
 @layer base {

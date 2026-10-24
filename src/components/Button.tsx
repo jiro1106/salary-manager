@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "alt";
+type Variant = "primary" | "alt" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -18,6 +18,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-action text-on-action shadow-action hover:shadow-action-lift active:shadow-action-press",
+  danger:
+    "bg-spent text-on-action shadow-danger hover:shadow-danger-lift active:shadow-danger-press",
   alt: "bg-card text-ink shadow-alt hover:shadow-alt-lift active:shadow-alt-press",
 };
 

@@ -15,6 +15,7 @@ import Button from "./components/Button";
 import Masthead from "./components/Masthead";
 import PaydayHeader from "./components/PaydayHeader";
 import TemplateGallery from "./components/TemplateGallery";
+import SettingsScreen from "./components/SettingsScreen";
 import CategoryList from "./components/CategoryList";
 import ExpenseDialog from "./components/ExpenseDialog";
 import ExpenseHistory from "./components/ExpenseHistory";
@@ -23,7 +24,7 @@ import ViewTabs, { Tab, panelId, tabId } from "./components/ViewTabs";
 
 const CONFIG_KEY = "salary-manager:config";
 
-type View = Tab | "templates";
+type View = Tab | "templates" | "settings";
 
 export default function App() {
   const [view, setView] = useState<View>("salary");
@@ -225,6 +226,18 @@ export default function App() {
     notify(`Deleted "${expenses[index].title}"`, true);
   };
 
+  // No undo: it is the one act that leaves nothing to restore from, so
+  // the settings screen asks first instead.
+  const resetAll = () => {
+    setSalary(0);
+    setCategories(defaultCategories());
+    setExpenses([]);
+    setUndo(null);
+    setExpenseUndo(null);
+    setView("salary");
+    notify("All data reset", true);
+  };
+
   // Always mounted, empty between notices: a live region has to be
   // registered before content lands in it or the first message goes unread.
   const toastRegion = (
@@ -247,6 +260,15 @@ export default function App() {
       )}
     </div>
   );
+
+  if (view === "settings") {
+    return (
+      <>
+      <SettingsScreen onBack={() => setView(salary ? "expenses" : "salary")} onReset={resetAll} />
+      {toastRegion}
+      </>
+    );
+  }
 
   if (view === "templates") {
     return (
@@ -282,6 +304,7 @@ export default function App() {
             : undefined
         }
         onOpenGallery={() => setView("templates")}
+        onOpenSettings={() => setView("settings")}
       />
 
       <ViewTabs active={view} onChange={setView} />

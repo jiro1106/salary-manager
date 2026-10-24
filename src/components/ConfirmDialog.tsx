@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  /** The confirm erases data rather than replacing it. */
+  danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -24,6 +26,7 @@ export default function ConfirmDialog({
   description,
   confirmLabel = "Delete",
   cancelLabel = "Cancel",
+  danger = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -106,7 +109,7 @@ export default function ConfirmDialog({
           <Button ref={cancelRef} variant="alt" small onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button variant="primary" small onClick={onConfirm}>
+          <Button variant={danger ? "danger" : "primary"} small onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

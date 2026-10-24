@@ -55,6 +55,13 @@ export default {
         cat: "var(--c)",
         "cat-edge": "var(--ce)",
       },
+      // Text utilities read their own tokens so dark mode can lift the
+      // text without moving the fill of the same name (see index.css).
+      textColor: {
+        "action-edge": "var(--action-text)",
+        spent: "var(--spent-text)",
+        "lime-deep": "var(--lime-text)",
+      },
       fontFamily: {
         sans: ["Plus Jakarta Sans", "ui-rounded", "Segoe UI", "sans-serif"],
         // Same face; the utility survives as a marker for money and
@@ -120,6 +127,9 @@ export default {
         action: "var(--sh-action)",
         "action-lift": "var(--sh-action-lift)",
         "action-press": "var(--sh-action-press)",
+        danger: "var(--sh-danger)",
+        "danger-lift": "var(--sh-danger-lift)",
+        "danger-press": "var(--sh-danger-press)",
         "action-blue": "var(--sh-action-blue)",
         "action-blue-lift": "var(--sh-action-blue-lift)",
         "action-blue-press": "var(--sh-action-blue-press)",

@@ -163,3 +163,33 @@ describe("tabs", () => {
     expect(screen.getByText('Added "Lunch"')).toBeTruthy();
   });
 });
+
+describe("settings", () => {
+  it("resets salary, categories and expenses after confirming", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({
+      salary: 1000, categories, expenses: [expense("a", "Lunch", 100, "2026-09-30T12:00:00Z")],
+    }));
+    render(<App />);
+    await screen.findByText("Lunch");
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset everything" }));
+
+    expect(screen.getByRole("tab", { name: "Salary", selected: true })).toBeTruthy();
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem("salary-manager:config")!);
+      expect(saved.salary).toBe(0);
+      expect(saved.expenses).toEqual([]);
+      expect(saved.categories.map((c: Category) => c.name)).not.toContain("Food");
+    });
+  });
+
+  it("switches to dark and remembers the choice", async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("salary-manager:theme")).toBe("dark");
+  });
+});
