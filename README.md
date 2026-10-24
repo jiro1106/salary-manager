@@ -4,7 +4,7 @@ A simple payday budget splitter for turning one salary into a clear spending pla
 
 [Open the live app](https://nala-salary-manager.vercel.app/)
 
-![Nala Salary Manager preview](public/thumbnail.png)
+![Nala Salary Manager preview](docs/thumbnail.png)
 
 Nala divides a take-home paycheck into editable categories such as Needs,
 Wants, and Savings. Each category can have its own percentage and sub-category
