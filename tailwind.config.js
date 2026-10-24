@@ -17,10 +17,6 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      screens: {
-        // Same query `max-[700px]:` compiles to: below 700px, exclusive.
-        narrow: { raw: "not all and (min-width: 700px)" },
-      },
       colors: {
         page: "var(--page)",
         card: "var(--card)",
@@ -148,5 +144,10 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `narrow:` is the same query `max-[700px]:` compiles to. A variant,
+    // not a `screens` entry, because an object screen disables the
+    // `max-[…]:` variants the 450px layout still uses.
+    ({ addVariant }) => addVariant("narrow", "@media not all and (min-width: 700px)"),
+  ],
 };
