@@ -26,7 +26,7 @@ const later: Expense = {
 describe("ExpenseHistory", () => {
   it("shows newest first with saved category names, amounts, and local date and time without reordering props", () => {
     const expenses = [earlier, later];
-    render(<ExpenseHistory categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
@@ -41,14 +41,14 @@ describe("ExpenseHistory", () => {
   });
 
   it("shows an empty state when there are no expenses", () => {
-    render(<ExpenseHistory categories={[]} expenses={[]} onDelete={() => {}} />);
+    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
     expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("asks before deleting, and deletes only on confirm", () => {
     const onDelete = vi.fn();
-    render(<ExpenseHistory categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
+    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
     expect(screen.getByRole("alertdialog", { name: 'Delete "Lunch"?' })).toBeTruthy();
@@ -68,7 +68,7 @@ describe("ExpenseHistory", () => {
       title: "Lunch",
       amount: 45.5,
     };
-    render(<ExpenseHistory categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     const labels = rows.map((row) => within(row).getByRole("button", { name: /delete lunch/i }).getAttribute("aria-label"));
@@ -84,6 +84,7 @@ describe("ExpenseHistory", () => {
     const sameTimestamp = { ...later, id: "same-timestamp" };
     render(
       <ExpenseHistory
+        onEdit={() => {}}
         categories={[]}
         expenses={[later, sameMinute, sameTimestamp]}
         onDelete={() => {}}
@@ -101,7 +102,7 @@ describe("ExpenseHistory", () => {
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
     const { container } = render(
-      <ExpenseHistory categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
+      <ExpenseHistory onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
     );
     const tiles = container.querySelectorAll("li > span[aria-hidden]");
     expect((tiles[0] as HTMLElement).style.getPropertyValue("--c")).toBe("#ffd23f");

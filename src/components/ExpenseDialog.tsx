@@ -2,12 +2,14 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
-import type { Category, ExpenseDraft, ExpenseErrors } from "../types";
+import type { Category, Expense, ExpenseDraft, ExpenseErrors } from "../types";
 import { amountError } from "../lib/expenses";
 import Button from "./Button";
 
 interface ExpenseDialogProps {
   categories: Category[];
+  /** Opens the dialog on this expense to edit it, instead of a blank one. */
+  expense?: Expense;
   onClose: () => void;
   onSubmit: (draft: ExpenseDraft) => ExpenseErrors;
 }
@@ -17,8 +19,10 @@ const fieldClass = "mt-1 h-control w-full rounded-control bg-sunk px-3 text-ink 
 // Letters never reach the field; a leading minus does, so the reader is told why it is refused.
 const amountChars = (raw: string) => raw.replace(/[^\d.-]/g, "").replace(/(?!^)-/g, "");
 
-export default function ExpenseDialog({ categories, onClose, onSubmit }: ExpenseDialogProps) {
-  const [draft, setDraft] = useState<ExpenseDraft>(emptyDraft);
+export default function ExpenseDialog({ categories, expense, onClose, onSubmit }: ExpenseDialogProps) {
+  const [draft, setDraft] = useState<ExpenseDraft>(
+    expense ? { title: expense.title, amount: String(expense.amount), categoryId: expense.categoryId } : emptyDraft,
+  );
   const [errors, setErrors] = useState<ExpenseErrors>({});
   const panelRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -83,7 +87,7 @@ export default function ExpenseDialog({ categories, onClose, onSubmit }: Expense
         onClick={(event) => event.stopPropagation()}
         className="max-h-[calc(100dvh-2rem)] w-full max-w-dialog overflow-y-auto rounded-slab border border-line bg-card px-[26px] py-6"
       >
-        <h2 id={titleId} className="font-display text-title font-bold text-ink">Add expense</h2>
+        <h2 id={titleId} className="font-display text-title font-bold text-ink">{expense ? "Edit expense" : "Add expense"}</h2>
         <p id={descriptionId} className="mt-2 text-meta text-ink-soft">Record spending against your salary.</p>
         <form className="mt-5 space-y-4" onSubmit={submit} noValidate>
           <div>
@@ -144,7 +148,7 @@ export default function ExpenseDialog({ categories, onClose, onSubmit }: Expense
           </div>
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             <Button variant="alt" onClick={onClose}>Cancel</Button>
-            <Button type="submit">Save expense</Button>
+            <Button type="submit">{expense ? "Save changes" : "Save expense"}</Button>
           </div>
         </form>
       </div>

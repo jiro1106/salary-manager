@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso } from "../lib/format";
 import { iconOf } from "../lib/icons";
@@ -10,12 +10,14 @@ import IconButton from "./IconButton";
 interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
+  onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
 }
 
 export default function ExpenseHistory({
   expenses,
   categories,
+  onEdit,
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
@@ -80,13 +82,21 @@ export default function ExpenseHistory({
                     <span className="font-display text-body font-bold">
                       {peso(expense.amount)}
                     </span>
-                    <IconButton
-                      label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
-                      onClick={() => setConfirming(expense)}
-                      danger
-                    >
-                      <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                    </IconButton>
+                    <div className="flex items-center gap-3">
+                      <IconButton
+                        label={`Edit ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
+                        onClick={() => onEdit(expense)}
+                      >
+                        <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
+                      </IconButton>
+                      <IconButton
+                        label={`Delete ${expense.title}, ${peso(expense.amount)}, ${when}, record ${expense.id}`}
+                        onClick={() => setConfirming(expense)}
+                        danger
+                      >
+                        <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                      </IconButton>
+                    </div>
                   </div>
                 </li>
               );

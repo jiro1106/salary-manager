@@ -31,7 +31,8 @@ export default function App() {
   const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  // "new" opens a blank dialog; an expense opens it on that expense to edit.
+  const [expenseDialog, setExpenseDialog] = useState<Expense | "new" | null>(null);
   // Flipped by the first write that comes back false. Every edit on this
   // page still applies to the screen when storage is blocked, so without
   // this the app looks saved and isn't — the reader finds out by closing
@@ -211,6 +212,15 @@ export default function App() {
     if (expense) {
       setExpenses((current) => [...current, expense]);
       notify(`Added "${expense.title}"`);
+    }
+    return errors;
+  };
+
+  const updateExpense = (old: Expense, draft: ExpenseDraft) => {
+    const { expense, errors } = makeExpense(draft, categories, old.id, old.created_at);
+    if (expense) {
+      setExpenses((current) => current.map((e) => (e.id === old.id ? expense : e)));
+      notify(`Updated "${expense.title}"`);
     }
     return errors;
   };
@@ -416,7 +426,7 @@ export default function App() {
                 <SpendSummary spent={spent} remaining={remaining} className="min-w-0 flex-1" />
                 <div className="inline-flex flex-col items-start gap-2 max-[700px]:w-full">
                   <Button
-                    onClick={() => setExpenseDialogOpen(true)}
+                    onClick={() => setExpenseDialog("new")}
                     inert={categories.length === 0}
                     disabled={categories.length === 0}
                     aria-describedby={categories.length === 0 ? "add-expense-help" : undefined}
@@ -436,17 +446,19 @@ export default function App() {
               <ExpenseHistory
                 expenses={expenses}
                 categories={categories}
+                onEdit={setExpenseDialog}
                 onDelete={deleteExpense}
               />
             </>
           )}
         </div>
       </main>
-      {expenseDialogOpen && (
+      {expenseDialog && (
         <ExpenseDialog
           categories={categories}
-          onClose={() => setExpenseDialogOpen(false)}
-          onSubmit={addExpense}
+          expense={expenseDialog === "new" ? undefined : expenseDialog}
+          onClose={() => setExpenseDialog(null)}
+          onSubmit={(draft) => (expenseDialog === "new" ? addExpense(draft) : updateExpense(expenseDialog, draft))}
         />
       )}
       {toastRegion}

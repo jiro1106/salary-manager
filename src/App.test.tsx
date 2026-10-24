@@ -63,6 +63,30 @@ describe("expense tracking in App", () => {
     await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([expenses[0], expenses[2]]));
   });
 
+  it("edits an expense in place from its edit button", async () => {
+    const expenses = [
+      expense("a", "Breakfast", 100, "2026-09-30T09:00:00Z"),
+      expense("b", "Lunch", 200, "2026-09-30T12:00:00Z"),
+    ];
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses }));
+    render(<App />);
+    await screen.findByText("Lunch");
+
+    fireEvent.click(screen.getByRole("button", { name: /edit lunch/i }));
+    screen.getByRole("dialog", { name: "Edit expense" });
+    expect((screen.getByRole("textbox", { name: "Amount" }) as HTMLInputElement).value).toBe("200");
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Late lunch" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("Late lunch")).toBeTruthy();
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([
+      expenses[0],
+      { ...expenses[1], title: "Late lunch", amount: 250 },
+    ]));
+  });
+
   it("loads an old config without expenses as an empty history", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 500, categories }));
     render(<App />);
