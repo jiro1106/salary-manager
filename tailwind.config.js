@@ -138,6 +138,7 @@ export default {
         "alt-press": "var(--sh-alt-press)",
         inert: "var(--sh-inert)",
         field: "var(--sh-field)",
+        "field-error": "var(--sh-field-error)",
       },
       letterSpacing: {
         caps: "0.14em",

@@ -15,10 +15,10 @@ interface ConfirmDialogProps {
 }
 
 /**
- * Reserved for the three irreversible actions: deleting a category,
- * deleting a sub-item, and replacing the whole split. A dialog is
- * correct here precisely because the action cannot be undone; it is not
- * a substitute for inline design anywhere else.
+ * Reserved for acts that take more than the reader is looking at, or
+ * that nothing restores: deleting a category (it takes every item under
+ * it), deleting an expense, and resetting all data. It is not a
+ * substitute for inline design anywhere else.
  */
 export default function ConfirmDialog({
   open,

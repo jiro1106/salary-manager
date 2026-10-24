@@ -12,9 +12,8 @@ export function makeExpense(
   const errors: ExpenseErrors = {};
 
   if (!title) errors.title = "Enter an expense title.";
-  if (!/^(?:0|[1-9]\d{0,8})(?:\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
-    errors.amount = "Enter an amount up to 9 digits and 2 decimals.";
-  }
+  const amountProblem = amountError(amount);
+  if (amountProblem) errors.amount = amountProblem;
   if (!category) errors.categoryId = "Choose a category.";
 
   if (Object.keys(errors).length || !category) return { expense: null, errors };
@@ -30,6 +29,20 @@ export function makeExpense(
     },
     errors,
   };
+}
+
+/** Why a typed amount can't be saved, or undefined when it can. Most specific problem first. */
+export function amountError(amount: string): string | undefined {
+  if (!amount) return "Enter an amount.";
+  if (amount.startsWith("-")) return "Amount can't be negative. Enter 0.01 or more.";
+  const [whole, decimals, extra] = amount.split(".");
+  if (extra !== undefined || !/^\d*$/.test(whole) || !/^\d*$/.test(decimals ?? "") || !(whole || decimals)) {
+    return "Enter a number, like 250 or 250.50.";
+  }
+  if (whole.replace(/^0+(?=\d)/, "").length > 9) return "Too large. Use up to 9 digits before the decimal point.";
+  if ((decimals ?? "").length > 2) return "Use up to 2 decimal places.";
+  if (Number(amount) <= 0) return "Enter an amount more than 0.";
+  return undefined;
 }
 
 export function expenseSummary(salary: number, expenses: Expense[]) {

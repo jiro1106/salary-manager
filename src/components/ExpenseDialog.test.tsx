@@ -84,6 +84,29 @@ describe("ExpenseDialog", () => {
     expect((screen.getByRole("combobox", { name: "Category" }) as HTMLSelectElement).value).toBe("");
   });
 
+  it("drops letters from the amount and explains a bad figure while typing", () => {
+    render(<Harness />);
+    openDialog();
+    const amount = screen.getByRole("textbox", { name: "Amount" }) as HTMLInputElement;
+
+    fireEvent.change(amount, { target: { value: "sadd" } });
+    expect(amount.value).toBe("");
+    expect(amount.getAttribute("aria-invalid")).toBeNull();
+
+    fireEvent.change(amount, { target: { value: "₱1,2a50" } });
+    expect(amount.value).toBe("1250");
+
+    fireEvent.change(amount, { target: { value: "-5" } });
+    expect(screen.getByText("Amount can't be negative. Enter 0.01 or more.")).toBeTruthy();
+    expect(amount.getAttribute("aria-invalid")).toBe("true");
+
+    fireEvent.change(amount, { target: { value: "1234567890" } });
+    expect(screen.getByText("Too large. Use up to 9 digits before the decimal point.")).toBeTruthy();
+
+    fireEvent.change(amount, { target: { value: "250" } });
+    expect(amount.getAttribute("aria-invalid")).toBeNull();
+  });
+
   it("closes on Escape and restores focus", () => {
     render(<Harness />);
     const trigger = openDialog();

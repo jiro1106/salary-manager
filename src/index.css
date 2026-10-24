@@ -161,6 +161,7 @@
 
   --sh-inert: 0 0 0 1px var(--line-strong);
   --sh-field: inset 0 0 0 1px var(--field-line);
+  --sh-field-error: inset 0 0 0 2px var(--action-text); /* same ink as the error line under it */
 
   /* --- radii ---
      Two values, and only two: every surface is --r and every control is

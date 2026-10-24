@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import type { Expense } from "../types";
+import type { Category, Expense } from "../types";
 import ExpenseHistory from "./ExpenseHistory";
 
 afterEach(cleanup);
@@ -26,7 +26,7 @@ const later: Expense = {
 describe("ExpenseHistory", () => {
   it("shows newest first with saved category names, amounts, and local date and time without reordering props", () => {
     const expenses = [earlier, later];
-    render(<ExpenseHistory expenses={expenses} onDelete={() => {}} onUndo={() => {}} />);
+    render(<ExpenseHistory categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
@@ -41,16 +41,25 @@ describe("ExpenseHistory", () => {
   });
 
   it("shows an empty state when there are no expenses", () => {
-    render(<ExpenseHistory expenses={[]} onDelete={() => {}} onUndo={() => {}} />);
+    render(<ExpenseHistory categories={[]} expenses={[]} onDelete={() => {}} />);
     expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
-  it("deletes the selected expense from its accessible button", () => {
+  it("asks before deleting, and deletes only on confirm", () => {
     const onDelete = vi.fn();
-    render(<ExpenseHistory expenses={[earlier, later]} onDelete={onDelete} onUndo={() => {}} />);
+    render(<ExpenseHistory categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
+
     fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
+    expect(screen.getByRole("alertdialog", { name: 'Delete "Lunch"?' })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(onDelete).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Delete" }));
     expect(onDelete).toHaveBeenCalledExactlyOnceWith("later");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("distinguishes delete buttons for expenses with the same title", () => {
@@ -59,7 +68,7 @@ describe("ExpenseHistory", () => {
       title: "Lunch",
       amount: 45.5,
     };
-    render(<ExpenseHistory expenses={[sameTitle, later]} onDelete={() => {}} onUndo={() => {}} />);
+    render(<ExpenseHistory categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     const labels = rows.map((row) => within(row).getByRole("button", { name: /delete lunch/i }).getAttribute("aria-label"));
@@ -75,9 +84,10 @@ describe("ExpenseHistory", () => {
     const sameTimestamp = { ...later, id: "same-timestamp" };
     render(
       <ExpenseHistory
+        categories={[]}
         expenses={[later, sameMinute, sameTimestamp]}
         onDelete={() => {}}
-        onUndo={() => {}}
+       
       />,
     );
 
@@ -88,11 +98,15 @@ describe("ExpenseHistory", () => {
     expect(labels.some((label) => label?.includes("same-timestamp"))).toBe(true);
   });
 
-  it("offers undo for the supplied deleted expense", () => {
-    const onUndo = vi.fn();
-    render(<ExpenseHistory expenses={[]} undoExpense={later} onDelete={() => {}} onUndo={onUndo} />);
-    expect(screen.getByRole("status").textContent).toContain("Lunch");
-    fireEvent.click(screen.getByRole("button", { name: /undo/i }));
-    expect(onUndo).toHaveBeenCalledOnce();
+  it("marks each row with its category's tile, and an empty one once the category is gone", () => {
+    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
+    const { container } = render(
+      <ExpenseHistory categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
+    );
+    const tiles = container.querySelectorAll("li > span[aria-hidden]");
+    expect((tiles[0] as HTMLElement).style.getPropertyValue("--c")).toBe("#ffd23f");
+    expect(tiles[0].querySelector("svg")).toBeTruthy();
+    expect(tiles[1].className).toContain("bg-sunk");
+    expect(tiles[1].querySelector("svg")).toBeNull();
   });
 });

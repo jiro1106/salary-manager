@@ -46,7 +46,7 @@ describe("expense tracking in App", () => {
     ]));
   });
 
-  it("deletes one expense and undo restores its original stored position", async () => {
+  it("deletes one expense after confirming", async () => {
     const expenses = [
       expense("a", "Breakfast", 100, "2026-09-30T09:00:00Z"),
       expense("b", "Lunch", 200, "2026-09-30T12:00:00Z"),
@@ -57,12 +57,10 @@ describe("expense tracking in App", () => {
     await screen.findByText("Lunch");
 
     fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(screen.queryByText("Lunch")).toBeNull();
-    expect(screen.getByText("₱400.00")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
-    expect(screen.getByText("Lunch")).toBeTruthy();
-    expect(screen.getByText("₱400.00")).toBeTruthy();
-    await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual(expenses));
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([expenses[0], expenses[2]]));
   });
 
   it("loads an old config without expenses as an empty history", async () => {

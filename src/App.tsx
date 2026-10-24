@@ -32,7 +32,6 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
-  const [expenseUndo, setExpenseUndo] = useState<{ expense: Expense; index: number; next: Expense[] } | null>(null);
   // Flipped by the first write that comes back false. Every edit on this
   // page still applies to the screen when storage is blocked, so without
   // this the app looks saved and isn't — the reader finds out by closing
@@ -211,19 +210,16 @@ export default function App() {
     const { expense, errors } = makeExpense(draft, categories, crypto.randomUUID(), new Date().toISOString());
     if (expense) {
       setExpenses((current) => [...current, expense]);
-      setExpenseUndo(null);
       notify(`Added "${expense.title}"`);
     }
     return errors;
   };
 
   const deleteExpense = (id: string) => {
-    const index = expenses.findIndex((expense) => expense.id === id);
-    if (index < 0) return;
-    const next = expenses.filter((expense) => expense.id !== id);
-    setExpenses(next);
-    setExpenseUndo({ expense: expenses[index], index, next });
-    notify(`Deleted "${expenses[index].title}"`, true);
+    const gone = expenses.find((expense) => expense.id === id);
+    if (!gone) return;
+    setExpenses(expenses.filter((expense) => expense !== gone));
+    notify(`Deleted "${gone.title}"`, true);
   };
 
   // No undo: it is the one act that leaves nothing to restore from, so
@@ -233,7 +229,6 @@ export default function App() {
     setCategories(defaultCategories());
     setExpenses([]);
     setUndo(null);
-    setExpenseUndo(null);
     setView("salary");
     notify("All data reset", true);
   };
@@ -440,16 +435,8 @@ export default function App() {
 
               <ExpenseHistory
                 expenses={expenses}
-                undoExpense={expenseUndo?.next === expenses ? expenseUndo.expense : null}
+                categories={categories}
                 onDelete={deleteExpense}
-                onUndo={() => {
-                  if (!expenseUndo || expenseUndo.next !== expenses) return;
-                  const next = [...expenses];
-                  next.splice(expenseUndo.index, 0, expenseUndo.expense);
-                  setExpenses(next);
-                  setExpenseUndo(null);
-                  notify(`Restored "${expenseUndo.expense.title}"`);
-                }}
               />
             </>
           )}

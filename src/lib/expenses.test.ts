@@ -37,15 +37,25 @@ describe("makeExpense", () => {
     });
   });
 
-  it.each(["", "0", "-1", "abc", "1000000000", "12.345"])(
-    "rejects invalid amount %s",
-    (amount) => {
-      expect(makeExpense({ ...draft, amount }, categories, "id", createdAt)).toEqual({
-        expense: null,
-        errors: { amount: "Enter an amount up to 9 digits and 2 decimals." },
-      });
-    },
-  );
+  it.each([
+    ["", "Enter an amount."],
+    ["0", "Enter an amount more than 0."],
+    ["-1", "Amount can't be negative. Enter 0.01 or more."],
+    ["abc", "Enter a number, like 250 or 250.50."],
+    ["1.2.3", "Enter a number, like 250 or 250.50."],
+    [".", "Enter a number, like 250 or 250.50."],
+    ["1000000000", "Too large. Use up to 9 digits before the decimal point."],
+    ["12.345", "Use up to 2 decimal places."],
+  ])("rejects invalid amount %s", (amount, message) => {
+    expect(makeExpense({ ...draft, amount }, categories, "id", createdAt)).toEqual({
+      expense: null,
+      errors: { amount: message },
+    });
+  });
+
+  it.each(["999999999.99", "0.5", ".5", "007"])("accepts amount %s", (amount) => {
+    expect(makeExpense({ ...draft, amount }, categories, "id", createdAt).errors).toEqual({});
+  });
 
   it("rejects a category that is not in the current category list", () => {
     expect(
