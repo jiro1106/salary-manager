@@ -1,7 +1,8 @@
 import { useId, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category, Expense } from "../types";
-import { peso, plural } from "../lib/format";
+import { peso } from "../lib/format";
+import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
 import ConfirmDialog from "./ConfirmDialog";
 import IconButton from "./IconButton";
@@ -20,26 +21,45 @@ export default function ExpenseHistory({
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
+  const [filter, setFilter] = useState<string | null>(null);
   const titleId = useId();
-  const newestFirst = [...expenses].sort(
+  // A filter on a category that has since been deleted falls back to all.
+  const filterCategory = categories.find((c) => c.id === filter);
+  const newestFirst = expenses
+    .filter((e) => !filterCategory || e.categoryId === filterCategory.id)
+    .sort(
     (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
   );
 
   return (
     <section aria-labelledby={titleId} className="mt-split">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 id={titleId} className="text-title font-bold">
           Expense history
         </h2>
-        <span className="text-meta text-ink-soft">
-          {plural(expenses.length, "expense")}
+        <span
+          aria-label={`${newestFirst.length} shown`}
+          className="rounded-full bg-sunk px-2.5 text-meta font-semibold text-ink-soft"
+        >
+          {newestFirst.length}
         </span>
+        {categories.length > 0 && (
+          <div className="ml-auto">
+            <CategoryFilter
+              categories={categories}
+              value={filterCategory?.id ?? null}
+              onChange={setFilter}
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-3 border-t border-line">
         {newestFirst.length === 0 ? (
           <p className="py-3 text-meta text-ink-soft">
-            No expenses yet. Add one to see it here.
+            {filterCategory && expenses.length > 0
+              ? `No expenses in ${filterCategory.name} yet.`
+              : "No expenses yet. Add one to see it here."}
           </p>
         ) : (
           <ul>

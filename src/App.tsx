@@ -433,13 +433,14 @@ export default function App() {
                 </div>
                 <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
                   <Button
+                    small
                     onClick={() => setExpenseDialog("new")}
                     inert={categories.length === 0}
                     disabled={categories.length === 0}
                     aria-describedby={categories.length === 0 ? addExpenseHelpId : undefined}
                     className="narrow:w-full"
                   >
-                    <Plus size={17} aria-hidden="true" strokeWidth={2.2} />
+                    <Plus size={15} aria-hidden="true" strokeWidth={2.2} />
                     Add expense
                   </Button>
                   {categories.length === 0 && (

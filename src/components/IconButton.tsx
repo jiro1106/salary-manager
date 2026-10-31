@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import type { ReactNode } from "react";
 
 interface IconButtonProps {
@@ -5,9 +6,11 @@ interface IconButtonProps {
   onClick: () => void;
   /** Sitting on card, or on a category's own colour. */
   tone?: "card" | "colour";
-  /** Destructive controls warm to the action ink instead of ink. */
+  /** Destructive controls sit in the loss red, so a delete reads as one before it is pointed at. */
   danger?: boolean;
   className?: string;
+  /** Set when the button opens a menu: whether that menu is open. */
+  expanded?: boolean;
   children: ReactNode;
 }
 
@@ -25,20 +28,18 @@ interface IconButtonProps {
  * centred in the target, and the focus ring is drawn on it too so the
  * ring and the wash agree on where the control is.
  */
-export default function IconButton({
-  label,
-  onClick,
-  tone = "card",
-  danger = false,
-  className = "",
-  children,
-}: IconButtonProps) {
-  // Full-opacity white on colour: 80% white measures 2.9:1 and fails the
-  // non-text contrast rule.
+const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { label, onClick, tone = "card", danger = false, className = "", expanded, children },
+  ref,
+) {
+  // Full-opacity ink on colour: 80% measures 2.9:1 and fails the non-text
+  // contrast rule.
   const ink =
     tone === "colour"
       ? "text-on-color"
-      : `text-ink-soft ${danger ? "hover:text-action-edge" : "hover:text-ink"}`;
+      : danger
+        ? "text-spent"
+        : "text-ink-soft hover:text-ink";
 
   const wash =
     tone === "colour"
@@ -47,9 +48,12 @@ export default function IconButton({
 
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onClick}
       aria-label={label}
+      aria-haspopup={expanded === undefined ? undefined : "menu"}
+      aria-expanded={expanded}
       title={label}
       className={[
         "group/icon inline-grid place-items-center min-w-hit min-h-hit -m-2.5",
@@ -73,4 +77,6 @@ export default function IconButton({
       </span>
     </button>
   );
-}
+});
+
+export default IconButton;

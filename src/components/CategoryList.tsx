@@ -31,15 +31,15 @@ function AddCategoryTile({
       type="button"
       onClick={onClick}
       className={[
-        "grid min-h-[172px] place-content-center justify-items-center gap-1.5 self-stretch p-[34px]",
+        "grid min-h-[120px] place-content-center justify-items-center gap-1 self-stretch p-6",
         "rounded-slab border-2 border-dashed border-line-strong bg-transparent text-ink-soft",
-        "font-display text-body font-extrabold",
+        "font-display text-meta font-extrabold",
         "transition-[transform,border-color,color] duration-mid ease-paper",
         "hover:-translate-y-[3px] hover:border-action hover:text-action-edge",
         full ? "col-span-full" : "",
       ].join(" ")}
     >
-      <Plus size={28} strokeWidth={2.2} aria-hidden="true" />
+      <Plus size={22} strokeWidth={2.2} aria-hidden="true" />
       {full ? "Add your first category" : "Add category"}
     </button>
   );

@@ -75,14 +75,13 @@ export default {
         // The dial's percentage, on `title`'s measure.
         total: ["1.1875rem", { lineHeight: "1.2", letterSpacing: "-0.025em" }],
         // The payday figure. Every other amount derives from it, so it has
-        // to clear `amt` (by 1.39 at 32px).
+        // to clear `amt` (by 1.22 at 28px).
         //
-        // The ceiling is 2rem and not higher because the field is
-        // `h-control` (48px): 32px at 1.05 is 33.6px of content, which
-        // centres inside 48 with room. Going past this means moving
-        // --control-h, which moves every full-size button too.
+        // The field is `h-hit` (44px): 28px at 1.05 is 29.4px of content,
+        // which centres inside 44 with room. Going larger means a taller
+        // field than the 44px floor.
         hero: [
-          "clamp(1.75rem, 3.5vw, 2rem)",
+          "1.75rem",
           { lineHeight: "1.05", letterSpacing: "-0.03em" },
         ],
         // On `amt`'s measure, so the payday figure outranks the brand.

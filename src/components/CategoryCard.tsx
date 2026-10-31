@@ -1,13 +1,13 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { Category, SubCategory } from "../types";
 import { peso, plural, share, uid } from "../lib/format";
 import { iconOf } from "../lib/icons";
 import SubCategoryRow from "./SubCategoryRow";
+import CategoryDialog from "./CategoryDialog";
+import CategoryMenu from "./CategoryMenu";
 import ConfirmDialog from "./ConfirmDialog";
-import EditableName from "./EditableName";
-import IconButton from "./IconButton";
 import NumberField from "./NumberField";
 
 interface CategoryCardProps {
@@ -29,6 +29,7 @@ export default function CategoryCard({
 }: CategoryCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const Icon = iconOf(cat.icon);
   const catAmount = share(salary, cat.percent);
@@ -74,6 +75,8 @@ export default function CategoryCard({
         "relative rounded-slab border border-line bg-card",
         "transition-[transform,border-color] duration-mid ease-paper",
         "hover:-translate-y-[2px] hover:border-line-strong",
+        // An open menu has to paint over the cards after this one.
+        "has-[[aria-haspopup=menu][aria-expanded=true]]:z-10",
       ].join(" ")}
       // The data owns the colour; components never name an ink.
       style={{ "--c": cat.color } as CSSProperties}
@@ -94,22 +97,14 @@ export default function CategoryCard({
               a screen reader a real outline (the wordmark is the h1).
               Preflight strips the heading's own styles, so it adds
               structure only. */}
-          <h2 className="flex min-w-0 flex-1">
-            <EditableName
-              value={cat.name}
-              onChange={(name) => onChange({ name })}
-              label={`Rename ${cat.name}`}
-              tone="colour"
-              className="font-display text-title font-bold"
-            />
+          <h2 className="min-w-0 flex-1 truncate font-display text-title font-bold">
+            {cat.name}
           </h2>
-          <IconButton
-            label={`Delete ${cat.name}`}
-            onClick={() => setConfirmOpen(true)}
-            tone="colour"
-          >
-            <Trash2 size={16} strokeWidth={1.7} aria-hidden="true" />
-          </IconButton>
+          <CategoryMenu
+            name={cat.name}
+            onEdit={() => setEditOpen(true)}
+            onDelete={() => setConfirmOpen(true)}
+          />
         </div>
 
         <div className="mt-4 flex items-center gap-[9px]">
@@ -204,6 +199,14 @@ export default function CategoryCard({
         </div>
       )}
 
+      {editOpen && (
+        <CategoryDialog
+          name={cat.name}
+          onClose={() => setEditOpen(false)}
+          onSave={(name) => onChange({ name })}
+        />
+      )}
+
       <ConfirmDialog
         open={confirmOpen}
         title={
@@ -217,6 +220,7 @@ export default function CategoryCard({
         // yes to that and meant no.
         description={`Its ${Math.round(Number(cat.percent) || 0)}% goes back to unassigned. You can undo this straight after.`}
         confirmLabel="Delete category"
+        danger
         onConfirm={confirmDelete}
         onCancel={() => setConfirmOpen(false)}
       />

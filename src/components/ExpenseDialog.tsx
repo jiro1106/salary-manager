@@ -15,7 +15,7 @@ interface ExpenseDialogProps {
 }
 
 const emptyDraft: ExpenseDraft = { title: "", amount: "", categoryId: "" };
-const fieldClass = "mt-1 h-control w-full rounded-control bg-sunk px-3 text-ink shadow-field aria-[invalid=true]:shadow-field-error";
+export const fieldClass = "mt-1 h-control w-full rounded-control bg-sunk px-3 text-ink shadow-field aria-[invalid=true]:shadow-field-error";
 // Letters never reach the field; a leading minus does, so the reader is told why it is refused.
 const amountChars = (raw: string) => raw.replace(/[^\d.-]/g, "").replace(/(?!^)-/g, "");
 
@@ -26,7 +26,7 @@ const controlProps = (id: string, error?: string) => ({
   "aria-describedby": error ? `${id}-error` : undefined,
 });
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
+export function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
   return (
     <div>
       <label htmlFor={`${id}-field`} className="text-meta font-bold text-ink">{label}</label>
@@ -105,8 +105,8 @@ export default function ExpenseDialog({ categories, expense, onClose, onSubmit }
           </div>
         </Field>
         <div className="flex flex-wrap justify-end gap-3 pt-2">
-          <Button variant="alt" onClick={onClose}>Cancel</Button>
-          <Button type="submit">{expense ? "Save changes" : "Save expense"}</Button>
+          <Button variant="alt" small onClick={onClose}>Cancel</Button>
+          <Button type="submit" small>{expense ? "Save changes" : "Save expense"}</Button>
         </div>
       </form>
     </Modal>

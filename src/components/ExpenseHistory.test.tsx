@@ -88,4 +88,21 @@ describe("ExpenseHistory", () => {
     expect(tiles[1].className).toContain("bg-sunk");
     expect(tiles[1].querySelector("svg")).toBeNull();
   });
+
+  it("filters by a chosen category and counts only what is shown", () => {
+    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
+    const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50, subs: [] };
+    Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
+    render(<ExpenseHistory onEdit={() => {}} categories={[food, travel]} expenses={[earlier, later]} onDelete={() => {}} />);
+
+    expect(screen.getByLabelText("2 shown")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
+    fireEvent.click(screen.getByRole("option", { name: "Travel" }));
+
+    const rows = screen.getAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(within(rows[0]).getByText("Train fare")).toBeTruthy();
+    expect(screen.getByLabelText("1 shown")).toBeTruthy();
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
 });

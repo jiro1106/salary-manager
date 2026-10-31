@@ -158,15 +158,15 @@ export default function PaydayHeader({
             bottom. */}
         <span
           className={[
-            // h-control, not a padding pair: the input inside refuses
+            // h-hit, not a padding pair: the input inside refuses
             // the inherited line-height, so padding could never make
             // this box a predictable height. items-center works because
             // the ₱ and the figure share size and leading.
-            "mt-2 inline-flex h-control max-w-full items-center rounded-slab bg-sunk",
+            "mt-2 inline-flex h-hit max-w-full items-center rounded-slab bg-sunk",
             // zest's deep shade, not zest. The rule has to be seen on a
             // recessed grey, and the face itself measures 1.4:1 there —
             // the deep is the same ink one step down, at 4.5:1.
-            "border-b-[3px] border-zest-deep px-5",
+            "border-b-[3px] border-zest-deep px-4",
             "font-display text-hero font-extrabold",
             "focus-within:outline focus-within:outline-[3px]",
             "focus-within:outline-blue focus-within:outline-offset-[3px]",
@@ -216,7 +216,7 @@ export default function PaydayHeader({
               onClick={clearSalary}
               className="ml-3 self-center"
             >
-              <X size={18} strokeWidth={2.2} aria-hidden="true" />
+              <X size={16} strokeWidth={2.2} aria-hidden="true" />
             </IconButton>
           )}
         </span>
