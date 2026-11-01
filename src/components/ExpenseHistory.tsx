@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso } from "../lib/format";
+import { expenseSummary } from "../lib/expenses";
 import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
 import ConfirmDialog from "./ConfirmDialog";
@@ -115,6 +116,26 @@ export default function ExpenseHistory({
               );
             })}
           </ul>
+        )}
+        {newestFirst.length > 0 && (
+          <div className="flex items-center justify-end gap-5 py-3">
+            <span className="text-label uppercase tracking-caps text-ink-soft">
+              {filterCategory ? `${filterCategory.name} total` : "Total"}
+            </span>
+            <span className="font-display text-body font-extrabold text-spent">
+              {peso(expenseSummary(0, newestFirst).spent)}
+            </span>
+            {/* Holds the width of a row's edit and delete buttons, so the
+                total lines up under the amounts. */}
+            <div aria-hidden="true" className="invisible flex items-center gap-3">
+              <IconButton label="" onClick={() => {}}>
+                <Pencil size={15} strokeWidth={1.7} />
+              </IconButton>
+              <IconButton label="" onClick={() => {}}>
+                <Trash2 size={15} strokeWidth={1.7} />
+              </IconButton>
+            </div>
+          </div>
         )}
       </div>
 

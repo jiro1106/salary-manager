@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { Category, Expense } from "../types";
+import { peso } from "../lib/format";
 import ExpenseHistory from "./ExpenseHistory";
 
 afterEach(cleanup);
@@ -103,6 +104,7 @@ describe("ExpenseHistory", () => {
     expect(rows).toHaveLength(1);
     expect(within(rows[0]).getByText("Train fare")).toBeTruthy();
     expect(screen.getByLabelText("1 shown")).toBeTruthy();
+    expect(screen.getByText("Travel total").nextElementSibling?.textContent).toBe(peso(earlier.amount));
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 });

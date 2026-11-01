@@ -39,7 +39,7 @@ describe("expense tracking in App", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText("Lunch")).toBeTruthy();
-    expect(screen.getAllByText("₱250.50")).toHaveLength(2);
+    expect(screen.getAllByText("₱250.50")).toHaveLength(3);
     expect(screen.getByText("₱749.50")).toBeTruthy();
     await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([
       expect.objectContaining({ id: "new-expense", title: "Lunch", amount: 250.5, categoryId: "food", categoryName: "Food" }),
