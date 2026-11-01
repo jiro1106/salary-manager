@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import CutDial from "./CutDial";
+import CategoryMark from "./CategoryMark";
 import IconButton from "./IconButton";
 import type { Category } from "../types";
-import { pesoRound, share } from "../lib/format";
+import { pct, peso, share } from "../lib/format";
 import { MAX_PESO_DIGITS, arrowStep, sanitizeDecimal } from "../lib/numberInput";
 
 interface PaydayHeaderProps {
@@ -136,7 +137,15 @@ export default function PaydayHeader({
   // real amount that happens to be zero.
   const isBlank = rawValue === "" || Number(rawValue) === 0;
 
+  // Largest first, so the list reads as a ranking. Bars are scaled to the
+  // biggest share rather than to 100%, so small splits still get length.
+  const ranked = [...categories].sort(
+    (a, b) => (Number(b.percent) || 0) - (Number(a.percent) || 0),
+  );
+  const top = Math.max(...ranked.map((c) => Number(c.percent) || 0), 0);
+
   return (
+    <>
     <section className="flex items-center justify-between gap-split narrow:flex-col narrow:items-stretch">
       <div className="min-w-0">
         <p className="text-label uppercase tracking-caps text-ink-soft">
@@ -210,16 +219,6 @@ export default function PaydayHeader({
           )}
         </span>
 
-        {/* Over 100% is reported by the banner below, so this only ever
-            counts what is still free to assign. */}
-        {categories.length > 0 && (
-          <p className="mt-3 text-meta text-ink-soft">
-            <span className="font-display font-bold text-ink">
-              {pesoRound(Math.max(0, share(salary, 100 - totalPercent)))}
-            </span>{" "}
-            unassigned
-          </p>
-        )}
       </div>
 
       {/* No categories: the card collapses to the salary alone. */}
@@ -235,5 +234,39 @@ export default function PaydayHeader({
         </div>
       )}
     </section>
+
+    {categories.length > 0 && (
+      <ul aria-label="Salary by category" className="mt-stack border-t border-line pt-4">
+        {ranked.map((c) => (
+          <li
+            key={c.id}
+            className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 py-2"
+            style={{ "--c": c.color } as React.CSSProperties}
+          >
+            <CategoryMark icon={c.icon} />
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <span className="truncate text-ui font-bold text-ink">{c.name}</span>
+                <span className="flex-none text-meta text-ink-soft">{pct(c.percent)}%</span>
+              </div>
+              <div aria-hidden="true" className="mt-1 h-2 rounded-full bg-sunk">
+                <div
+                  className="h-full rounded-full bg-cat transition-[width] duration-mid ease-paper"
+                  style={{ width: `${top ? ((Number(c.percent) || 0) / top) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+            <b className="font-display text-title font-bold text-ink tabular-nums">
+              {peso(share(salary, c.percent))}
+            </b>
+          </li>
+        ))}
+        <li className="mt-2 flex items-baseline justify-end gap-3 border-t border-line pt-3">
+          <span className="text-label font-bold uppercase tracking-caps text-ink-soft">Total salary</span>
+          <b className="font-display text-title font-bold text-lime-deep tabular-nums">{peso(salary)}</b>
+        </li>
+      </ul>
+    )}
+    </>
   );
 }
