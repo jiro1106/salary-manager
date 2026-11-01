@@ -143,6 +143,7 @@ export default function ExpenseHistory({
                           <span className="min-w-0 [overflow-wrap:anywhere]">
                             {expense.categoryName}
                           </span>
+                          <span aria-hidden="true" className="text-ink-faint">|</span>
                           <time dateTime={expense.created_at}>{when}</time>
                         </div>
                       </div>
