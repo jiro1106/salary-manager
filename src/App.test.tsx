@@ -39,9 +39,10 @@ describe("expense tracking in App", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText("Lunch")).toBeTruthy();
+    // Row, day total, payday summary.
     expect(screen.getAllByText("₱250.50")).toHaveLength(3);
-    // The payday summary at the top, and "Left" under the history total.
-    expect(screen.getAllByText("₱749.50")).toHaveLength(2);
+    // The payday summary at the top. The history footer only shows under a category filter.
+    expect(screen.getAllByText("₱749.50")).toHaveLength(1);
     await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([
       expect.objectContaining({ id: "new-expense", title: "Lunch", amount: 250.5, categoryId: "food", categoryName: "Food" }),
     ]));
@@ -57,7 +58,8 @@ describe("expense tracking in App", () => {
     render(<App />);
     await screen.findByText("Lunch");
 
-    fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
+    fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(screen.queryByText("Lunch")).toBeNull();
     expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
@@ -73,7 +75,8 @@ describe("expense tracking in App", () => {
     render(<App />);
     await screen.findByText("Lunch");
 
-    fireEvent.click(screen.getByRole("button", { name: /edit lunch/i }));
+    fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     screen.getByRole("dialog", { name: "Edit expense" });
     expect((screen.getByRole("textbox", { name: "Amount" }) as HTMLInputElement).value).toBe("200");
     fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Late lunch" } });
@@ -103,7 +106,7 @@ describe("expense tracking in App", () => {
     }));
     render(<App />);
     await screen.findByText("Groceries");
-    expect(screen.getAllByText("Over budget")).toHaveLength(2);
+    expect(screen.getAllByText("Over budget")).toHaveLength(1);
     for (const node of screen.getAllByText("₱50.25")) expect(node.className).toContain("text-spent");
   });
 

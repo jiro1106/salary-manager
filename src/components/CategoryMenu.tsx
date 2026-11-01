@@ -8,6 +8,8 @@ interface CategoryMenuProps {
   name: string;
   onEdit: () => void;
   onDelete: () => void;
+  /** Sitting on a category's own colour (default), or on card. */
+  tone?: "card" | "colour";
 }
 
 /**
@@ -16,7 +18,7 @@ interface CategoryMenuProps {
  * the ARIA menu pattern: focus lands on the first item, arrows move,
  * Escape returns to the button.
  */
-export default function CategoryMenu({ name, onEdit, onDelete }: CategoryMenuProps) {
+export default function CategoryMenu({ name, onEdit, onDelete, tone = "colour" }: CategoryMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -69,7 +71,7 @@ export default function CategoryMenu({ name, onEdit, onDelete }: CategoryMenuPro
         ref={triggerRef}
         label={`Options for ${name}`}
         onClick={() => setOpen((o) => !o)}
-        tone="colour"
+        tone={tone}
         expanded={open}
       >
         <MoreHorizontal size={18} strokeWidth={2} aria-hidden="true" />

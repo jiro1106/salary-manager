@@ -1,10 +1,12 @@
 import { useId, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso, share } from "../lib/format";
 import { expenseSummary } from "../lib/expenses";
+import Button from "./Button";
 import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
+import CategoryMenu from "./CategoryMenu";
 import ConfirmDialog from "./ConfirmDialog";
 import IconButton from "./IconButton";
 
@@ -18,6 +20,9 @@ interface ExpenseHistoryProps {
   onDelete: (id: string) => void;
 }
 
+/** Days of history rendered at first, and added per "Load more". */
+const DAYS_PER_PAGE = 5;
+
 export default function ExpenseHistory({
   expenses,
   categories,
@@ -28,6 +33,7 @@ export default function ExpenseHistory({
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
+  const [dayLimit, setDayLimit] = useState(DAYS_PER_PAGE);
   const titleId = useId();
   // A filter on a category that has since been deleted falls back to all.
   const filterCategory = categories.find((c) => c.id === filter);
@@ -37,15 +43,22 @@ export default function ExpenseHistory({
     (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
   );
 
-  // The total, then what is left against the budget it is measured on:
-  // the whole payday under the all filter, the category's own share under
-  // a category one, so the reader never has to switch tabs for it.
+  // One group per local day, newest day first, since the list is already sorted.
+  const days: { day: Date; items: Expense[] }[] = [];
+  for (const expense of newestFirst) {
+    const day = new Date(expense.created_at);
+    const last = days[days.length - 1];
+    if (last && last.day.toDateString() === day.toDateString()) last.items.push(expense);
+    else days.push({ day, items: [expense] });
+  }
+
+  // Only under a category filter: its total, then what is left of its own
+  // share. Under the all filter the tab's top summary already says both.
   const total = expenseSummary(0, newestFirst).spent;
-  const budget = filterCategory ? share(salary, filterCategory.percent) : salary;
-  const left = budget - total;
+  const left = filterCategory ? share(salary, filterCategory.percent) - total : 0;
   const footerLines = [
     {
-      label: filterCategory ? `${filterCategory.name} total` : "Total",
+      label: `${filterCategory?.name} total`,
       amount: total,
       tone: "text-spent",
     },
@@ -55,6 +68,16 @@ export default function ExpenseHistory({
       tone: left < 0 ? "text-spent" : "text-lime-deep",
     },
   ];
+
+  // Holds the width of a row's ⋯ button, so day totals and the footer
+  // line up under the row amounts.
+  const menuSpacer = (
+    <div aria-hidden="true" className="invisible">
+      <IconButton label="" onClick={() => {}}>
+        <MoreHorizontal size={18} strokeWidth={2} />
+      </IconButton>
+    </div>
+  );
 
   return (
     <section aria-labelledby={titleId} className="mt-split">
@@ -73,13 +96,16 @@ export default function ExpenseHistory({
             <CategoryFilter
               categories={categories}
               value={filterCategory?.id ?? null}
-              onChange={onFilterChange}
+              onChange={(id) => {
+                setDayLimit(DAYS_PER_PAGE);
+                onFilterChange(id);
+              }}
             />
           </div>
         )}
       </div>
 
-      <div className="mt-3 border-t border-line">
+      <div className="mt-3">
         {newestFirst.length === 0 ? (
           <p className="py-3 text-meta text-ink-soft">
             {filterCategory && expenses.length > 0
@@ -87,62 +113,75 @@ export default function ExpenseHistory({
               : "No expenses yet. Add one to see it here."}
           </p>
         ) : (
-          <ul>
-            {newestFirst.map((expense) => {
-              const when = new Date(expense.created_at).toLocaleString("en-PH", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              });
-              const category = categories.find((c) => c.id === expense.categoryId);
+          days.slice(0, dayLimit).map(({ day, items }) => (
+            <div key={day.toDateString()} className="pt-4">
+              <div className="flex items-end gap-5 border-b border-line pb-2 pr-4">
+                <div className="mr-auto">
+                  <h3 className="text-body font-bold">
+                    {day.toLocaleDateString("en-PH", { weekday: "long" })}
+                  </h3>
+                  <p className="text-meta text-ink-soft">
+                    {day.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                </div>
+                <span aria-label="Day total" className="font-display text-body font-bold text-ink-soft">
+                  {peso(expenseSummary(0, items).spent)}
+                </span>
+                {menuSpacer}
+              </div>
+              <ul className="mt-3 flex flex-col gap-2">
+                {items.map((expense) => {
+                  const when = new Date(expense.created_at).toLocaleTimeString("en-PH", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  });
+                  const category = categories.find((c) => c.id === expense.categoryId);
 
-              return (
-                <li
-                  key={expense.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line py-3"
-                >
-                  {/* The category's own mark, the same tile as its Legend pip.
-                      A deleted category leaves an empty sunk tile: the name
-                      beside it is stored on the expense, the look is not. */}
-                  <CategoryMark icon={category?.icon} color={category?.color} />
-                  <div className="min-w-[12ch] flex-[1_1_12rem]">
-                    <p className="break-words text-body font-bold">{expense.title}</p>
-                    <div className="flex flex-wrap gap-x-3 text-meta text-ink-soft">
-                      <span className="min-w-0 [overflow-wrap:anywhere]">
-                        {expense.categoryName}
-                      </span>
-                      <time dateTime={expense.created_at}>{when}</time>
-                    </div>
-                  </div>
-                  <div className="ml-auto flex items-center gap-5">
-                    <span className="font-display text-body font-bold">
-                      {peso(expense.amount)}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <IconButton
-                        label={`Edit ${expense.title}, ${peso(expense.amount)}`}
-                        onClick={() => onEdit(expense)}
-                      >
-                        <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
-                      </IconButton>
-                      <IconButton
-                        label={`Delete ${expense.title}, ${peso(expense.amount)}`}
-                        onClick={() => setConfirming(expense)}
-                        danger
-                      >
-                        <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  return (
+                    <li
+                      key={expense.id}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-slab bg-card px-4 py-3"
+                    >
+                      {/* The category's own mark, the same tile as its Legend pip.
+                          A deleted category leaves an empty sunk tile: the name
+                          beside it is stored on the expense, the look is not. */}
+                      <CategoryMark icon={category?.icon} color={category?.color} />
+                      <div className="min-w-[12ch] flex-[1_1_12rem]">
+                        <p className="break-words text-body font-bold">{expense.title}</p>
+                        <div className="flex flex-wrap gap-x-3 text-meta text-ink-soft">
+                          <span className="min-w-0 [overflow-wrap:anywhere]">
+                            {expense.categoryName}
+                          </span>
+                          <time dateTime={expense.created_at}>{when}</time>
+                        </div>
+                      </div>
+                      <div className="ml-auto flex items-center gap-5">
+                        <span className="font-display text-body font-bold">
+                          {peso(expense.amount)}
+                        </span>
+                        <CategoryMenu
+                          tone="card"
+                          name={`${expense.title}, ${peso(expense.amount)}`}
+                          onEdit={() => onEdit(expense)}
+                          onDelete={() => setConfirming(expense)}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))
         )}
-        {newestFirst.length > 0 && (
-          <div className="py-3">
+        {days.length > dayLimit && (
+          <div className="mt-4 flex justify-center">
+            <Button variant="alt" small onClick={() => setDayLimit((n) => n + DAYS_PER_PAGE)}>
+              Load more
+            </Button>
+          </div>
+        )}
+        {filterCategory && newestFirst.length > 0 && (
+          <div className="px-4 py-3">
             {footerLines.map(({ label, amount, tone }) => (
               <div key={label} className="flex items-center justify-end gap-5">
                 <span className="text-label uppercase tracking-caps text-ink-soft">
@@ -151,16 +190,7 @@ export default function ExpenseHistory({
                 <span className={`font-display text-body font-extrabold ${tone}`}>
                   {peso(amount)}
                 </span>
-                {/* Holds the width of a row's edit and delete buttons, so the
-                    total lines up under the amounts. */}
-                <div aria-hidden="true" className="invisible flex items-center gap-3">
-                  <IconButton label="" onClick={() => {}}>
-                    <Pencil size={15} strokeWidth={1.7} />
-                  </IconButton>
-                  <IconButton label="" onClick={() => {}}>
-                    <Trash2 size={15} strokeWidth={1.7} />
-                  </IconButton>
-                </div>
+                {menuSpacer}
               </div>
             ))}
           </div>
