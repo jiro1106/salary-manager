@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { useState } from "react";
 import type { Category, Expense } from "../types";
 import { peso } from "../lib/format";
 import ExpenseHistory from "./ExpenseHistory";
@@ -28,7 +27,7 @@ const later: Expense = {
 describe("ExpenseHistory", () => {
   it("shows newest first with saved category names, amounts, and local date and time without reordering props", () => {
     const expenses = [earlier, later];
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
@@ -43,14 +42,14 @@ describe("ExpenseHistory", () => {
   });
 
   it("shows an empty state when there are no expenses", () => {
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
     expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("asks before deleting, and deletes only on confirm", () => {
     const onDelete = vi.fn();
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
 
     fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
@@ -69,7 +68,7 @@ describe("ExpenseHistory", () => {
   it("groups by day, newest day first, headed by weekday then date", () => {
     const older = { ...earlier, created_at: new Date(2026, 9, 24, 15, 5).toISOString() };
     const newer = { ...later, created_at: new Date(2026, 9, 26, 9, 0).toISOString() };
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={[older, newer]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[older, newer]} onDelete={() => {}} />);
 
     const heads = screen.getAllByRole("heading", { level: 3 });
     expect(heads.map((h) => h.textContent)).toEqual(["Monday", "Saturday"]);
@@ -85,7 +84,7 @@ describe("ExpenseHistory", () => {
       id: `day${i}`,
       created_at: new Date(2026, 9, 1 + i, 12).toISOString(),
     }));
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(5);
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
@@ -101,7 +100,7 @@ describe("ExpenseHistory", () => {
       title: "Lunch",
       amount: 45.5,
     };
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     const labels = rows.map((row) => within(row).getByRole("button", { name: /options for lunch/i }).getAttribute("aria-label"));
@@ -113,7 +112,7 @@ describe("ExpenseHistory", () => {
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
     const { container } = render(
-      <ExpenseHistory filter={null} onFilterChange={() => {}} salary={10000} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
+      <ExpenseHistory filter={null} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
     );
     const tiles = container.querySelectorAll("li > span[aria-hidden]");
     expect((tiles[0] as HTMLElement).style.getPropertyValue("--c")).toBe("#ffd23f");
@@ -122,41 +121,12 @@ describe("ExpenseHistory", () => {
     expect(tiles[1].querySelector("svg")).toBeNull();
   });
 
-  it("filters by a chosen category", () => {
-    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
+  it("shows only the filtered category's expenses", () => {
     const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50 };
-    Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
-    // The filter lives in App, so stand in for it here.
-    function WithFilter() {
-      const [filter, setFilter] = useState<string | null>(null);
-      return <ExpenseHistory filter={filter} onFilterChange={setFilter} salary={10000} onEdit={() => {}} categories={[food, travel]} expenses={[earlier, later]} onDelete={() => {}} />;
-    }
-    render(<WithFilter />);
-
-    fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
-    fireEvent.click(screen.getByRole("option", { name: "Travel" }));
+    render(<ExpenseHistory filter="travel" onEdit={() => {}} categories={[travel]} expenses={[earlier, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(1);
     expect(within(rows[0]).getByText("Train fare")).toBeTruthy();
-    expect(screen.getByText("Travel total").nextElementSibling?.textContent).toBe(peso(earlier.amount));
-    // Left follows the filter: Travel's own 50% share, not the whole payday.
-    expect(screen.getByText("Left").nextElementSibling?.textContent).toBe(peso(5000 - earlier.amount));
-    expect(screen.queryByRole("listbox")).toBeNull();
-  });
-
-  it("hides the footer under the all filter, since the top summary says the same", () => {
-    render(<ExpenseHistory filter={null} onFilterChange={() => {}} salary={1000} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={() => {}} />);
-    expect(screen.queryByText("Total")).toBeNull();
-    expect(screen.queryByText("Over budget")).toBeNull();
-  });
-
-  it("says over budget once a filtered category passes its share", () => {
-    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
-    render(<ExpenseHistory filter="food" onFilterChange={() => {}} salary={1000} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />);
-
-    const over = screen.getByText("Over budget");
-    expect(over.nextElementSibling?.textContent).toBe(peso(750));
-    expect(over.nextElementSibling?.className).toContain("text-spent");
   });
 });

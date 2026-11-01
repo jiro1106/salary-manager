@@ -115,21 +115,21 @@ describe("expense tracking in App", () => {
     render(<App />);
     openExpenses();
     await screen.findByText("Groceries");
-    expect(screen.getAllByText("Over budget")).toHaveLength(1);
-    for (const node of screen.getAllByText("₱50.25")) expect(node.className).toContain("text-spent");
+    expect(screen.getAllByText("over budget")).toHaveLength(1);
+    for (const node of screen.getAllByText("₱50.25")) expect(node.parentElement?.nextElementSibling?.className).toContain("bg-spent");
   });
 
-  it("leads with green available, then spent of salary as one line", async () => {
+  it("leads with what is left, then spent of salary in a neutral pill", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
       salary: 500, categories, expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
     openExpenses();
     await screen.findByText("Lunch");
-    const available = screen.getByText("Available").nextElementSibling;
-    expect(available?.nextElementSibling?.textContent).toBe("₱200.00 spent of ₱500.00");
-    expect(available?.textContent).toBe("₱300.00");
-    expect(available?.className).toContain("text-lime-deep");
+    const available = screen.getByText("Salary", { selector: "p" }).nextElementSibling;
+    expect(available?.nextElementSibling?.textContent).toBe("Spent ₱200.00 of ₱500.00");
+    expect(available?.textContent).toBe("₱300.00left");
+    expect(available?.nextElementSibling?.className).toContain("bg-sunk-deep");
   });
 
   it("explains why adding an expense is unavailable without categories", async () => {
@@ -148,6 +148,35 @@ describe("expense tracking in App", () => {
     render(<App />);
     expect(screen.queryByRole("button", { name: /save payday/i })).toBeNull();
     expect(screen.queryByText(/payday history/i)).toBeNull();
+  });
+
+  it("swaps the top summary to the filtered category's own share", async () => {
+    const split: Category[] = [
+      { id: "food", name: "Food", icon: "ShoppingBag", color: "#e6e6e6", percent: 50 },
+      { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50 },
+    ];
+    localStorage.setItem("salary-manager:config", JSON.stringify({
+      salary: 1000, categories: split,
+      expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z"), { ...expense("bus", "Bus", 700, "2026-09-30T13:00:00Z"), categoryId: "travel" }],
+    }));
+    Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
+    render(<App />);
+    openExpenses();
+    await screen.findByText("Lunch");
+    expect(screen.getByText("Salary", { selector: "p" }).nextElementSibling?.textContent).toBe("₱100.00left");
+
+    fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
+    fireEvent.click(screen.getByRole("option", { name: "Travel" }));
+    expect(screen.queryByText("Salary", { selector: "p" })).toBeNull();
+    expect(screen.queryByText("Lunch")).toBeNull();
+    const over = screen.getByText("Travel", { selector: "p" }).nextElementSibling;
+    expect(over?.textContent).toBe("₱200.00over budget");
+    expect(over?.nextElementSibling?.className).toContain("bg-spent");
+    expect(over?.nextElementSibling?.textContent).toBe("Spent ₱700.00 of ₱500.00");
+
+    fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
+    fireEvent.click(screen.getByRole("option", { name: "Food" }));
+    expect(screen.getByText("Food", { selector: "p" }).nextElementSibling?.textContent).toBe("₱300.00left");
   });
 });
 

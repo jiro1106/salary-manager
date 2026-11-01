@@ -21,6 +21,7 @@ import CategoryList from "./components/CategoryList";
 import ExpenseDialog from "./components/ExpenseDialog";
 import ExpenseHistory from "./components/ExpenseHistory";
 import SpendSummary from "./components/SpendSummary";
+import CategoryFilter from "./components/CategoryFilter";
 import ViewTabs, { Tab, panelId, tabId } from "./components/ViewTabs";
 
 const CONFIG_KEY = "salary-manager:config";
@@ -119,6 +120,13 @@ export default function App() {
   }, [salary, categories, expenses]);
 
   const { spent, remaining } = expenseSummary(salary, expenses);
+  // A filter on a category that has since been deleted falls back to all.
+  const filterCategory = categories.find((c) => c.id === expenseFilter);
+  const filterShare = filterCategory ? share(salary, filterCategory.percent) : 0;
+  const filterBudget = {
+    salary: filterShare,
+    ...expenseSummary(filterShare, expenses.filter((e) => e.categoryId === filterCategory?.id)),
+  };
 
   const totalPercent = categories.reduce(
     (s, c) => s + Number(c.percent || 0),
@@ -402,8 +410,24 @@ export default function App() {
           {view === "expenses" && (
             <>
               <section className="mt-stack flex flex-wrap items-end justify-between gap-6 border-b border-line pb-stack">
-                <SpendSummary salary={salary} spent={spent} remaining={remaining} className="min-w-0 flex-1" />
-                <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
+                {/* One budget at a time: the whole salary under All, or the
+                    filtered category's own share. */}
+                {filterCategory ? (
+                  <SpendSummary
+                    name={filterCategory.name}
+                    salary={filterBudget.salary}
+                    spent={filterBudget.spent}
+                    remaining={filterBudget.remaining}
+                    className="min-w-0 flex-1"
+                  />
+                ) : (
+                  <SpendSummary salary={salary} spent={spent} remaining={remaining} className="min-w-0 flex-1" />
+                )}
+                <div className="flex flex-wrap items-start gap-3 narrow:w-full">
+                  {categories.length > 0 && (
+                    <CategoryFilter categories={categories} value={filterCategory?.id ?? null} onChange={setExpenseFilter} />
+                  )}
+                  <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
                   <Button
                     small
                     onClick={() => setExpenseDialog("new")}
@@ -420,15 +444,16 @@ export default function App() {
                       Add a category before recording expenses.
                     </p>
                   )}
+                  </div>
                 </div>
               </section>
 
+              {/* Keyed on the filter so a new filter starts back at the first page of days. */}
               <ExpenseHistory
-                salary={salary}
+                key={filterCategory?.id ?? "all"}
                 expenses={expenses}
                 categories={categories}
                 filter={expenseFilter}
-                onFilterChange={setExpenseFilter}
                 onEdit={setExpenseDialog}
                 onDelete={deleteExpense}
               />

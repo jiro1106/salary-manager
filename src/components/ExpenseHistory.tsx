@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import type { Category, Expense } from "../types";
-import { peso, share } from "../lib/format";
+import { peso } from "../lib/format";
 import { expenseSummary } from "../lib/expenses";
 import Button from "./Button";
-import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
 import CategoryMenu from "./CategoryMenu";
 import ConfirmDialog from "./ConfirmDialog";
@@ -13,9 +12,7 @@ import IconButton from "./IconButton";
 interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
-  salary: number;
   filter: string | null;
-  onFilterChange: (id: string | null) => void;
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
 }
@@ -26,9 +23,7 @@ const DAYS_PER_PAGE = 5;
 export default function ExpenseHistory({
   expenses,
   categories,
-  salary,
   filter,
-  onFilterChange,
   onEdit,
   onDelete,
 }: ExpenseHistoryProps) {
@@ -51,24 +46,7 @@ export default function ExpenseHistory({
     else days.push({ day, items: [expense] });
   }
 
-  // Only under a category filter: its total, then what is left of its own
-  // share. Under the all filter the tab's top summary already says both.
-  const total = expenseSummary(0, newestFirst).spent;
-  const left = filterCategory ? share(salary, filterCategory.percent) - total : 0;
-  const footerLines = [
-    {
-      label: `${filterCategory?.name} total`,
-      amount: total,
-      tone: "text-spent",
-    },
-    {
-      label: left < 0 ? "Over budget" : "Left",
-      amount: Math.abs(left),
-      tone: left < 0 ? "text-spent" : "text-lime-deep",
-    },
-  ];
-
-  // Holds the width of a row's ⋯ button, so day totals and the footer
+  // Holds the width of a row's ⋯ button, so day totals
   // line up under the row amounts.
   const menuSpacer = (
     <div aria-hidden="true" className="invisible">
@@ -80,22 +58,7 @@ export default function ExpenseHistory({
 
   return (
     <section aria-label="Expense history" className="mt-split">
-      <div className="flex justify-end">
-        {categories.length > 0 && (
-          <div>
-            <CategoryFilter
-              categories={categories}
-              value={filterCategory?.id ?? null}
-              onChange={(id) => {
-                setDayLimit(DAYS_PER_PAGE);
-                onFilterChange(id);
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3">
+      <div className="mt-1">
         {newestFirst.length === 0 ? (
           <p className="py-3 text-meta text-ink-soft">
             {filterCategory && expenses.length > 0
@@ -170,21 +133,6 @@ export default function ExpenseHistory({
             <Button variant="alt" small onClick={() => setDayLimit((n) => n + DAYS_PER_PAGE)}>
               Load more
             </Button>
-          </div>
-        )}
-        {filterCategory && newestFirst.length > 0 && (
-          <div className="px-4 py-3">
-            {footerLines.map(({ label, amount, tone }) => (
-              <div key={label} className="flex items-center justify-end gap-5">
-                <span className="text-label uppercase tracking-caps text-ink-soft">
-                  {label}
-                </span>
-                <span className={`font-display text-body font-extrabold ${tone}`}>
-                  {peso(amount)}
-                </span>
-                {menuSpacer}
-              </div>
-            ))}
           </div>
         )}
       </div>
