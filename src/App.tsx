@@ -452,6 +452,7 @@ export default function App() {
               </section>
 
               <ExpenseHistory
+                salary={salary}
                 expenses={expenses}
                 categories={categories}
                 onEdit={setExpenseDialog}

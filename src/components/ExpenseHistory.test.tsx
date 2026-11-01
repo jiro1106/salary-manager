@@ -27,7 +27,7 @@ const later: Expense = {
 describe("ExpenseHistory", () => {
   it("shows newest first with saved category names, amounts, and local date and time without reordering props", () => {
     const expenses = [earlier, later];
-    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
@@ -42,14 +42,14 @@ describe("ExpenseHistory", () => {
   });
 
   it("shows an empty state when there are no expenses", () => {
-    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
+    render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
     expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("asks before deleting, and deletes only on confirm", () => {
     const onDelete = vi.fn();
-    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
+    render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete lunch/i }));
     expect(screen.getByRole("alertdialog", { name: 'Delete "Lunch"?' })).toBeTruthy();
@@ -69,7 +69,7 @@ describe("ExpenseHistory", () => {
       title: "Lunch",
       amount: 45.5,
     };
-    render(<ExpenseHistory onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     const labels = rows.map((row) => within(row).getByRole("button", { name: /delete lunch/i }).getAttribute("aria-label"));
@@ -81,7 +81,7 @@ describe("ExpenseHistory", () => {
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
     const { container } = render(
-      <ExpenseHistory onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
+      <ExpenseHistory salary={10000} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
     );
     const tiles = container.querySelectorAll("li > span[aria-hidden]");
     expect((tiles[0] as HTMLElement).style.getPropertyValue("--c")).toBe("#ffd23f");
@@ -94,7 +94,7 @@ describe("ExpenseHistory", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
     const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50, subs: [] };
     Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
-    render(<ExpenseHistory onEdit={() => {}} categories={[food, travel]} expenses={[earlier, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[food, travel]} expenses={[earlier, later]} onDelete={() => {}} />);
 
     expect(screen.getByLabelText("2 shown")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
@@ -105,6 +105,16 @@ describe("ExpenseHistory", () => {
     expect(within(rows[0]).getByText("Train fare")).toBeTruthy();
     expect(screen.getByLabelText("1 shown")).toBeTruthy();
     expect(screen.getByText("Travel total").nextElementSibling?.textContent).toBe(peso(earlier.amount));
+    // Left follows the filter: Travel's own 50% share, not the whole payday.
+    expect(screen.getByText("Left").nextElementSibling?.textContent).toBe(peso(5000 - earlier.amount));
     expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("measures left against the whole payday under the all filter, and says over budget past it", () => {
+    render(<ExpenseHistory salary={1000} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={() => {}} />);
+
+    const over = screen.getByText("Over budget");
+    expect(over.nextElementSibling?.textContent).toBe(peso(295.5));
+    expect(over.nextElementSibling?.className).toContain("text-spent");
   });
 });

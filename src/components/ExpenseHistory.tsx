@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category, Expense } from "../types";
-import { peso } from "../lib/format";
+import { peso, share } from "../lib/format";
 import { expenseSummary } from "../lib/expenses";
 import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
@@ -11,6 +11,7 @@ import IconButton from "./IconButton";
 interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
+  salary: number;
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
 }
@@ -18,6 +19,7 @@ interface ExpenseHistoryProps {
 export default function ExpenseHistory({
   expenses,
   categories,
+  salary,
   onEdit,
   onDelete,
 }: ExpenseHistoryProps) {
@@ -31,6 +33,25 @@ export default function ExpenseHistory({
     .sort(
     (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
   );
+
+  // The total, then what is left against the budget it is measured on:
+  // the whole payday under the all filter, the category's own share under
+  // a category one, so the reader never has to switch tabs for it.
+  const total = expenseSummary(0, newestFirst).spent;
+  const budget = filterCategory ? share(salary, filterCategory.percent) : salary;
+  const left = budget - total;
+  const footerLines = [
+    {
+      label: filterCategory ? `${filterCategory.name} total` : "Total",
+      amount: total,
+      tone: "text-spent",
+    },
+    {
+      label: left < 0 ? "Over budget" : "Left",
+      amount: Math.abs(left),
+      tone: left < 0 ? "text-spent" : "text-lime-deep",
+    },
+  ];
 
   return (
     <section aria-labelledby={titleId} className="mt-split">
@@ -118,23 +139,27 @@ export default function ExpenseHistory({
           </ul>
         )}
         {newestFirst.length > 0 && (
-          <div className="flex items-center justify-end gap-5 py-3">
-            <span className="text-label uppercase tracking-caps text-ink-soft">
-              {filterCategory ? `${filterCategory.name} total` : "Total"}
-            </span>
-            <span className="font-display text-body font-extrabold text-spent">
-              {peso(expenseSummary(0, newestFirst).spent)}
-            </span>
-            {/* Holds the width of a row's edit and delete buttons, so the
-                total lines up under the amounts. */}
-            <div aria-hidden="true" className="invisible flex items-center gap-3">
-              <IconButton label="" onClick={() => {}}>
-                <Pencil size={15} strokeWidth={1.7} />
-              </IconButton>
-              <IconButton label="" onClick={() => {}}>
-                <Trash2 size={15} strokeWidth={1.7} />
-              </IconButton>
-            </div>
+          <div className="py-3">
+            {footerLines.map(({ label, amount, tone }) => (
+              <div key={label} className="flex items-center justify-end gap-5">
+                <span className="text-label uppercase tracking-caps text-ink-soft">
+                  {label}
+                </span>
+                <span className={`font-display text-body font-extrabold ${tone}`}>
+                  {peso(amount)}
+                </span>
+                {/* Holds the width of a row's edit and delete buttons, so the
+                    total lines up under the amounts. */}
+                <div aria-hidden="true" className="invisible flex items-center gap-3">
+                  <IconButton label="" onClick={() => {}}>
+                    <Pencil size={15} strokeWidth={1.7} />
+                  </IconButton>
+                  <IconButton label="" onClick={() => {}}>
+                    <Trash2 size={15} strokeWidth={1.7} />
+                  </IconButton>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

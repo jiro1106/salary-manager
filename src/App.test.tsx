@@ -40,7 +40,8 @@ describe("expense tracking in App", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText("Lunch")).toBeTruthy();
     expect(screen.getAllByText("₱250.50")).toHaveLength(3);
-    expect(screen.getByText("₱749.50")).toBeTruthy();
+    // The payday summary at the top, and "Left" under the history total.
+    expect(screen.getAllByText("₱749.50")).toHaveLength(2);
     await waitFor(() => expect(JSON.parse(localStorage.getItem("salary-manager:config")!).expenses).toEqual([
       expect.objectContaining({ id: "new-expense", title: "Lunch", amount: 250.5, categoryId: "food", categoryName: "Food" }),
     ]));
@@ -102,8 +103,8 @@ describe("expense tracking in App", () => {
     }));
     render(<App />);
     await screen.findByText("Groceries");
-    expect(screen.getByText("Over budget")).toBeTruthy();
-    expect(screen.getByText("₱50.25").className).toContain("text-spent");
+    expect(screen.getAllByText("Over budget")).toHaveLength(2);
+    for (const node of screen.getAllByText("₱50.25")) expect(node.className).toContain("text-spent");
   });
 
   it("uses cranberry spent and green available amounts", async () => {
