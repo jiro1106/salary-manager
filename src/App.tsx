@@ -35,6 +35,9 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   // "new" opens a blank dialog; an expense opens it on that expense to edit.
   const [expenseDialog, setExpenseDialog] = useState<Expense | "new" | null>(null);
+  // Held here, not in ExpenseHistory, so it survives a tab switch. Not
+  // stored: a reload starts back on all.
+  const [expenseFilter, setExpenseFilter] = useState<string | null>(null);
   // Flipped by the first write that comes back false. Every edit on this
   // page still applies to the screen when storage is blocked, so without
   // this the app looks saved and isn't — the reader finds out by closing
@@ -436,6 +439,8 @@ export default function App() {
                 salary={salary}
                 expenses={expenses}
                 categories={categories}
+                filter={expenseFilter}
+                onFilterChange={setExpenseFilter}
                 onEdit={setExpenseDialog}
                 onDelete={deleteExpense}
               />

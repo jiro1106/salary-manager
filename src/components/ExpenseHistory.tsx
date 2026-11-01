@@ -12,6 +12,8 @@ interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
   salary: number;
+  filter: string | null;
+  onFilterChange: (id: string | null) => void;
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
 }
@@ -20,11 +22,12 @@ export default function ExpenseHistory({
   expenses,
   categories,
   salary,
+  filter,
+  onFilterChange,
   onEdit,
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
-  const [filter, setFilter] = useState<string | null>(null);
   const titleId = useId();
   // A filter on a category that has since been deleted falls back to all.
   const filterCategory = categories.find((c) => c.id === filter);
@@ -70,7 +73,7 @@ export default function ExpenseHistory({
             <CategoryFilter
               categories={categories}
               value={filterCategory?.id ?? null}
-              onChange={setFilter}
+              onChange={onFilterChange}
             />
           </div>
         )}

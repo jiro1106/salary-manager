@@ -161,6 +161,18 @@ describe("tabs", () => {
     expect(screen.getByRole("tab", { name: "Salary", selected: true })).toBeTruthy();
   });
 
+  it("keeps the expense filter across a tab switch", async () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
+    Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
+    render(<App />);
+    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
+    fireEvent.click(screen.getByRole("option", { name: "Food" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Salary" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    expect(screen.getByRole("button", { name: /filter by category/i }).textContent).toContain("Food");
+  });
+
   it("reports over-allocation on the Split tab", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
       salary: 1000, categories: [{ ...categories[0], percent: 120 }], expenses: [],
