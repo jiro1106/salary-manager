@@ -7,8 +7,8 @@ interface NumberFieldProps {
   label: string;
   /** Rides inside the chip, never loose beside it. */
   unit: "%" | "₱";
-  /** Card grounds sit on a category head; sunk grounds sit on card. */
-  tone?: "card" | "sunk";
+  /** Sunk grounds sit on card; colour is the light chip on a category head. */
+  tone?: "card" | "sunk" | "colour";
   width?: string;
   disabled?: boolean;
 }
@@ -138,17 +138,22 @@ export default function NumberField({
     ? "bg-sunk text-ink-soft cursor-not-allowed"
     : tone === "card"
       ? "bg-card text-ink"
-      : "bg-sunk text-ink";
+      : tone === "colour"
+        ? // A frost of white over the face, in the face's own ink. It does
+          // not follow the theme: the faces stay light in dark mode, and a
+          // dark --card chip there was the heaviest mark on the head.
+          "bg-white/55 text-on-color"
+        : "bg-sunk text-ink";
 
   // Roomier than the chip strictly needs to be: a figure you are meant to
   // click into and retype wants air around it, and the chip is the only
   // thing on the row that says "this is editable".
   const metrics =
-    tone === "card" ? "px-4 py-2.5 text-ui" : "px-3.5 py-2 text-meta";
+    tone === "card" ? "px-4 py-2.5 text-ui" : tone === "colour" ? "px-2.5 py-1 text-meta" : "px-3.5 py-2 text-meta";
 
   // The label carries the honest 44px target and the chip sits inside it,
   // so the pull-back is whatever the padded chip leaves over.
-  const pullback = tone === "card" ? "-my-0.5" : "-my-1";
+  const pullback = tone === "card" ? "-my-0.5" : tone === "colour" ? "-my-2" : "-my-1";
 
   return (
     <label
@@ -194,7 +199,7 @@ export default function NumberField({
           ].join(" ")}
         />
         {unit === "%" && (
-          <span aria-hidden="true" className="text-ink-soft">
+          <span aria-hidden="true" className={tone === "colour" ? "text-on-color" : "text-ink-soft"}>
             %
           </span>
         )}

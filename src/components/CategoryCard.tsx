@@ -69,6 +69,16 @@ export default function CategoryCard({
 
   const itemCount = plural(cat.subs.length, "item");
 
+  // What is left after expenses; the share's own amount stays the base
+  // for the items below, so a sub-item percent keeps meaning the same
+  // thing as money is spent.
+  const left = catAmount - spent;
+  const isOverspent = left < 0;
+  // Under budget the bar is the budget and ink fills what is spent. Over
+  // it, the bar is everything spent: ink up to the budget, red past it, so
+  // ₱500 of ₱100 reads as four times over and not just "full".
+  const inkShare = isOverspent ? catAmount / spent : catAmount > 0 ? spent / catAmount : 0;
+
   return (
     <article
       className={[
@@ -107,27 +117,49 @@ export default function CategoryCard({
           />
         </div>
 
-        <div className="mt-4 flex items-center gap-[9px]">
-          <NumberField
-            value={cat.percent}
-            onChange={(percent) => onChange({ percent })}
-            label={`${cat.name}: share of this payday`}
-            unit="%"
-            tone="card"
-            width="w-[3ch]"
+        {/* One labelled figure, then the meter, then the two inputs to it.
+            Over budget is said in words with the overspend as a positive
+            amount; a minus sign in the same ink as a healthy balance was
+            the only signal before. */}
+        {/* Status in green or red on a chip of its own: either ink set
+            straight on a face fails (red on the pink face is 2.9:1, green
+            on lime 2.9:1). White on the fill clears 4.5:1 for both. */}
+        <p
+          className={[
+            "mt-4 inline-block rounded-full px-2.5 py-0.5 text-label font-bold uppercase tracking-caps text-on-action",
+            isOverspent ? "bg-spent" : "bg-lime-deep",
+          ].join(" ")}
+        >
+          {isOverspent ? "Over budget" : "Left"}
+        </p>
+        <p className="mt-1.5 font-display text-amt font-extrabold">{peso(Math.abs(left))}</p>
+        {/* Ink on the same frost as the percent chip: the one fill that
+            reads on every face. The overspend is red on that frost, 4.41:1
+            on the worst face. */}
+        <div aria-hidden="true" className="relative mt-3 h-3 overflow-hidden rounded-full bg-white/55">
+          {isOverspent && (
+            <div
+              className="absolute inset-0 origin-right bg-spent transition-transform duration-mid ease-paper"
+              style={{ transform: `scaleX(${1 - inkShare})` }}
+            />
+          )}
+          <div
+            className="absolute inset-0 origin-left bg-on-color transition-transform duration-mid ease-paper"
+            style={{ transform: `scaleX(${inkShare})` }}
           />
-          {/* The headline is what is left after expenses; the share's own
-              amount stays the base for the items below, so a sub-item
-              percent keeps meaning the same thing as money is spent. */}
-          <span className="ml-auto text-right">
-            <span className="block font-display text-amt font-extrabold text-on-color">
-              {peso(catAmount - spent)}
-            </span>
-            {spent > 0 && (
-              <span className="block font-display text-meta text-on-color">
-                {peso(spent)} spent of {peso(catAmount)}
-              </span>
-            )}
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 font-display text-meta">
+          <span>{spent > 0 ? `${peso(spent)} spent` : "Nothing spent"}</span>
+          <span className="flex items-center gap-2">
+            of {peso(catAmount)}
+            <NumberField
+              value={cat.percent}
+              onChange={(percent) => onChange({ percent })}
+              label={`${cat.name}: share of this payday`}
+              unit="%"
+              tone="colour"
+              width="w-[3ch]"
+            />
           </span>
         </div>
       </div>

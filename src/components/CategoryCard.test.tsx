@@ -47,3 +47,30 @@ describe("CategoryCard menu", () => {
     expect(onRemove).toHaveBeenCalledOnce();
   });
 });
+
+describe("CategoryCard money", () => {
+  const renderWith = (spent: number) =>
+    render(
+      <CategoryCard category={needs} salary={500} spent={spent} onChange={() => {}} onRemove={() => {}} onRemoveSub={() => {}} />,
+    );
+
+  it("labels what is left and puts spent against the budget", () => {
+    renderWith(100);
+    expect(screen.getByText("Left")).toBeTruthy();
+    expect(screen.getByText("₱150.00")).toBeTruthy();
+    expect(screen.getByText("₱100.00 spent")).toBeTruthy();
+    expect(screen.getByText(/of ₱250\.00/)).toBeTruthy();
+  });
+
+  it("says over budget with a positive overspend", () => {
+    renderWith(400);
+    expect(screen.getByText("Over budget")).toBeTruthy();
+    expect(screen.getByText("₱150.00")).toBeTruthy();
+    expect(screen.queryByText(/-/)).toBeNull();
+  });
+
+  it("says nothing spent before any expense", () => {
+    renderWith(0);
+    expect(screen.getByText("Nothing spent")).toBeTruthy();
+  });
+});
