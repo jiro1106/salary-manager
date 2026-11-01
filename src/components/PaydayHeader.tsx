@@ -1,20 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import CutDial from "./CutDial";
-import Legend from "./Legend";
 import IconButton from "./IconButton";
-import SpendSummary from "./SpendSummary";
 import type { Category } from "../types";
+import { pesoRound, share } from "../lib/format";
 import { MAX_PESO_DIGITS, arrowStep, sanitizeDecimal } from "../lib/numberInput";
 
 interface PaydayHeaderProps {
   salary: number;
   onSalaryChange: (value: number) => void;
   totalPercent: number;
-  spent: number;
-  remaining: number;
-  // Top-level categories, used to render the dial and legend below the
-  // salary row.
   categories: Category[];
 }
 
@@ -30,8 +25,6 @@ export default function PaydayHeader({
   salary,
   onSalaryChange,
   totalPercent,
-  spent,
-  remaining,
   categories,
 }: PaydayHeaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -122,14 +115,10 @@ export default function PaydayHeader({
     }
   });
 
-  // Which category the dial and the legend are both pointing at. It lives
-  // here because it is the one thing those two share and it is nobody
-  // else's business: it is a pointer position, not part of the split, so
-  // it never reaches App and never reaches storage. Nothing latches it —
-  // the highlight is exactly as long as the pointer is on it.
+  // The wedge under the pointer. A pointer position, not part of the split,
+  // so it stays here and never reaches App or storage. A category deleted
+  // out from under the pointer resolves to nothing.
   const [hovered, setHovered] = useState<string | null>(null);
-  // A category deleted or replaced out from under the pointer resolves to
-  // nothing, so no stale id can light a wedge.
   const activeId =
     hovered && categories.some((c) => c.id === hovered) ? hovered : null;
 
@@ -148,7 +137,7 @@ export default function PaydayHeader({
   const isBlank = rawValue === "" || Number(rawValue) === 0;
 
   return (
-    <section className="relative rounded-slab border border-line bg-card px-deck-x py-stack">
+    <section className="flex items-center justify-between gap-split narrow:flex-col narrow:items-stretch">
       <div className="min-w-0">
         <p className="text-label uppercase tracking-caps text-ink-soft">
           Salary
@@ -220,36 +209,30 @@ export default function PaydayHeader({
             </IconButton>
           )}
         </span>
+
+        {/* Over 100% is reported by the banner below, so this only ever
+            counts what is still free to assign. */}
+        {categories.length > 0 && (
+          <p className="mt-3 text-meta text-ink-soft">
+            <span className="font-display font-bold text-ink">
+              {pesoRound(Math.max(0, share(salary, 100 - totalPercent)))}
+            </span>{" "}
+            unassigned
+          </p>
+        )}
       </div>
 
-      <SpendSummary
-        salary={salary}
-        spent={spent}
-        remaining={remaining}
-        className="mt-5 border-t border-line pt-4"
-      />
-
-      {/* No categories: the deck collapses to the amount row alone. */}
+      {/* No categories: the card collapses to the salary alone. */}
       {categories.length > 0 && (
-        <>
-          <hr className="my-6 h-px border-0 bg-line" />
-          <div className="grid grid-cols-[var(--dial)_1fr] items-center gap-split narrow:grid-cols-1 narrow:justify-items-center narrow:gap-7">
-            <CutDial
-              segments={categories}
-              totalPercent={totalPercent}
-              salary={salary}
-              activeId={activeId}
-              onHover={setHovered}
-            />
-            <Legend
-              segments={categories}
-              salary={salary}
-              totalPercent={totalPercent}
-              activeId={activeId}
-              onHover={setHovered}
-            />
-          </div>
-        </>
+        <div className="flex-none narrow:self-center">
+          <CutDial
+            segments={categories}
+            totalPercent={totalPercent}
+            salary={salary}
+            activeId={activeId}
+            onHover={setHovered}
+          />
+        </div>
       )}
     </section>
   );

@@ -112,15 +112,33 @@ export default function CategoryCard({
         </div>
         <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 font-display text-meta">
           <span>{spent > 0 ? `${peso(spent)} spent` : "Nothing spent"}</span>
+          {/* Two linked fields for the same allotment. Percent is what is
+              stored, so a peso entry is converted to it and the allotment
+              keeps its share when the salary changes. With no salary there
+              is no percent to derive, so the peso field is off. */}
           <span className="flex items-center gap-2">
-            of {peso(catAmount)}
+            of
+            <NumberField
+              value={Math.round(catAmount * 100) / 100}
+              onChange={(amount) => onChange({ percent: (amount * 100) / salary })}
+              label={
+                salary > 0
+                  ? `${cat.name}: amount of this payday`
+                  : `${cat.name}: amount, set a salary first`
+              }
+              unit="₱"
+              tone="colour"
+              width="w-[6ch]"
+              disabled={salary <= 0}
+            />
+            <span aria-hidden="true">=</span>
             <NumberField
               value={cat.percent}
               onChange={(percent) => onChange({ percent })}
               label={`${cat.name}: share of this payday`}
               unit="%"
               tone="colour"
-              width="w-[3ch]"
+              width="w-[5ch]"
             />
           </span>
         </div>

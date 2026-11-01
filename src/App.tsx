@@ -338,8 +338,6 @@ export default function App() {
                 salary={salary}
                 onSalaryChange={setSalary}
                 totalPercent={totalPercent}
-                spent={spent}
-                remaining={remaining}
                 categories={categories}
               />
             </div>

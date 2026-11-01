@@ -59,7 +59,20 @@ describe("CategoryCard money", () => {
     expect(screen.getByText("Left")).toBeTruthy();
     expect(screen.getByText("₱150.00")).toBeTruthy();
     expect(screen.getByText("₱100.00 spent")).toBeTruthy();
-    expect(screen.getByText(/of ₱250\.00/)).toBeTruthy();
+    const amount = screen.getByRole("textbox", { name: "Needs: amount of this payday" }) as HTMLInputElement;
+    expect(amount.value).toBe("250");
+  });
+
+  it("converts a peso allotment to a percent of the salary", () => {
+    const onChange = vi.fn();
+    render(<CategoryCard category={needs} salary={1000} spent={0} onChange={onChange} onRemove={() => {}} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Needs: amount of this payday" }), { target: { value: "333" } });
+    expect(onChange).toHaveBeenLastCalledWith({ percent: 33.3 });
+  });
+
+  it("turns the peso field off without a salary", () => {
+    render(<CategoryCard category={needs} salary={0} spent={0} onChange={() => {}} onRemove={() => {}} />);
+    expect((screen.getByRole("textbox", { name: "Needs: amount, set a salary first" }) as HTMLInputElement).disabled).toBe(true);
   });
 
   it("says over budget with a positive overspend", () => {

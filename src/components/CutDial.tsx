@@ -70,6 +70,12 @@ function easeOutQuint(t: number): number {
 
 const TWEEN_MS = 240;
 
+/** A point at `r` (dial radius = 50) and `percent` round the ring, clockwise from twelve. */
+function polar(r: number, percent: number) {
+  const a = (percent / 100) * 2 * Math.PI;
+  return { x: 50 + r * Math.sin(a), y: 50 - r * Math.cos(a) };
+}
+
 /**
  * Eases the wedge breakpoints toward `target` instead of snapping, so a
  * percent edit anywhere on the page reads as the cut circle re-cutting
@@ -169,9 +175,34 @@ export default function CutDial({
     return hit && hit.key !== "unassigned" ? hit.key : null;
   };
 
+  // ponytail: labels sit at each wedge's mid-angle with no collision
+  // handling, so two thin neighbouring wedges can overlap their labels.
+  // Nudge them apart vertically if small splits become common.
+  const byId = new Map(segments.map((c) => [c.id, c]));
+  const callouts = slices
+    .filter((s) => s.key !== "unassigned" && s.to > s.from)
+    .map((s) => {
+      const mid = (s.from + s.to) / 2;
+      const right = polar(1, mid).x >= 50;
+      const start = polar(52, mid);
+      const elbow = polar(60, mid);
+      const end = { x: elbow.x + (right ? 8 : -8), y: elbow.y };
+      const seg = byId.get(s.key);
+      return {
+        key: s.key,
+        right,
+        points: `${start.x},${start.y} ${elbow.x},${elbow.y} ${end.x},${end.y}`,
+        end,
+        name: seg?.name ?? "",
+        amount: seg ? pesoRound(share(salary, seg.percent)) : "",
+      };
+    });
+
   return (
+    // Side padding is the room the always-on labels draw into.
+    <div className="flex-none px-[5.75rem] py-4">
     <div
-      className="relative aspect-square w-dial narrow:w-[min(100%,190px)]"
+      className="relative aspect-square w-dial narrow:w-[150px]"
       role="img"
       aria-label={
         isOver
@@ -219,6 +250,44 @@ export default function CutDial({
         );
       })}
 
+      {/* Leader lines and labels, always shown. Drawn in the dial's own
+          0-100 box so they scale with it. Decorative here: the cards below
+          carry the same figures as text. */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 100 100"
+        className="pointer-events-none absolute inset-0 overflow-visible text-ink-soft"
+      >
+        {callouts.map((c) => (
+          <polyline
+            key={c.key}
+            points={c.points}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+      </svg>
+      {callouts.map((c) => (
+        <span
+          key={c.key}
+          aria-hidden="true"
+          className={[
+            "pointer-events-none absolute flex -translate-y-1/2 flex-col whitespace-nowrap",
+            c.right ? "items-start pl-1" : "-translate-x-full items-end pr-1",
+          ].join(" ")}
+          style={{ left: `${c.end.x}%`, top: `${c.end.y}%` }}
+        >
+          <span className="max-w-[5rem] truncate text-label uppercase tracking-caps-tight text-ink-soft">
+            {c.name}
+          </span>
+          <b className="font-display text-meta font-bold leading-tight text-ink">
+            {c.amount}
+          </b>
+        </span>
+      ))}
+
       {/* The total sits on a smaller disc laid over the middle, not a hole.
           The disc is sized off the figure rather than the other way round:
           --dial is a fixed px measure but the figure is in rem, so a reader
@@ -228,7 +297,7 @@ export default function CutDial({
       <span
         className={[
           "absolute inset-[21%] z-[2] flex flex-col items-center justify-center",
-          "rounded-full bg-card px-2 text-center",
+          "rounded-full bg-page px-2 text-center",
         ].join(" ")}
       >
         {/* Keyed so each swap plays the reveal rather than the figures
@@ -279,6 +348,7 @@ export default function CutDial({
           )}
         </span>
       </span>
+    </div>
     </div>
   );
 }

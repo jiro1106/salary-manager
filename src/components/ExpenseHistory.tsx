@@ -133,7 +133,7 @@ export default function ExpenseHistory({
                       key={expense.id}
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-slab bg-card px-4 py-3"
                     >
-                      {/* The category's own mark, the same tile as its Legend pip.
+                      {/* The category's own mark, the same tile as on its card.
                           A deleted category leaves an empty sunk tile: the name
                           beside it is stored on the expense, the look is not. */}
                       <CategoryMark icon={category?.icon} color={category?.color} />
