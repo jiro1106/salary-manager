@@ -82,10 +82,6 @@ export default function App() {
       if (cfg.categories) setCategories(cfg.categories);
       setExpenses(cfg.expenses ?? []);
     }
-    // Opens on the daily job once there is a payday to spend against, and
-    // on the salary until then. Derived from the data rather than stored,
-    // so there is no second thing to save or to fail saving.
-    if (cfg?.salary) setView("expenses");
     setTimeout(() => {
       skipSave.current = false;
     }, 0);

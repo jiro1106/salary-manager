@@ -20,6 +20,12 @@ beforeEach(() => {
   vi.stubGlobal("matchMedia", () => ({ matches: true, addListener() {}, removeListener() {} }));
   vi.stubGlobal("crypto", { randomUUID: () => "new-expense" });
 });
+/** The app opens on Salary, so expense tests switch over first. */
+const openExpenses = () => {
+  fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+  expect(screen.getByRole("tab", { name: "Expenses", selected: true })).toBeTruthy();
+};
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -29,8 +35,7 @@ describe("expense tracking in App", () => {
   it("adds an expense and updates the history and salary summary", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
     render(<App />);
-
-    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    openExpenses();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Lunch" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250.50" } });
@@ -56,6 +61,7 @@ describe("expense tracking in App", () => {
     ];
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses }));
     render(<App />);
+    openExpenses();
     await screen.findByText("Lunch");
 
     fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
@@ -73,6 +79,7 @@ describe("expense tracking in App", () => {
     ];
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses }));
     render(<App />);
+    openExpenses();
     await screen.findByText("Lunch");
 
     fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
@@ -94,6 +101,7 @@ describe("expense tracking in App", () => {
   it("loads an old config without expenses as an empty history", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 500, categories }));
     render(<App />);
+    openExpenses();
     expect(await screen.findByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.getByText("₱0.00")).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Salary" }));
@@ -105,6 +113,7 @@ describe("expense tracking in App", () => {
       salary: 100, categories, expenses: [expense("over", "Groceries", 150.25, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
+    openExpenses();
     await screen.findByText("Groceries");
     expect(screen.getAllByText("Over budget")).toHaveLength(1);
     for (const node of screen.getAllByText("₱50.25")) expect(node.className).toContain("text-spent");
@@ -115,6 +124,7 @@ describe("expense tracking in App", () => {
       salary: 500, categories, expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
+    openExpenses();
     await screen.findByText("Lunch");
     const available = screen.getByText("Available").nextElementSibling;
     expect(available?.nextElementSibling?.textContent).toBe("₱200.00 spent of ₱500.00");
@@ -125,7 +135,7 @@ describe("expense tracking in App", () => {
   it("explains why adding an expense is unavailable without categories", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories: [], expenses: [] }));
     render(<App />);
-    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    openExpenses();
     const add = screen.getByRole("button", { name: "Add expense" }) as HTMLButtonElement;
     expect(add.disabled).toBe(true);
     const explanation = screen.getByText(/add a category before recording expenses/i);
@@ -150,6 +160,12 @@ describe("tabs", () => {
     expect(screen.queryByRole("button", { name: /add category/i })).toBeNull();
   });
 
+  it("opens on Salary even with a saved salary", () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
+    render(<App />);
+    expect(screen.getByRole("tab", { name: "Salary", selected: true })).toBeTruthy();
+  });
+
   it("moves between tabs with the arrow keys, wrapping at the ends", () => {
     render(<App />);
     const salary = screen.getByRole("tab", { name: "Salary" });
@@ -166,7 +182,7 @@ describe("tabs", () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
     Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
     render(<App />);
-    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    openExpenses();
     fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
     fireEvent.click(screen.getByRole("option", { name: "Food" }));
     fireEvent.click(screen.getByRole("tab", { name: "Salary" }));
@@ -179,7 +195,7 @@ describe("tabs", () => {
       salary: 1000, categories: [{ ...categories[0], percent: 120 }], expenses: [],
     }));
     render(<App />);
-    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    openExpenses();
     expect(screen.queryByText(/over by 20%/i)).toBeNull();
     fireEvent.click(screen.getByRole("tab", { name: "Split" }));
     expect(screen.getByText(/over by 20%/i)).toBeTruthy();
@@ -188,8 +204,7 @@ describe("tabs", () => {
   it("confirms an added expense in a toast", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
     render(<App />);
-
-    await screen.findByRole("tab", { name: "Expenses", selected: true });
+    openExpenses();
     fireEvent.click(screen.getByRole("button", { name: "Add expense" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Lunch" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "250" } });
@@ -206,6 +221,7 @@ describe("settings", () => {
       salary: 1000, categories, expenses: [expense("a", "Lunch", 100, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
+    openExpenses();
     await screen.findByText("Lunch");
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
