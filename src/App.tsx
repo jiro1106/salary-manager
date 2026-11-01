@@ -42,8 +42,8 @@ export default function App() {
   // write is not a browser to reassure anyone about.
   const [storageBlocked, setStorageBlocked] = useState(false);
   // The last destructive edit to the split, and what it produced. Deleting
-  // a category, deleting one of its items and applying a template are the
-  // three acts here that throw work away. A dialog alone asks the reader
+  // a category and applying a template are the two acts here that throw
+  // work away. A dialog alone asks the reader
   // to be certain in advance instead of letting them find out.
   //
   // `next` is kept so the offer can expire on its own: it is the exact
@@ -152,23 +152,6 @@ export default function App() {
     );
   };
 
-  // Lives here rather than inside the card for the same reason every other
-  // mutation does: it produces a whole new categories array, and only this
-  // level can hand that array to the undo latch.
-  const removeSub = (catId: string, subId: string) => {
-    const gone = categories
-      .find((c) => c.id === catId)
-      ?.subs.find((s) => s.id === subId);
-    replaceCategories(
-      categories.map((c) =>
-        c.id === catId
-          ? { ...c, subs: c.subs.filter((s) => s.id !== subId) }
-          : c,
-      ),
-      `Deleted "${gone?.name ?? "item"}"`,
-    );
-  };
-
   const addCategory = () => {
     // The next ink in the palette's own order that is not already on
     // screen, so a fresh card never arrives wearing a colour the reader
@@ -190,7 +173,6 @@ export default function App() {
         icon: "Wallet",
         color,
         percent: 0,
-        subs: [],
       },
     ]);
     notify("Category added");
@@ -415,7 +397,6 @@ export default function App() {
                 spent={spentByCategory(expenses)}
                 onChangeCategory={updateCategory}
                 onRemoveCategory={removeCategory}
-                onRemoveSub={removeSub}
                 onAddCategory={addCategory}
               />
             </>

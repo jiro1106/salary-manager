@@ -1,10 +1,8 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Plus, ChevronDown } from "lucide-react";
-import { Category, SubCategory } from "../types";
-import { peso, plural, share, uid } from "../lib/format";
+import { Category } from "../types";
+import { peso, share } from "../lib/format";
 import { iconOf } from "../lib/icons";
-import SubCategoryRow from "./SubCategoryRow";
 import CategoryDialog from "./CategoryDialog";
 import CategoryMenu from "./CategoryMenu";
 import ConfirmDialog from "./ConfirmDialog";
@@ -16,7 +14,6 @@ interface CategoryCardProps {
   spent: number;
   onChange: (patch: Partial<Category>) => void;
   onRemove: () => void;
-  onRemoveSub: (subId: string) => void;
 }
 
 export default function CategoryCard({
@@ -25,53 +22,19 @@ export default function CategoryCard({
   spent,
   onChange,
   onRemove,
-  onRemoveSub,
 }: CategoryCardProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
   const Icon = iconOf(cat.icon);
   const catAmount = share(salary, cat.percent);
 
-  const subTotal = cat.subs.reduce((s, x) => s + Number(x.percent || 0), 0);
-  const subPesoTotal = share(catAmount, subTotal);
-  const remaining = catAmount - subPesoTotal;
-  // Judged against a tolerance rather than exactly. A sub-item percent
-  // that was back-computed from a peso amount carries float dust: three
-  // items splitting a category evenly are 33.33333333333333 each and sum
-  // to 99.99999999999999, which `=== 100` reads as under-assigned and
-  // prints as "₱0.00 left to assign" on a category that is plainly full.
-  // The same dust the other way prints "over by ₱0.00". A thousandth of a
-  // percent is far finer than any figure on this card is read to, so it
-  // is the honest place to call the split even. Percent stays the model —
-  // this is not a peso comparison, so a category with no amount yet still
-  // reports its items as unassigned rather than as all assigned.
-  const EVEN = 1e-3;
-  const hasSubs = cat.subs.length > 0;
-  const isOver = hasSubs && subTotal - 100 > EVEN;
-  const isExact = hasSubs && Math.abs(subTotal - 100) <= EVEN;
-
-  const updateSub = (subId: string, patch: Partial<SubCategory>) =>
-    onChange({
-      subs: cat.subs.map((s) => (s.id === subId ? { ...s, ...patch } : s)),
-    });
-
-  const addSub = () =>
-    onChange({
-      subs: [...cat.subs, { id: uid(), name: "New item", percent: 0 }],
-    });
-
   const confirmDelete = () => {
     setConfirmOpen(false);
     onRemove();
   };
 
-  const itemCount = plural(cat.subs.length, "item");
-
-  // What is left after expenses; the share's own amount stays the base
-  // for the items below, so a sub-item percent keeps meaning the same
-  // thing as money is spent.
+  // What is left of this category's budget after its expenses.
   const left = catAmount - spent;
   const isOverspent = left < 0;
   // Under budget the bar is the budget and ink fills what is spent. Over
@@ -91,11 +54,10 @@ export default function CategoryCard({
       // The data owns the colour; components never name an ink.
       style={{ "--c": cat.color } as CSSProperties}
     >
-      {/* The category's own ink, filling the head of the card. It carries
-          its own top radius rather than being clipped by the card, because
-          overflow-hidden would cut the focus ring off the full-width
-          disclosure below it. */}
-      <div className="rounded-t-slab bg-cat px-card-x pb-[18px] pt-5 text-on-color">
+      {/* The category's own ink, filling the card. It carries its own
+          radius rather than being clipped by the card, because
+          overflow-hidden would cut the focus ring off the menu button. */}
+      <div className="rounded-slab bg-cat px-card-x pb-[18px] pt-5 text-on-color">
         <div className="flex items-center gap-[11px]">
           <span
             aria-hidden="true"
@@ -164,73 +126,6 @@ export default function CategoryCard({
         </div>
       </div>
 
-      {/* The disclosure at the card floor carries the assignment state. */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        aria-expanded={isOpen}
-        className={[
-          "flex w-full items-center gap-3 px-card-x py-[13px]",
-          "text-left font-display text-meta transition-colors duration-fast ease-paper",
-          isOver ? "text-action-edge" : "text-ink-soft hover:text-ink",
-        ].join(" ")}
-      >
-        <span>
-          {itemCount}
-          {hasSubs &&
-            (isExact ? (
-              <> · all assigned</>
-            ) : isOver ? (
-              <>
-                {" "}
-                · over by{" "}
-                <b className="font-bold">{peso(subPesoTotal - catAmount)}</b>
-              </>
-            ) : (
-              <>
-                {" "}
-                · <b className="font-bold text-ink">{peso(remaining)}</b> left to
-                assign
-              </>
-            ))}
-        </span>
-        <ChevronDown
-          size={16}
-          strokeWidth={2}
-          aria-hidden="true"
-          className={[
-            "ml-auto shrink-0 transition-transform duration-mid ease-paper",
-            isOpen ? "rotate-180" : "",
-          ].join(" ")}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="animate-[nala-reveal_200ms_var(--ease)_both] border-t border-line px-card-x pb-5 pt-2">
-          {cat.subs.map((sub) => (
-            <SubCategoryRow
-              key={sub.id}
-              sub={sub}
-              catAmount={catAmount}
-              onChange={(patch) => updateSub(sub.id, patch)}
-              onRemove={() => onRemoveSub(sub.id)}
-            />
-          ))}
-          <button
-            type="button"
-            onClick={addSub}
-            className={[
-              "mt-[13px] inline-flex min-h-hit -mb-2.5 items-center gap-1.5 rounded-control",
-              "font-display text-meta font-extrabold text-action-edge",
-              "hover:underline hover:underline-offset-[3px]",
-            ].join(" ")}
-          >
-            <Plus size={15} strokeWidth={2.4} aria-hidden="true" />
-            Add an item
-          </button>
-        </div>
-      )}
-
       {editOpen && (
         <CategoryDialog
           name={cat.name}
@@ -241,11 +136,7 @@ export default function CategoryCard({
 
       <ConfirmDialog
         open={confirmOpen}
-        title={
-          cat.subs.length > 0
-            ? `Delete "${cat.name}" and its ${itemCount}?`
-            : `Delete "${cat.name}"?`
-        }
+        title={`Delete "${cat.name}"?`}
         // The dialog survives undo because the two answer different
         // questions: it names what is about to go (a card, and everything
         // filed under it), and the undo bar catches the reader who said

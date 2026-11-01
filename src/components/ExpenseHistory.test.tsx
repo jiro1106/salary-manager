@@ -79,7 +79,7 @@ describe("ExpenseHistory", () => {
   });
 
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {
-    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
+    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
     const { container } = render(
       <ExpenseHistory salary={10000} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
     );
@@ -91,8 +91,8 @@ describe("ExpenseHistory", () => {
   });
 
   it("filters by a chosen category and counts only what is shown", () => {
-    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50, subs: [] };
-    const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50, subs: [] };
+    const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
+    const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50 };
     Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
     render(<ExpenseHistory salary={10000} onEdit={() => {}} categories={[food, travel]} expenses={[earlier, later]} onDelete={() => {}} />);
 

@@ -9,7 +9,6 @@ const categories: Category[] = [
     icon: "ShoppingBag",
     color: "blue",
     percent: 20,
-    subs: [],
   },
 ];
 const draft = { title: "  Lunch  ", amount: "800", categoryId: "food" };

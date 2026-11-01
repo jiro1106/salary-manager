@@ -6,8 +6,8 @@ import type { Category, ExpenseDraft, ExpenseErrors } from "../types";
 import ExpenseDialog from "./ExpenseDialog";
 
 const categories: Category[] = [
-  { id: "food", name: "Food", icon: "ShoppingBag", color: "blue", percent: 50, subs: [] },
-  { id: "rent", name: "Rent", icon: "Wallet", color: "lime", percent: 50, subs: [] },
+  { id: "food", name: "Food", icon: "ShoppingBag", color: "blue", percent: 50 },
+  { id: "rent", name: "Rent", icon: "Wallet", color: "lime", percent: 50 },
 ];
 
 afterEach(cleanup);

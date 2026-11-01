@@ -6,13 +6,13 @@ import CategoryCard from "./CategoryCard";
 
 afterEach(cleanup);
 
-const needs: Category = { id: "needs", name: "Needs", icon: "Wallet", color: "#ff8fa3", percent: 50, subs: [] };
+const needs: Category = { id: "needs", name: "Needs", icon: "Wallet", color: "#ff8fa3", percent: 50 };
 
 const renderCard = () => {
   const onChange = vi.fn();
   const onRemove = vi.fn();
   render(
-    <CategoryCard category={needs} salary={1000} spent={0} onChange={onChange} onRemove={onRemove} onRemoveSub={() => {}} />,
+    <CategoryCard category={needs} salary={1000} spent={0} onChange={onChange} onRemove={onRemove} />,
   );
   return { onChange, onRemove };
 };
@@ -51,7 +51,7 @@ describe("CategoryCard menu", () => {
 describe("CategoryCard money", () => {
   const renderWith = (spent: number) =>
     render(
-      <CategoryCard category={needs} salary={500} spent={spent} onChange={() => {}} onRemove={() => {}} onRemoveSub={() => {}} />,
+      <CategoryCard category={needs} salary={500} spent={spent} onChange={() => {}} onRemove={() => {}} />,
     );
 
   it("labels what is left and puts spent against the budget", () => {

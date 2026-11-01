@@ -9,12 +9,6 @@ interface CategoryListProps {
   spent: Record<string, number>;
   onChangeCategory: (id: string, patch: Partial<Category>) => void;
   onRemoveCategory: (id: string) => void;
-  /**
-   * Deleting an item is not folded into `onChangeCategory` because it is
-   * the one sub-item edit that destroys something, and the undo latch that
-   * catches it lives a level up.
-   */
-  onRemoveSub: (catId: string, subId: string) => void;
   onAddCategory: () => void;
 }
 
@@ -51,7 +45,6 @@ export default function CategoryList({
   spent,
   onChangeCategory,
   onRemoveCategory,
-  onRemoveSub,
   onAddCategory,
 }: CategoryListProps) {
   return (
@@ -70,7 +63,6 @@ export default function CategoryList({
               spent={spent[cat.id] ?? 0}
               onChange={(patch) => onChangeCategory(cat.id, patch)}
               onRemove={() => onRemoveCategory(cat.id)}
-              onRemoveSub={(subId) => onRemoveSub(cat.id, subId)}
             />
           ))}
           <AddCategoryTile onClick={onAddCategory} />

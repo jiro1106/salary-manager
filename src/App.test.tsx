@@ -5,7 +5,7 @@ import App from "./App";
 import type { Category, Expense } from "./types";
 
 const categories: Category[] = [
-  { id: "food", name: "Food", icon: "ShoppingBag", color: "#e6e6e6", percent: 100, subs: [] },
+  { id: "food", name: "Food", icon: "ShoppingBag", color: "#e6e6e6", percent: 100 },
 ];
 const expense = (id: string, title: string, amount: number, created_at: string): Expense => ({
   id, title, amount, categoryId: "food", categoryName: "Food", created_at,

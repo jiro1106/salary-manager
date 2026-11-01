@@ -1,11 +1,8 @@
-import { Category, SubCategory } from "../types";
+import { Category } from "../types";
 import { uid } from "./format";
 import { AQUA, LIME, PUNCH, ZEST } from "./palette";
 
-export type TemplateSubCategory = Omit<SubCategory, "id">;
-export type TemplateCategoryDef = Omit<Category, "id" | "subs"> & {
-  subs: TemplateSubCategory[];
-};
+export type TemplateCategoryDef = Omit<Category, "id">;
 
 export interface Template {
   id: string;
@@ -35,33 +32,18 @@ export const TEMPLATES: Template[] = [
         icon: "Wallet",
         color: PUNCH,
         percent: 50,
-        subs: [
-          { name: "Rent", percent: 40 },
-          { name: "Utilities", percent: 15 },
-          { name: "Groceries", percent: 25 },
-          { name: "Transportation", percent: 20 },
-        ],
       },
       {
         name: "Wants",
         icon: "ShoppingBag",
         color: ZEST,
         percent: 30,
-        subs: [
-          { name: "Dining out", percent: 40 },
-          { name: "Entertainment", percent: 30 },
-          { name: "Shopping", percent: 30 },
-        ],
       },
       {
         name: "Savings",
         icon: "PiggyBank",
         color: LIME,
         percent: 20,
-        subs: [
-          { name: "Emergency fund", percent: 60 },
-          { name: "Investments", percent: 40 },
-        ],
       },
     ],
   },
@@ -75,34 +57,18 @@ export const TEMPLATES: Template[] = [
         icon: "GraduationCap",
         color: PUNCH,
         percent: 30,
-        subs: [
-          { name: "School supplies", percent: 30 },
-          { name: "Transportation", percent: 30 },
-          { name: "Phone & data", percent: 25 },
-          { name: "Miscellaneous", percent: 15 },
-        ],
       },
       {
         name: "Wants",
         icon: "ShoppingBag",
         color: ZEST,
         percent: 40,
-        subs: [
-          { name: "Food & snacks", percent: 35 },
-          { name: "Hangouts", percent: 30 },
-          { name: "Shopping", percent: 20 },
-          { name: "Games & apps", percent: 15 },
-        ],
       },
       {
         name: "Savings",
         icon: "PiggyBank",
         color: LIME,
         percent: 30,
-        subs: [
-          { name: "Emergency fund", percent: 70 },
-          { name: "Big purchase fund", percent: 30 },
-        ],
       },
     ],
   },
@@ -116,43 +82,24 @@ export const TEMPLATES: Template[] = [
         icon: "Wallet",
         color: PUNCH,
         percent: 40,
-        subs: [
-          { name: "Rent", percent: 40 },
-          { name: "Utilities", percent: 15 },
-          { name: "Groceries", percent: 25 },
-          { name: "Transportation", percent: 20 },
-        ],
       },
       {
         name: "Tax & buffer",
         icon: "Landmark",
         color: AQUA,
         percent: 15,
-        subs: [
-          { name: "Tax set-aside", percent: 70 },
-          { name: "Slow-month buffer", percent: 30 },
-        ],
       },
       {
         name: "Wants",
         icon: "ShoppingBag",
         color: ZEST,
         percent: 20,
-        subs: [
-          { name: "Dining out", percent: 40 },
-          { name: "Entertainment", percent: 30 },
-          { name: "Shopping", percent: 30 },
-        ],
       },
       {
         name: "Savings",
         icon: "PiggyBank",
         color: LIME,
         percent: 25,
-        subs: [
-          { name: "Emergency fund", percent: 50 },
-          { name: "Investments", percent: 50 },
-        ],
       },
     ],
   },
@@ -166,39 +113,24 @@ export const TEMPLATES: Template[] = [
         icon: "Wallet",
         color: PUNCH,
         percent: 50,
-        subs: [
-          { name: "Rent", percent: 40 },
-          { name: "Utilities", percent: 15 },
-          { name: "Groceries", percent: 25 },
-          { name: "Transportation", percent: 20 },
-        ],
       },
       {
         name: "Wants",
         icon: "ShoppingBag",
         color: ZEST,
         percent: 10,
-        subs: [
-          { name: "Dining out", percent: 50 },
-          { name: "Entertainment", percent: 50 },
-        ],
       },
       {
         name: "Debt payoff",
         icon: "CreditCard",
         color: AQUA,
         percent: 20,
-        subs: [
-          { name: "Credit card", percent: 60 },
-          { name: "Loan", percent: 40 },
-        ],
       },
       {
         name: "Savings",
         icon: "PiggyBank",
         color: LIME,
         percent: 20,
-        subs: [{ name: "Emergency fund", percent: 100 }],
       },
     ],
   },
@@ -212,32 +144,18 @@ export const TEMPLATES: Template[] = [
         icon: "Wallet",
         color: PUNCH,
         percent: 40,
-        subs: [
-          { name: "Rent", percent: 45 },
-          { name: "Utilities", percent: 15 },
-          { name: "Groceries", percent: 25 },
-          { name: "Transportation", percent: 15 },
-        ],
       },
       {
         name: "Wants",
         icon: "ShoppingBag",
         color: ZEST,
         percent: 15,
-        subs: [
-          { name: "Dining out", percent: 50 },
-          { name: "Entertainment", percent: 50 },
-        ],
       },
       {
         name: "Savings & investments",
         icon: "TrendingUp",
         color: LIME,
         percent: 45,
-        subs: [
-          { name: "Emergency fund", percent: 20 },
-          { name: "Investments", percent: 80 },
-        ],
       },
     ],
   },
@@ -247,11 +165,7 @@ export const defaultCategories = (): Category[] =>
   instantiateTemplate(TEMPLATES[0]);
 
 export const instantiateTemplate = (template: Template): Category[] =>
-  template.categories.map((c) => ({
-    ...c,
-    id: uid(),
-    subs: c.subs.map((s) => ({ ...s, id: uid() })),
-  }));
+  template.categories.map((c) => ({ ...c, id: uid() }));
 
 /**
  * Which template the current split came from, or null once it has been

@@ -1,9 +1,3 @@
-export interface SubCategory {
-  id: string;
-  name: string;
-  percent: number;
-}
-
 export interface Category {
   id: string;
   name: string;
@@ -17,7 +11,6 @@ export interface Category {
     | "TrendingUp";
   color: string;
   percent: number;
-  subs: SubCategory[];
 }
 
 export interface Expense {
