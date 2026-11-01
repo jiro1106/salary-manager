@@ -327,9 +327,9 @@ export default function App() {
             it, so what the split and the expenses are measured against is
             never out of sight. Expenses carries it in its own figures row. */}
         {view === "split" && (
-          <p className="mt-stack flex items-baseline gap-3 border-b border-line pb-3.5">
-            <span className="text-label uppercase tracking-caps text-ink-soft">Salary</span>
-            <span className="font-display text-title font-extrabold text-ink">{peso(salary)}</span>
+          <p className="mt-stack flex items-baseline gap-3">
+            <span className="text-label font-bold uppercase tracking-caps text-ink-soft">Salary</span>
+            <span className="font-display text-title font-bold text-ink tabular-nums">{peso(salary)}</span>
           </p>
         )}
 
