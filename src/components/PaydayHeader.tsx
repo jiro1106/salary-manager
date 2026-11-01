@@ -223,6 +223,7 @@ export default function PaydayHeader({
       </div>
 
       <SpendSummary
+        salary={salary}
         spent={spent}
         remaining={remaining}
         className="mt-5 border-t border-line pt-4"

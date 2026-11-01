@@ -408,13 +408,7 @@ export default function App() {
           {view === "expenses" && (
             <>
               <section className="mt-stack flex flex-wrap items-end justify-between gap-6 border-b border-line pb-stack">
-                <div className="grid min-w-0 flex-1 grid-cols-3 gap-4 max-[450px]:gap-2">
-                  <div>
-                    <p className="text-label uppercase tracking-caps text-ink-soft">Salary</p>
-                    <p className="mt-1 font-display text-amt font-extrabold text-ink">{peso(salary)}</p>
-                  </div>
-                  <SpendSummary spent={spent} remaining={remaining} className="col-span-2" />
-                </div>
+                <SpendSummary salary={salary} spent={spent} remaining={remaining} className="min-w-0 flex-1" />
                 <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
                   <Button
                     small

@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso, share } from "../lib/format";
@@ -34,7 +34,6 @@ export default function ExpenseHistory({
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
   const [dayLimit, setDayLimit] = useState(DAYS_PER_PAGE);
-  const titleId = useId();
   // A filter on a category that has since been deleted falls back to all.
   const filterCategory = categories.find((c) => c.id === filter);
   const newestFirst = expenses
@@ -80,19 +79,10 @@ export default function ExpenseHistory({
   );
 
   return (
-    <section aria-labelledby={titleId} className="mt-split">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h2 id={titleId} className="text-title font-bold">
-          Expense history
-        </h2>
-        <span
-          aria-label={`${newestFirst.length} shown`}
-          className="rounded-full bg-sunk px-2.5 text-meta font-semibold text-ink-soft"
-        >
-          {newestFirst.length}
-        </span>
+    <section aria-label="Expense history" className="mt-split">
+      <div className="flex justify-end">
         {categories.length > 0 && (
-          <div className="ml-auto">
+          <div>
             <CategoryFilter
               categories={categories}
               value={filterCategory?.id ?? null}
@@ -114,7 +104,7 @@ export default function ExpenseHistory({
           </p>
         ) : (
           days.slice(0, dayLimit).map(({ day, items }) => (
-            <div key={day.toDateString()} className="pt-4">
+            <div key={day.toDateString()} className="pt-10 first:pt-4">
               <div className="flex items-end gap-5 border-b border-line pb-2 pr-4">
                 <div className="mr-auto">
                   <h3 className="text-body font-bold">
@@ -124,8 +114,9 @@ export default function ExpenseHistory({
                     {day.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
                   </p>
                 </div>
-                <span aria-label="Day total" className="font-display text-body font-bold text-ink-soft">
-                  {peso(expenseSummary(0, items).spent)}
+                {/* Neutral, not red: red stays the over-budget warning. */}
+                <span className="rounded-full bg-sunk-deep px-2.5 py-0.5 font-display text-meta font-bold text-ink">
+                  <span className="sr-only">Day total </span>{peso(expenseSummary(0, items).spent)}
                 </span>
                 {menuSpacer}
               </div>

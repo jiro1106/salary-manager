@@ -110,16 +110,14 @@ describe("expense tracking in App", () => {
     for (const node of screen.getAllByText("₱50.25")) expect(node.className).toContain("text-spent");
   });
 
-  it("uses cranberry spent and green available amounts", async () => {
+  it("leads with green available, then spent of salary as one line", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
       salary: 500, categories, expenses: [expense("lunch", "Lunch", 200, "2026-09-30T12:00:00Z")],
     }));
     render(<App />);
     await screen.findByText("Lunch");
-    const spent = screen.getByText("Spent").parentElement?.lastElementChild;
-    const available = screen.getByText("Available").parentElement?.lastElementChild;
-    expect(spent?.textContent).toBe("₱200.00");
-    expect(spent?.className).toContain("text-spent");
+    const available = screen.getByText("Available").nextElementSibling;
+    expect(available?.nextElementSibling?.textContent).toBe("₱200.00 spent of ₱500.00");
     expect(available?.textContent).toBe("₱300.00");
     expect(available?.className).toContain("text-lime-deep");
   });

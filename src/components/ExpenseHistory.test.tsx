@@ -75,7 +75,8 @@ describe("ExpenseHistory", () => {
     expect(heads.map((h) => h.textContent)).toEqual(["Monday", "Saturday"]);
     expect(heads[0].nextElementSibling?.textContent).toBe("Oct 26, 2026");
     expect(heads[1].nextElementSibling?.textContent).toBe("Oct 24, 2026");
-    expect(screen.getAllByLabelText("Day total").map((s) => s.textContent)).toEqual([peso(newer.amount), peso(older.amount)]);
+    const dayTotals = screen.getAllByText("Day total").map((s) => s.parentElement?.textContent);
+    expect(dayTotals).toEqual([`Day total ${peso(newer.amount)}`, `Day total ${peso(older.amount)}`]);
   });
 
   it("shows 5 days at first and 5 more per load more", () => {
@@ -121,7 +122,7 @@ describe("ExpenseHistory", () => {
     expect(tiles[1].querySelector("svg")).toBeNull();
   });
 
-  it("filters by a chosen category and counts only what is shown", () => {
+  it("filters by a chosen category", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
     const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50 };
     Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
@@ -132,14 +133,12 @@ describe("ExpenseHistory", () => {
     }
     render(<WithFilter />);
 
-    expect(screen.getByLabelText("2 shown")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /filter by category/i }));
     fireEvent.click(screen.getByRole("option", { name: "Travel" }));
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(1);
     expect(within(rows[0]).getByText("Train fare")).toBeTruthy();
-    expect(screen.getByLabelText("1 shown")).toBeTruthy();
     expect(screen.getByText("Travel total").nextElementSibling?.textContent).toBe(peso(earlier.amount));
     // Left follows the filter: Travel's own 50% share, not the whole payday.
     expect(screen.getByText("Left").nextElementSibling?.textContent).toBe(peso(5000 - earlier.amount));
