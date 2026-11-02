@@ -21,7 +21,6 @@ import CategoryList from "./components/CategoryList";
 import ExpenseDialog from "./components/ExpenseDialog";
 import ExpenseHistory from "./components/ExpenseHistory";
 import SpendSummary from "./components/SpendSummary";
-import CategoryFilter from "./components/CategoryFilter";
 import ViewTabs, { Tab, panelId, tabId } from "./components/ViewTabs";
 
 const CONFIG_KEY = "salary-manager:config";
@@ -423,11 +422,7 @@ export default function App() {
                 ) : (
                   <SpendSummary salary={salary} spent={spent} remaining={remaining} className="min-w-0 flex-1" />
                 )}
-                <div className="flex flex-wrap items-start gap-3 narrow:w-full">
-                  {categories.length > 0 && (
-                    <CategoryFilter categories={categories} value={filterCategory?.id ?? null} onChange={setExpenseFilter} />
-                  )}
-                  <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
+                <div className="inline-flex flex-col items-start gap-2 narrow:w-full">
                   <Button
                     small
                     onClick={() => setExpenseDialog("new")}
@@ -444,7 +439,6 @@ export default function App() {
                       Add a category before recording expenses.
                     </p>
                   )}
-                  </div>
                 </div>
               </section>
 
@@ -454,6 +448,7 @@ export default function App() {
                 expenses={expenses}
                 categories={categories}
                 filter={expenseFilter}
+                onFilterChange={setExpenseFilter}
                 onEdit={setExpenseDialog}
                 onDelete={deleteExpense}
               />

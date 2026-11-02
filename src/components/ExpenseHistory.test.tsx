@@ -27,7 +27,7 @@ const later: Expense = {
 describe("ExpenseHistory", () => {
   it("shows newest first with saved category names, amounts, and local date and time without reordering props", () => {
     const expenses = [earlier, later];
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
@@ -42,14 +42,14 @@ describe("ExpenseHistory", () => {
   });
 
   it("shows an empty state when there are no expenses", () => {
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={[]} onDelete={() => {}} />);
     expect(screen.getByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("asks before deleting, and deletes only on confirm", () => {
     const onDelete = vi.fn();
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={[earlier, later]} onDelete={onDelete} />);
 
     fireEvent.click(screen.getByRole("button", { name: /options for lunch/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
@@ -68,7 +68,7 @@ describe("ExpenseHistory", () => {
   it("groups by day, newest day first, headed by weekday then date", () => {
     const older = { ...earlier, created_at: new Date(2026, 9, 24, 15, 5).toISOString() };
     const newer = { ...later, created_at: new Date(2026, 9, 26, 9, 0).toISOString() };
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[older, newer]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={[older, newer]} onDelete={() => {}} />);
 
     const heads = screen.getAllByRole("heading", { level: 3 });
     expect(heads.map((h) => h.textContent)).toEqual(["Monday", "Saturday"]);
@@ -84,7 +84,7 @@ describe("ExpenseHistory", () => {
       id: `day${i}`,
       created_at: new Date(2026, 9, 1 + i, 12).toISOString(),
     }));
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={expenses} onDelete={() => {}} />);
 
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(5);
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
@@ -100,7 +100,7 @@ describe("ExpenseHistory", () => {
       title: "Lunch",
       amount: 45.5,
     };
-    render(<ExpenseHistory filter={null} onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[]} expenses={[sameTitle, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     const labels = rows.map((row) => within(row).getByRole("button", { name: /options for lunch/i }).getAttribute("aria-label"));
@@ -112,7 +112,7 @@ describe("ExpenseHistory", () => {
   it("marks each row with its category's tile, and an empty one once the category is gone", () => {
     const food: Category = { id: "food", name: "Food", icon: "ShoppingBag", color: "#ffd23f", percent: 50 };
     const { container } = render(
-      <ExpenseHistory filter={null} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
+      <ExpenseHistory filter={null} onFilterChange={() => {}} onEdit={() => {}} categories={[food]} expenses={[earlier, later]} onDelete={() => {}} />,
     );
     const tiles = container.querySelectorAll("li > span[aria-hidden]");
     expect((tiles[0] as HTMLElement).style.getPropertyValue("--c")).toBe("#ffd23f");
@@ -123,7 +123,7 @@ describe("ExpenseHistory", () => {
 
   it("shows only the filtered category's expenses", () => {
     const travel: Category = { id: "travel", name: "Travel", icon: "Wallet", color: "#a5e34d", percent: 50 };
-    render(<ExpenseHistory filter="travel" onEdit={() => {}} categories={[travel]} expenses={[earlier, later]} onDelete={() => {}} />);
+    render(<ExpenseHistory filter="travel" onFilterChange={() => {}} onEdit={() => {}} categories={[travel]} expenses={[earlier, later]} onDelete={() => {}} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(1);

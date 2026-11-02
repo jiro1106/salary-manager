@@ -99,6 +99,8 @@
      still carry a button edge and white toast text. */
   --action-text: var(--action-edge);
   --spent-text: var(--spent);
+  /* Over budget: a saturated red, louder than spent's cranberry. ~5.3:1 on --page. */
+  --over-text: #c8102e;
   --lime-text: var(--lime-deep);
 
   /* --- washes, scrims, tints --- */
@@ -198,6 +200,7 @@
   --ink-faint: #9a958d;
   --action-text: #e8956c;
   --spent-text: #ff8a99;
+  --over-text: #ff4d5e;
   --lime-text: var(--lime);
   --blue: #7aa2ff;
   --action-tint: #c66e4626;

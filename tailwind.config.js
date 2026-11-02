@@ -51,6 +51,7 @@ export default {
       textColor: {
         "action-edge": "var(--action-text)",
         spent: "var(--spent-text)",
+        over: "var(--over-text)",
         "lime-deep": "var(--lime-text)",
       },
       fontFamily: {

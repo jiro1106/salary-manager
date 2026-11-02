@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso } from "../lib/format";
 import { expenseSummary } from "../lib/expenses";
 import Button from "./Button";
+import CategoryFilter from "./CategoryFilter";
 import CategoryMark from "./CategoryMark";
 import CategoryMenu from "./CategoryMenu";
 import ConfirmDialog from "./ConfirmDialog";
@@ -13,6 +14,7 @@ interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
   filter: string | null;
+  onFilterChange: (id: string | null) => void;
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
 }
@@ -24,11 +26,13 @@ export default function ExpenseHistory({
   expenses,
   categories,
   filter,
+  onFilterChange,
   onEdit,
   onDelete,
 }: ExpenseHistoryProps) {
   const [confirming, setConfirming] = useState<Expense | null>(null);
   const [dayLimit, setDayLimit] = useState(DAYS_PER_PAGE);
+  const titleId = useId();
   // A filter on a category that has since been deleted falls back to all.
   const filterCategory = categories.find((c) => c.id === filter);
   const newestFirst = expenses
@@ -57,7 +61,20 @@ export default function ExpenseHistory({
   );
 
   return (
-    <section aria-label="Expense history" className="mt-split">
+    <section aria-labelledby={titleId} className="mt-split">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+        <h2 id={titleId} className="text-title font-bold">
+          Expense history
+        </h2>
+        <span className="text-meta text-ink-soft">
+          {newestFirst.length} {newestFirst.length === 1 ? "expense" : "expenses"}
+        </span>
+        {categories.length > 0 && (
+          <div className="ml-auto">
+            <CategoryFilter categories={categories} value={filterCategory?.id ?? null} onChange={onFilterChange} />
+          </div>
+        )}
+      </div>
       <div className="mt-1">
         {newestFirst.length === 0 ? (
           <p className="py-3 text-meta text-ink-soft">
@@ -68,20 +85,13 @@ export default function ExpenseHistory({
         ) : (
           days.slice(0, dayLimit).map(({ day, items }) => (
             <div key={day.toDateString()} className="pt-10 first:pt-4">
-              <div className="flex items-end gap-5 border-b border-line pb-2 pr-4">
-                <div className="mr-auto">
-                  <h3 className="text-body font-bold">
-                    {day.toLocaleDateString("en-PH", { weekday: "long" })}
-                  </h3>
-                  <p className="text-meta text-ink-soft">
-                    {day.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
-                  </p>
-                </div>
-                {/* Neutral, not red: red stays the over-budget warning. */}
-                <span className="rounded-full bg-sunk-deep px-2.5 py-0.5 font-display text-meta font-bold text-ink">
-                  <span className="sr-only">Day total </span>{peso(expenseSummary(0, items).spent)}
-                </span>
-                {menuSpacer}
+              <div className="border-b border-line pb-2">
+                <h3 className="text-body font-bold">
+                  {day.toLocaleDateString("en-PH", { weekday: "long" })}
+                </h3>
+                <p className="text-meta text-ink-soft">
+                  {day.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                </p>
               </div>
               <ul className="mt-3 flex flex-col gap-2">
                 {items.map((expense) => {
@@ -125,6 +135,12 @@ export default function ExpenseHistory({
                   );
                 })}
               </ul>
+              <div className="mt-3 flex items-center justify-end gap-5 border-t border-line pt-3 pr-4">
+                <span className="font-display text-body font-bold text-spent">
+                  <span className="sr-only">Day total </span>{peso(expenseSummary(0, items).spent)}
+                </span>
+                {menuSpacer}
+              </div>
             </div>
           ))
         )}
