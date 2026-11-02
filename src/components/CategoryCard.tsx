@@ -45,7 +45,7 @@ export default function CategoryCard({
   return (
     <article
       className={[
-        "relative rounded-slab border border-line bg-card",
+        "relative flex flex-col rounded-slab border border-line bg-card",
         "transition-[transform,border-color] duration-mid ease-paper",
         "hover:-translate-y-[2px] hover:border-line-strong",
         // An open menu has to paint over the cards after this one.
@@ -57,7 +57,7 @@ export default function CategoryCard({
       {/* The category's own ink, filling the card. It carries its own
           radius rather than being clipped by the card, because
           overflow-hidden would cut the focus ring off the menu button. */}
-      <div className="rounded-slab bg-cat px-card-x pb-[18px] pt-5 text-on-color">
+      <div className="flex-1 rounded-slab bg-cat px-card-x pb-[18px] pt-5 text-on-color">
         <div className="flex items-center gap-[11px]">
           <span
             aria-hidden="true"
@@ -116,7 +116,7 @@ export default function CategoryCard({
               stored, so a peso entry is converted to it and the allotment
               keeps its share when the salary changes. With no salary there
               is no percent to derive, so the peso field is off. */}
-          <span className="flex items-center gap-2">
+          <span className="ml-auto flex items-center gap-2">
             of
             <NumberField
               value={Math.round(catAmount * 100) / 100}

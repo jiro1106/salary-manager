@@ -48,7 +48,7 @@ export default function CategoryList({
   onAddCategory,
 }: CategoryListProps) {
   return (
-    <div className="mt-stack grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-start gap-gutter">
+    <div className="mt-stack grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-gutter">
       {categories.length === 0 ? (
         // Nothing to split yet: one full-width invitation rather than a
         // bare dashed tile stranded in a column.
