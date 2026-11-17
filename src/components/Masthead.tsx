@@ -1,4 +1,4 @@
-import { ChevronRight, LayoutTemplate, Settings } from "lucide-react";
+import { Calculator, ChevronRight, LayoutTemplate, Settings } from "lucide-react";
 import IconButton from "./IconButton";
 import logo from "../assets/logo.png";
 
@@ -16,6 +16,8 @@ interface MastheadProps {
   onOpenGallery?: () => void;
   /** Home tabs only; the settings and templates screens have a back link. */
   onOpenSettings?: () => void;
+  /** Home tabs only, beside Settings. Opens and closes the calculator. */
+  onToggleCalculator?: () => void;
 }
 
 export default function Masthead({
@@ -23,6 +25,7 @@ export default function Masthead({
   template,
   onOpenGallery,
   onOpenSettings,
+  onToggleCalculator,
 }: MastheadProps) {
   // Preflight strips a heading's size, weight and margin, so this is the
   // same box either way — the tag carries structure, the classes carry
@@ -100,6 +103,17 @@ export default function Masthead({
           className="absolute right-2.5 top-[calc(var(--stack)+10px)]"
         >
           <Settings size={18} strokeWidth={2} aria-hidden="true" />
+        </IconButton>
+      )}
+
+      {/* One 44px target left of Settings: 10px + 44px. */}
+      {onToggleCalculator && (
+        <IconButton
+          label="Calculator"
+          onClick={onToggleCalculator}
+          className="absolute right-[54px] top-[calc(var(--stack)+10px)]"
+        >
+          <Calculator size={18} strokeWidth={2} aria-hidden="true" />
         </IconButton>
       )}
 

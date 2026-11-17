@@ -13,6 +13,7 @@ import {
   splitOf,
 } from "./lib/templates";
 import Button from "./components/Button";
+import Calculator from "./components/Calculator";
 import Masthead from "./components/Masthead";
 import PaydayHeader from "./components/PaydayHeader";
 import TemplateGallery from "./components/TemplateGallery";
@@ -35,6 +36,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   // "new" opens a blank dialog; an expense opens it on that expense to edit.
   const [expenseDialog, setExpenseDialog] = useState<Expense | "new" | null>(null);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   // Held here, not in ExpenseHistory, so it survives a tab switch. Not
   // stored: a reload starts back on all.
   const [expenseFilter, setExpenseFilter] = useState<string | null>(null);
@@ -299,6 +301,7 @@ export default function App() {
         }
         onOpenGallery={() => setView("templates")}
         onOpenSettings={() => setView("settings")}
+        onToggleCalculator={() => setCalculatorOpen((open) => !open)}
       />
 
       <ViewTabs active={view} onChange={setView} />
@@ -464,6 +467,7 @@ export default function App() {
           onSubmit={(draft) => (expenseDialog === "new" ? addExpense(draft) : updateExpense(expenseDialog, draft))}
         />
       )}
+      {calculatorOpen && <Calculator onClose={() => setCalculatorOpen(false)} />}
       {toastRegion}
     </div>
   );
