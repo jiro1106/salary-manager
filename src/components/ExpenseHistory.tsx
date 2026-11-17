@@ -64,11 +64,8 @@ export default function ExpenseHistory({
     <section aria-labelledby={titleId} className="mt-split">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
         <h2 id={titleId} className="text-title font-bold">
-          Expense history
+          Expense history <span className="font-normal tabular-nums text-ink-soft">({newestFirst.length})</span>
         </h2>
-        <span className="text-meta text-ink-soft">
-          {newestFirst.length} {newestFirst.length === 1 ? "expense" : "expenses"}
-        </span>
         {categories.length > 0 && (
           <div className="ml-auto">
             <CategoryFilter categories={categories} value={filterCategory?.id ?? null} onChange={onFilterChange} />
@@ -104,13 +101,13 @@ export default function ExpenseHistory({
                   return (
                     <li
                       key={expense.id}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-slab bg-card px-4 py-3"
+                      className="flex items-center gap-4 rounded-slab bg-card px-4 py-3 max-[450px]:gap-3"
                     >
                       {/* The category's own mark, the same tile as on its card.
                           A deleted category leaves an empty sunk tile: the name
                           beside it is stored on the expense, the look is not. */}
                       <CategoryMark icon={category?.icon} color={category?.color} />
-                      <div className="min-w-[12ch] flex-[1_1_12rem]">
+                      <div className="min-w-0 flex-1">
                         <p className="break-words text-body font-bold">{expense.title}</p>
                         <div className="flex flex-wrap gap-x-3 text-meta text-ink-soft">
                           <span className="min-w-0 [overflow-wrap:anywhere]">
@@ -120,8 +117,8 @@ export default function ExpenseHistory({
                           <time dateTime={expense.created_at}>{when}</time>
                         </div>
                       </div>
-                      <div className="ml-auto flex items-center gap-5">
-                        <span className="font-display text-body font-bold">
+                      <div className="flex shrink-0 items-center gap-5 max-[450px]:gap-2">
+                        <span className="min-w-[10ch] text-left font-display text-body font-bold tabular-nums">
                           {peso(expense.amount)}
                         </span>
                         <CategoryMenu
@@ -135,8 +132,8 @@ export default function ExpenseHistory({
                   );
                 })}
               </ul>
-              <div className="mt-3 flex items-center justify-end gap-5 border-t border-line pt-3 pr-4">
-                <span className="font-display text-body font-bold text-spent">
+              <div className="mt-3 flex items-center justify-end gap-5 border-t border-line pt-3 pr-4 max-[450px]:gap-2">
+                <span className="min-w-[10ch] text-left font-display text-body font-bold tabular-nums text-spent">
                   <span className="sr-only">Day total </span>{peso(expenseSummary(0, items).spent)}
                 </span>
                 {menuSpacer}
