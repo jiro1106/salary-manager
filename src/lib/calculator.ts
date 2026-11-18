@@ -4,11 +4,13 @@
  * malformed sum. A "−" at the start or straight after an operator is a
  * number's sign (from ±), anywhere else it is subtraction. `done` is set
  * by "=": the next digit starts a new sum, the next operator carries the
- * result on.
+ * result on. `repeat` is the last operator and number "=" used, so "="
+ * again applies it to the result: 2+3 = 5, = 8, = 11.
  */
 export interface CalcState {
   expr: string;
   done: boolean;
+  repeat?: string;
 }
 
 export type CalcKey =
@@ -79,14 +81,21 @@ function lastNumber(expr: string) {
   return { start, signStart: signed ? start - 1 : start };
 }
 
-export function press({ expr, done }: CalcState, key: CalcKey): CalcState {
+/** What "=" works out: the sum, or the result with the last step again. */
+export const sumFor = ({ expr, done, repeat }: CalcState) => (done && repeat ? expr + repeat : expr);
+
+export function press(state: CalcState, key: CalcKey): CalcState {
+  const { expr, done } = state;
   if (key === "C") return EMPTY;
   if (key === "⌫") return done ? EMPTY : { expr: expr.slice(0, -1), done: false };
 
   if (key === "=") {
-    const value = evaluate(expr);
-    if (!usable(value)) return { expr, done };
-    return { expr: plain(value), done: true };
+    const sum = sumFor(state);
+    const value = evaluate(sum);
+    if (!usable(value)) return state;
+    const { start, signStart } = lastNumber(sum);
+    const repeat = done ? state.repeat : signStart > 0 && start < sum.length ? sum.slice(signStart - 1) : undefined;
+    return { expr: plain(value), done: true, repeat };
   }
 
   if (isOp(key)) {
@@ -101,16 +110,16 @@ export function press({ expr, done }: CalcState, key: CalcKey): CalcState {
   // ± and % act on the number on screen, including a result after "=".
   if (key === "±") {
     const flipped = signStart < start ? expr.slice(0, signStart) + typing : expr.slice(0, start) + "−" + typing;
-    return { expr: flipped, done };
+    return { ...state, expr: flipped };
   }
 
   if (key === "%") {
-    if (!typing) return { expr, done };
+    if (!typing) return state;
     // After + or −, a percent is of what came before: 200 + 10% is 220.
     const op = expr[signStart - 1];
     const before = op === "+" || op === "−" ? evaluate(expr.slice(0, signStart - 1)) : null;
     const value = (Number(typing) / 100) * (before ?? 1);
-    return { expr: expr.slice(0, start) + plain(Number(value.toPrecision(12))), done };
+    return { ...state, expr: expr.slice(0, start) + plain(Number(value.toPrecision(12))) };
   }
 
   // A digit or point after "=" starts a new sum.

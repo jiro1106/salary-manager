@@ -31,7 +31,14 @@ describe("evaluate", () => {
 
 describe("press", () => {
   it("builds a sum and works it out", () => {
-    expect(type("120+45.5=")).toEqual({ expr: "165.5", done: true });
+    expect(type("120+45.5=")).toEqual({ expr: "165.5", done: true, repeat: "+45.5" });
+  });
+  it("repeats the last step on = again", () => {
+    expect(type("2+3==").expr).toBe("8");
+    expect(type("2+3===").expr).toBe("11");
+    expect(type("5×2±==").expr).toBe("20");
+    expect(type("7==").expr).toBe("7");
+    expect(type("2+3==×2").expr).toBe("8×2");
   });
   it("carries the result on into the next operator", () => {
     expect(type("2+3=×2").expr).toBe("5×2");

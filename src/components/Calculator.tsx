@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import Modal from "./Modal";
-import { EMPTY, evaluate, press, show, usable } from "../lib/calculator";
+import { EMPTY, evaluate, press, show, sumFor, usable } from "../lib/calculator";
 import type { CalcKey } from "../lib/calculator";
 
 // The iOS order, so the keys are where the hand expects them.
@@ -76,10 +76,15 @@ export default function Calculator({ onClose }: { onClose: () => void }) {
   const [state, setState] = useState(EMPTY);
   // The sum "=" just worked out, kept so the top line can still show it.
   const [worked, setWorked] = useState("");
+  // Why "=" refused to work the sum out, shown until the next key.
+  const [error, setError] = useState("");
 
   const tap = (key: CalcKey) => {
     const next = press(state, key);
-    if (key === "=" && next.done) setWorked(state.expr);
+    const sum = sumFor(state);
+    if (key === "=" && next.done) setWorked(sum);
+    const value = key === "=" ? evaluate(sum) : null;
+    setError(value === null || usable(value) ? "" : Number.isFinite(value) ? "Too big" : "Can't divide by 0");
     setState(next);
   };
 
@@ -104,12 +109,8 @@ export default function Calculator({ onClose }: { onClose: () => void }) {
     return () => opener?.focus?.();
   }, [wide]);
 
-  const value = evaluate(state.expr);
-  const result =
-    value === null ? "0"
-    : usable(value) ? show(value)
-    : Number.isFinite(value) ? "Too big"
-    : "Can't divide by 0";
+  // The answer shows only after "="; until then the big line is the sum being typed.
+  const result = error || (state.done ? show(evaluate(state.expr) ?? 0) : state.expr || "0");
 
   const body = (
     <div onKeyDown={onKeyDown}>
@@ -130,7 +131,7 @@ export default function Calculator({ onClose }: { onClose: () => void }) {
 
       <div className="mt-4 rounded-control bg-sunk px-4 py-3 text-right">
         <p className="min-h-[1.5em] break-all text-meta font-semibold text-ink-soft">
-          {state.done ? `${worked} =` : state.expr}
+          {state.done ? worked : error ? state.expr : ""}
         </p>
         <output aria-live="polite" className="block break-all font-display text-sec font-extrabold text-ink">
           {result}
