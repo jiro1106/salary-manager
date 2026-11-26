@@ -1,9 +1,12 @@
 import { useId, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import type { Payday } from "../types";
 import { peso } from "../lib/format";
 import { expenseSummary } from "../lib/expenses";
 import Button from "./Button";
+import ConfirmDialog from "./ConfirmDialog";
+import IconButton from "./IconButton";
 import { ExpenseDays, groupByDay } from "./ExpenseHistory";
 import Modal from "./Modal";
 import SpendSummary from "./SpendSummary";
@@ -11,6 +14,7 @@ import SpendSummary from "./SpendSummary";
 interface PastPaydaysProps {
   /** Newest first. */
   paydays: Payday[];
+  onDelete: (payday: Payday) => void;
 }
 
 const range = new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric", year: "numeric" });
@@ -21,14 +25,15 @@ export const paydayRange = (p: Payday) => {
 };
 
 /** The two newest expenses, in the same day-grouped rows as Expense history. */
-function Preview({ payday }: { payday: Payday }) {
+function Preview({ payday, action }: { payday: Payday; action: ReactNode }) {
   if (!payday.expenses.length) return <p className="py-2 text-meta text-ink-soft">No expenses.</p>;
   const newest = [...payday.expenses].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, 2);
-  return <ExpenseDays days={groupByDay(newest)} categories={payday.categories} />;
+  return <ExpenseDays days={groupByDay(newest)} categories={payday.categories} totalAction={action} />;
 }
 
-export default function PastPaydays({ paydays }: PastPaydaysProps) {
+export default function PastPaydays({ paydays, onDelete }: PastPaydaysProps) {
   const [open, setOpen] = useState<Payday | null>(null);
+  const [deleting, setDeleting] = useState<Payday | null>(null);
   const titleId = useId();
   const modalTitleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -46,31 +51,48 @@ export default function PastPaydays({ paydays }: PastPaydaysProps) {
           return (
             <li key={p.endedAt} className="rounded-slab border border-line">
               <details className="group">
-                {/* Date and chevron on one line, figures under it at every
-                    width, so a phone never wraps the chevron onto its own row. */}
-                <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <span className="text-body font-bold">{paydayRange(p)}</span>
+                {/* Date over figures on the left; trash and chevron centred
+                    on the right. */}
+                <summary className="flex cursor-pointer list-none items-center gap-2 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-body font-bold">{paydayRange(p)}</span>
+                    {/* Labels all soft and regular; only the figures carry weight and colour. */}
+                    <span className="mt-1 flex flex-wrap gap-x-5 text-meta tabular-nums text-ink-soft">
+                      <span>Salary <b className="font-bold text-ink">{peso(p.salary)}</b></span>
+                      <span>Spent <b className="font-bold text-spent">{peso(spent)}</b></span>
+                      <span>
+                        {remaining < 0 ? "Over budget" : "Available"}{" "}
+                        <b className={`font-bold ${remaining < 0 ? "text-over" : "text-lime-deep"}`}>{peso(Math.abs(remaining))}</b>
+                      </span>
+                    </span>
+                  </span>
+                  <IconButton
+                    label={`Delete payday ${paydayRange(p)}`}
+                    danger
+                    onClick={(e) => {
+                      // Inside <summary>: don't also toggle the row open.
+                      e.preventDefault();
+                      setDeleting(p);
+                    }}
+                  >
+                    <Trash2 size={16} strokeWidth={2} aria-hidden="true" />
+                  </IconButton>
                   <ChevronDown
                     size={18}
                     strokeWidth={2}
                     aria-hidden="true"
-                    className="text-ink-soft transition-transform group-open:rotate-180"
+                    className="shrink-0 text-ink-soft transition-transform group-open:rotate-180"
                   />
-                  <span className="col-span-2 flex flex-wrap gap-x-4 text-meta tabular-nums text-ink-soft">
-                    <span>Salary {peso(p.salary)}</span>
-                    <span className="text-spent">Spent {peso(spent)}</span>
-                    <span className={remaining < 0 ? "text-over" : "text-lime-deep"}>
-                      {remaining < 0 ? "Over budget" : "Available"} {peso(Math.abs(remaining))}
-                    </span>
-                  </span>
                 </summary>
                 <div className="border-t border-line px-4 py-3">
-                  <Preview payday={p} />
-                  <div className="mt-3 flex justify-end">
-                    <Button variant="alt" small onClick={() => setOpen(p)}>
-                      View all {p.expenses.length}
-                    </Button>
-                  </div>
+                  <Preview
+                    payday={p}
+                    action={
+                      <Button variant="alt" small onClick={() => setOpen(p)}>
+                        View all {p.expenses.length}
+                      </Button>
+                    }
+                  />
                 </div>
               </details>
             </li>
@@ -88,10 +110,21 @@ export default function PastPaydays({ paydays }: PastPaydaysProps) {
               Close
             </Button>
           </div>
-          <SpendSummary stacked className="mt-4" salary={open.salary} {...expenseSummary(open.salary, open.expenses)} />
+          <SpendSummary stacked className="mt-8" salary={open.salary} {...expenseSummary(open.salary, open.expenses)} />
           <ExpenseDays days={groupByDay(open.expenses)} categories={open.categories} />
         </Modal>
       )}
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete this payday?"
+        description={deleting ? `${paydayRange(deleting)} and its expenses are erased. This cannot be undone.` : undefined}
+        danger
+        onConfirm={() => {
+          if (deleting) onDelete(deleting);
+          setDeleting(null);
+        }}
+        onCancel={() => setDeleting(null)}
+      />
     </section>
   );
 }

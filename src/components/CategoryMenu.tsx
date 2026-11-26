@@ -63,7 +63,9 @@ export default function CategoryMenu({ name, onEdit, onDelete, tone = "colour" }
     }
   };
 
-  const item = "flex w-full items-center gap-2 rounded-control px-2 py-1.5 text-left text-meta font-semibold hover:bg-wash-ink focus-visible:bg-wash-ink focus-visible:outline-none";
+  const item = "flex w-full items-center gap-2 rounded-control px-2 py-1.5 text-left text-meta font-semibold focus-visible:outline-none";
+  // Delete reads like Edit until pointed at (or reached by keyboard), then turns loss red on a light red wash.
+  const danger = "hover:bg-[color-mix(in_srgb,var(--spent)_18%,transparent)] hover:text-spent focus-visible:bg-[color-mix(in_srgb,var(--spent)_18%,transparent)] focus-visible:text-spent";
 
   return (
     <div ref={rootRef} className="relative">
@@ -93,7 +95,7 @@ export default function CategoryMenu({ name, onEdit, onDelete, tone = "colour" }
             type="button"
             role="menuitem"
             onClick={() => choose(onEdit)}
-            className={`${item} text-ink`}
+            className={`${item} text-ink hover:bg-wash-ink focus-visible:bg-wash-ink`}
           >
             <Pencil size={14} strokeWidth={1.8} aria-hidden="true" />
             Edit
@@ -103,7 +105,7 @@ export default function CategoryMenu({ name, onEdit, onDelete, tone = "colour" }
             type="button"
             role="menuitem"
             onClick={() => choose(onDelete)}
-            className={`${item} text-spent`}
+            className={`${item} text-ink ${danger}`}
           >
             <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
             Delete

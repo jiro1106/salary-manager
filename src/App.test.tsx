@@ -310,6 +310,20 @@ describe("salary edits and paydays", () => {
     expect(saved().pastPaydays).toEqual([]);
   });
 
+  it("deletes a past payday after confirming", async () => {
+    const past = { salary: 500, categories, expenses: [expense("old", "Rent", 300, "2026-09-01T12:00:00Z")], startedAt: "2026-09-01T12:00:00Z", endedAt: "2026-09-15T12:00:00Z" };
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [], pastPaydays: [past] }));
+    render(<App />);
+    openExpenses();
+    const trash = await screen.findByRole("button", { name: /Delete payday/ });
+    fireEvent.click(trash);
+    // The click opens the confirm without expanding the row.
+    expect((trash.closest("details") as HTMLDetailsElement).open).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(saved().pastPaydays).toEqual([]));
+    expect(screen.queryByRole("heading", { name: /Past paydays/ })).toBeNull();
+  });
+
   it("hides the new payday button without expenses", () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
     render(<App />);

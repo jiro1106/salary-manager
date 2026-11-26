@@ -489,7 +489,13 @@ export default function App() {
                 onDelete={deleteExpense}
               />
 
-              <PastPaydays paydays={pastPaydays} />
+              <PastPaydays
+                paydays={pastPaydays}
+                onDelete={(gone) => {
+                  setPastPaydays((past) => past.filter((p) => p !== gone));
+                  notify("Deleted payday", true);
+                }}
+              />
             </>
           )}
         </div>

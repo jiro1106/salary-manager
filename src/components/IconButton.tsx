@@ -1,12 +1,12 @@
 import { forwardRef } from "react";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 interface IconButtonProps {
   label: string;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   /** Sitting on card, or on a category's own colour. */
   tone?: "card" | "colour";
-  /** Destructive controls sit in the loss red, so a delete reads as one before it is pointed at. */
+  /** Destructive: quiet like its neighbours, loss red with a light red wash only on hover. */
   danger?: boolean;
   className?: string;
   /** Set when the button opens a menu: whether that menu is open. */
@@ -38,13 +38,15 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
     tone === "colour"
       ? "text-on-color"
       : danger
-        ? "text-spent"
+        ? "text-ink-soft hover:text-spent"
         : "text-ink-soft hover:text-ink";
 
   const wash =
     tone === "colour"
       ? "group-hover/icon:bg-wash-color"
-      : "group-hover/icon:bg-wash-ink";
+      : danger
+        ? "group-hover/icon:bg-[color-mix(in_srgb,var(--spent)_18%,transparent)]"
+        : "group-hover/icon:bg-wash-ink";
 
   return (
     <button

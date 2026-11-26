@@ -15,9 +15,13 @@ interface SpendSummaryProps {
 export default function SpendSummary({ salary, spent, remaining, name, className = "", stacked = false }: SpendSummaryProps) {
   const over = remaining < 0;
   // Stacked uses the phone layout everywhere; otherwise it only kicks in under 450px.
-  const grid = stacked ? "grid-cols-1 gap-2" : "grid-cols-3 gap-4 max-[450px]:grid-cols-1 max-[450px]:gap-2";
-  const cell = stacked ? "flex items-baseline justify-between" : "max-[450px]:flex max-[450px]:items-baseline max-[450px]:justify-between";
-  const figure = stacked ? "mt-0" : "mt-1 max-[450px]:mt-0";
+  // Stacked: a two-column table, labels then figures right beside them, so a
+  // wide dialog doesn't push them to opposite edges.
+  const grid = stacked
+    ? "w-max grid-cols-[max-content_max-content] items-center gap-x-10 gap-y-2"
+    : "grid-cols-3 gap-4 max-[450px]:grid-cols-1 max-[450px]:gap-2";
+  const cell = stacked ? "contents" : "max-[450px]:flex max-[450px]:items-center max-[450px]:justify-between";
+  const figure = stacked ? "mt-0 text-right" : "mt-1 max-[450px]:mt-0";
   return (
     <div className={`grid ${grid} ${className}`}>
       <div className={cell}>

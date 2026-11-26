@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import type { ReactNode } from "react";
 import { MoreHorizontal } from "lucide-react";
 import type { Category, Expense } from "../types";
 import { peso } from "../lib/format";
@@ -41,10 +42,12 @@ interface ExpenseDaysProps {
   /** Leave both out for a read-only list: no ⋯ menu on the rows. */
   onEdit?: (expense: Expense) => void;
   onDelete?: (expense: Expense) => void;
+  /** Sits left of the last day's total, e.g. a "View all" button. */
+  totalAction?: ReactNode;
 }
 
 /** Expenses grouped under their day, with a day total. Shared by the live history and past paydays. */
-export function ExpenseDays({ days, categories, onEdit, onDelete }: ExpenseDaysProps) {
+export function ExpenseDays({ days, categories, onEdit, onDelete, totalAction }: ExpenseDaysProps) {
   const editable = Boolean(onEdit && onDelete);
   // Holds the width of a row's ⋯ button, so day totals
   // line up under the row amounts.
@@ -58,7 +61,7 @@ export function ExpenseDays({ days, categories, onEdit, onDelete }: ExpenseDaysP
 
   return (
     <>
-      {days.map(({ day, items }) => (
+      {days.map(({ day, items }, i) => (
         <div key={day.toDateString()} className="pt-10 first:pt-4">
           <div className="border-b border-line pb-2">
             <h3 className="text-body font-bold">
@@ -113,6 +116,7 @@ export function ExpenseDays({ days, categories, onEdit, onDelete }: ExpenseDaysP
             })}
           </ul>
           <div className="mt-3 flex items-center justify-end gap-5 border-t border-line pt-3 pr-4 max-[450px]:gap-2">
+            {i === days.length - 1 && totalAction && <div className="mr-auto pr-8 max-[450px]:pr-4">{totalAction}</div>}
             <span className="min-w-[10ch] text-left font-display text-body font-bold tabular-nums text-spent">
               <span className="sr-only">Day total </span>{peso(expenseSummary(0, items).spent)}
             </span>
