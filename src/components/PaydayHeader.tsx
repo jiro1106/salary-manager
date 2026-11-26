@@ -1,30 +1,26 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { CalendarPlus, Check, Pencil, X } from "lucide-react";
 import CutDial from "./CutDial";
 import CategoryMark from "./CategoryMark";
 import IconButton from "./IconButton";
 import type { Category } from "../types";
 import { pct, peso, share } from "../lib/format";
-import { MAX_PESO_DIGITS, arrowStep, sanitizeDecimal } from "../lib/numberInput";
+import { MAX_PESO_DIGITS, arrowStep, commaEdit, formatWithCommas } from "../lib/numberInput";
 
 interface PaydayHeaderProps {
   salary: number;
-  onSalaryChange: (value: number) => void;
+  /** Called on Enter or the check button. Edits the current payday. */
+  onSalarySave: (value: number) => void;
+  /** Shown as a button under the field when set. */
+  onStartNewPayday?: () => void;
   totalPercent: number;
   categories: Category[];
 }
 
-/** Adds thousands separators to the integer part only, leaves decimals untouched. */
-function formatWithCommas(rawValue: string): string {
-  if (rawValue === "") return "";
-  const [intPart, decPart] = rawValue.split(".");
-  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
-}
-
 export default function PaydayHeader({
   salary,
-  onSalaryChange,
+  onSalarySave,
+  onStartNewPayday,
   totalPercent,
   categories,
 }: PaydayHeaderProps) {
@@ -40,48 +36,37 @@ export default function PaydayHeader({
 
   // Keep local state in sync when a stored salary loads. Skip changes
   // originating from typing so in-progress decimals remain intact.
+  // Locked once saved. Nothing saved yet means there is nothing to lock.
+  const [editing, setEditing] = useState(salary === 0);
+
+  // A saved salary (load, confirm, reset) replaces the draft and locks.
   useEffect(() => {
-    const currentNumeric = rawValue === "" ? 0 : Number(rawValue);
-    if (currentNumeric !== salary) {
-      setRawValue(salary ? String(salary) : "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setRawValue(salary ? String(salary) : "");
+    setEditing(salary === 0);
   }, [salary]);
 
+  // Focus follows the pencil, not the first render.
+  const focusOnEdit = useRef(false);
+  useEffect(() => {
+    if (editing && focusOnEdit.current) inputRef.current?.focus();
+    focusOnEdit.current = false;
+  }, [editing]);
+
+  const save = () => {
+    const value = rawValue === "" ? 0 : Number(rawValue);
+    onSalarySave(value);
+    setEditing(value === 0);
+  };
+
+  const cancel = () => {
+    setRawValue(salary ? String(salary) : "");
+    setEditing(salary === 0);
+  };
+
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const prevFormatted = input.value;
-    const cursorPos = input.selectionStart ?? prevFormatted.length;
-
-    // How many non-comma characters sit before the cursor, in the
-    // string as the user just edited it.
-    const nonCommaBeforeCursor = prevFormatted
-      .slice(0, cursorPos)
-      .replace(/,/g, "").length;
-
-    const sanitized = sanitizeDecimal(prevFormatted, MAX_PESO_DIGITS, 2);
-    setRawValue(sanitized);
-    onSalaryChange(sanitized === "" ? 0 : Number(sanitized));
-
-    const formatted = formatWithCommas(sanitized);
-
-    // Re-map the cursor position into the newly formatted string,
-    // skipping over commas.
-    let newPos = formatted.length;
-    if (nonCommaBeforeCursor === 0) {
-      newPos = 0;
-    } else {
-      let count = 0;
-      for (let i = 0; i < formatted.length; i++) {
-        if (formatted[i] !== ",") count++;
-        if (count === nonCommaBeforeCursor) {
-          newPos = i + 1;
-          break;
-        }
-      }
-    }
-
-    cursorRef.current = newPos;
+    const { raw, caret } = commaEdit(e.target.value, e.target.selectionStart ?? e.target.value.length);
+    setRawValue(raw);
+    cursorRef.current = caret;
   };
 
   /**
@@ -101,12 +86,21 @@ export default function PaydayHeader({
    * the restore in the layout effect below has nothing to put back.
    */
   const handleSalaryKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      save();
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cancel();
+      return;
+    }
     const next = arrowStep(e, Number(rawValue), [100, 1000], MAX_PESO_DIGITS);
     if (next === null) return;
     e.preventDefault();
 
     setRawValue(next === 0 ? "" : String(next));
-    onSalaryChange(next);
   };
 
   useLayoutEffect(() => {
@@ -125,7 +119,6 @@ export default function PaydayHeader({
 
   const clearSalary = () => {
     setRawValue("");
-    onSalaryChange(0);
     // Cleared to type, not cleared to look at.
     inputRef.current?.focus();
   };
@@ -148,9 +141,24 @@ export default function PaydayHeader({
     <>
     <section className="flex items-center justify-between gap-split narrow:flex-col narrow:items-stretch">
       <div className="min-w-0">
-        <p className="text-label uppercase tracking-caps text-ink-soft">
-          Salary
-        </p>
+        {/* The new-payday action sits on the label row, not under the field,
+            so it reads as acting on the whole payday rather than as the
+            field's own submit. */}
+        <div className="flex min-h-hit items-center justify-between gap-4">
+          <p className="text-label uppercase tracking-caps text-ink-soft">
+            Salary
+          </p>
+          {onStartNewPayday && !editing && (
+            <button
+              type="button"
+              onClick={onStartNewPayday}
+              className="-mr-2 inline-flex min-h-hit items-center gap-1.5 rounded-control px-2 text-meta font-bold text-ink-soft transition-colors hover:text-ink"
+            >
+              <CalendarPlus size={15} strokeWidth={2.2} aria-hidden="true" />
+              Start new payday
+            </button>
+          )}
+        </div>
         {/* The field is editable, so it reads as one: a recessed ground
             with real padding round the figure and a zest rule along the
             bottom. */}
@@ -160,14 +168,16 @@ export default function PaydayHeader({
             // the inherited line-height, so padding could never make
             // this box a predictable height. items-center works because
             // the ₱ and the figure share size and leading.
-            "mt-2 inline-flex h-hit max-w-full items-center rounded-slab bg-sunk",
+            "mt-1 inline-flex h-hit max-w-full items-center rounded-slab bg-sunk",
             // zest's deep shade, not zest. The rule has to be seen on a
             // recessed grey, and the face itself measures 1.4:1 there —
             // the deep is the same ink one step down, at 4.5:1.
             "border-b-[3px] border-zest-deep px-4",
             "font-display text-hero font-extrabold",
-            "focus-within:outline focus-within:outline-[3px]",
-            "focus-within:outline-blue focus-within:outline-offset-[3px]",
+            // Locked, the pencil carries its own focus ring.
+            editing
+              ? "focus-within:outline focus-within:outline-[3px] focus-within:outline-blue focus-within:outline-offset-[3px]"
+              : "",
             isBlank ? "text-ink-faint" : "text-ink",
           ].join(" ")}
         >
@@ -180,6 +190,7 @@ export default function PaydayHeader({
           >
             ₱
           </span>
+          {editing ? (
           <input
             ref={inputRef}
             type="text"
@@ -206,15 +217,34 @@ export default function PaydayHeader({
               "outline-none focus:outline-none placeholder:text-ink-faint",
             ].join(" ")}
           />
+          ) : (
+            <span className="w-[10ch] max-w-full truncate tabular-nums">{displaySalary || "0"}</span>
+          )}
           {/* Only offered when there is something to clear, so the field
               doesn't carry a dead control on an empty amount. */}
-          {rawValue !== "" && (
+          {editing && rawValue !== "" && (
             <IconButton
               label="Clear salary amount"
               onClick={clearSalary}
               className="ml-3 self-center"
             >
               <X size={16} strokeWidth={2.2} aria-hidden="true" />
+            </IconButton>
+          )}
+          {editing ? (
+            <IconButton label="Save salary" onClick={save} className="ml-1 self-center">
+              <Check size={16} strokeWidth={2.2} aria-hidden="true" />
+            </IconButton>
+          ) : (
+            <IconButton
+              label="Edit salary"
+              onClick={() => {
+                focusOnEdit.current = true;
+                setEditing(true);
+              }}
+              className="ml-3 self-center"
+            >
+              <Pencil size={16} strokeWidth={2.2} aria-hidden="true" />
             </IconButton>
           )}
         </span>

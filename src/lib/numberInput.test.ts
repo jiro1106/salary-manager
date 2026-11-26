@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrowStep, sanitizeDecimal } from "./numberInput";
+import { arrowStep, commaEdit, sanitizeDecimal } from "./numberInput";
 
 describe("sanitizeDecimal", () => {
   it.each([
@@ -37,5 +37,18 @@ describe("arrowStep", () => {
     expect(arrowStep(down, 0.5, [1, 10], 3)).toBe(0);
     expect(arrowStep(up, 999, [1, 10], 3)).toBe(999);
     expect(arrowStep(up, NaN, [100, 1000], 9)).toBe(100);
+  });
+});
+
+describe("commaEdit", () => {
+  it("adds commas and keeps the caret after the typed digit", () => {
+    // "1234" typed with the caret at the end becomes "1,234".
+    expect(commaEdit("1234", 4)).toEqual({ raw: "1234", caret: 5 });
+    // A digit inserted at the front of "1,000" lands before the first comma.
+    expect(commaEdit("91,000", 1)).toEqual({ raw: "91000", caret: 1 });
+  });
+
+  it("refuses a second point", () => {
+    expect(commaEdit("5,000..", 7).raw).toBe("5000.");
   });
 });

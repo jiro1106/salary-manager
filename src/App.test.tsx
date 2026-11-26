@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import App from "./App";
 import type { Category, Expense } from "./types";
 
@@ -105,6 +105,8 @@ describe("expense tracking in App", () => {
     expect(await screen.findByText(/no expenses yet/i)).toBeTruthy();
     expect(screen.getByText("₱0.00")).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Salary" }));
+    expect(screen.queryByRole("textbox", { name: "Take-home pay in pesos" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Edit salary" }));
     expect((screen.getByRole("textbox", { name: "Take-home pay in pesos" }) as HTMLInputElement).value).toBe("500");
   });
 
@@ -247,6 +249,74 @@ describe("tabs", () => {
   });
 });
 
+describe("salary edits and paydays", () => {
+  const editSalary = (value: string) => {
+    fireEvent.click(screen.getByRole("button", { name: "Edit salary" }));
+    const input = screen.getByRole("textbox", { name: "Take-home pay in pesos" });
+    fireEvent.change(input, { target: { value } });
+    fireEvent.keyDown(input, { key: "Enter" });
+  };
+  const saved = () => JSON.parse(localStorage.getItem("salary-manager:config")!);
+
+  it("saves a first salary without asking and locks it", async () => {
+    render(<App />);
+    const input = screen.getByRole("textbox", { name: "Take-home pay in pesos" });
+    fireEvent.change(input, { target: { value: "2000" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save salary" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.getByRole("button", { name: "Edit salary" })).toBeTruthy();
+    await waitFor(() => expect(saved().salary).toBe(2000));
+    expect(saved().startedAt).toBeTruthy();
+  });
+
+  const withExpense = () => localStorage.setItem("salary-manager:config", JSON.stringify({
+    salary: 1000, categories, expenses: [expense("a", "Lunch", 100, "2026-09-30T12:00:00Z")],
+  }));
+
+  it("starts a new payday and archives the expenses", async () => {
+    withExpense();
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Start new payday" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Salary" }), { target: { value: "2000" } });
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Start new payday" }));
+
+    await waitFor(() => {
+      expect(saved().salary).toBe(2000);
+      expect(saved().expenses).toEqual([]);
+      expect(saved().pastPaydays).toHaveLength(1);
+    });
+    const past = saved().pastPaydays[0];
+    expect(past.salary).toBe(1000);
+    expect(past.expenses.map((e: Expense) => e.id)).toEqual(["a"]);
+    expect(past.startedAt).toBe("2026-09-30T12:00:00Z");
+    expect(past.categories).toEqual(categories);
+    // Nothing left to archive.
+    expect(screen.queryByRole("button", { name: "Start new payday" })).toBeNull();
+
+    openExpenses();
+    expect(screen.getByRole("heading", { name: /Past paydays/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "View all 1" }));
+    expect(screen.getByRole("dialog").textContent).toContain("Lunch");
+  });
+
+  it("edits this payday from the pencil and keeps the expenses", async () => {
+    withExpense();
+    render(<App />);
+    await screen.findByRole("button", { name: "Start new payday" });
+    editSalary("2000");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    await waitFor(() => expect(saved().salary).toBe(2000));
+    expect(saved().expenses).toHaveLength(1);
+    expect(saved().pastPaydays).toEqual([]);
+  });
+
+  it("hides the new payday button without expenses", () => {
+    localStorage.setItem("salary-manager:config", JSON.stringify({ salary: 1000, categories, expenses: [] }));
+    render(<App />);
+    expect(screen.queryByRole("button", { name: "Start new payday" })).toBeNull();
+  });
+});
+
 describe("settings", () => {
   it("resets salary, categories and expenses after confirming", async () => {
     localStorage.setItem("salary-manager:config", JSON.stringify({
@@ -265,6 +335,7 @@ describe("settings", () => {
       const saved = JSON.parse(localStorage.getItem("salary-manager:config")!);
       expect(saved.salary).toBe(0);
       expect(saved.expenses).toEqual([]);
+      expect(saved.pastPaydays).toEqual([]);
       expect(saved.categories.map((c: Category) => c.name)).not.toContain("Food");
     });
   });

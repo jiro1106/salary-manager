@@ -46,3 +46,29 @@ export function arrowStep(
   const from = Number.isFinite(base) ? base : 0;
   return Math.min(10 ** maxIntDigits - 1, Math.max(0, Math.round((from + delta) * 100) / 100));
 }
+
+/** Adds thousands separators to the integer part only, leaves decimals untouched. */
+export function formatWithCommas(raw: string): string {
+  if (raw === "") return "";
+  const [intPart, decPart] = raw.split(".");
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+}
+
+/**
+ * One keystroke in a comma-formatted peso field: the clean value, and where
+ * the caret belongs once commas are re-inserted around it.
+ */
+export function commaEdit(typed: string, caret: number): { raw: string; caret: number } {
+  // Non-comma characters before the caret, in the string as just edited.
+  const before = typed.slice(0, caret).replace(/,/g, "").length;
+  const raw = sanitizeDecimal(typed, MAX_PESO_DIGITS, 2);
+  const formatted = formatWithCommas(raw);
+  if (before === 0) return { raw, caret: 0 };
+  let count = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (formatted[i] !== ",") count++;
+    if (count === before) return { raw, caret: i + 1 };
+  }
+  return { raw, caret: formatted.length };
+}

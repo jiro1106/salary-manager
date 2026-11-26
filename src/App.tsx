@@ -1,6 +1,6 @@
 import { useState, useEffect, useId, useRef } from "react";
 import { CircleCheck, Plus, Trash2, Undo2 } from "lucide-react";
-import type { Category, Config, Expense, ExpenseDraft } from "./types";
+import type { Category, Config, Expense, ExpenseDraft, Payday } from "./types";
 import { pct, peso, pesoRound, share, uid } from "./lib/format";
 import { storage } from "./lib/storage";
 import { expenseSummary, makeExpense, spentByCategory } from "./lib/expenses";
@@ -21,6 +21,8 @@ import SettingsScreen from "./components/SettingsScreen";
 import CategoryList from "./components/CategoryList";
 import ExpenseDialog from "./components/ExpenseDialog";
 import ExpenseHistory from "./components/ExpenseHistory";
+import NewPaydayDialog from "./components/NewPaydayDialog";
+import PastPaydays from "./components/PastPaydays";
 import SpendSummary from "./components/SpendSummary";
 import ViewTabs, { Tab, panelId, tabId } from "./components/ViewTabs";
 
@@ -34,6 +36,10 @@ export default function App() {
   const [salary, setSalary] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>(defaultCategories());
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  // When the current payday began. Null until a first salary is saved.
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [pastPaydays, setPastPaydays] = useState<Payday[]>([]);
+  const [newPaydayOpen, setNewPaydayOpen] = useState(false);
   // "new" opens a blank dialog; an expense opens it on that expense to edit.
   const [expenseDialog, setExpenseDialog] = useState<Expense | "new" | null>(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -82,7 +88,12 @@ export default function App() {
     if (cfg) {
       if (cfg.salary != null) setSalary(cfg.salary);
       if (cfg.categories) setCategories(cfg.categories);
-      setExpenses(cfg.expenses ?? []);
+      const loaded = cfg.expenses ?? [];
+      setExpenses(loaded);
+      setPastPaydays(cfg.pastPaydays ?? []);
+      // Data saved before paydays had a start date: its earliest expense, or now.
+      const earliest = loaded.map((e) => e.created_at).sort()[0];
+      setStartedAt(cfg.startedAt ?? earliest ?? (cfg.salary ? new Date().toISOString() : null));
     }
     setTimeout(() => {
       skipSave.current = false;
@@ -95,7 +106,7 @@ export default function App() {
     // mount pass, so nothing would be attached until the first edit.
     const save = () => {
       if (skipSave.current) return;
-      if (!storage.set<Config>(CONFIG_KEY, { salary, categories, expenses })) {
+      if (!storage.set<Config>(CONFIG_KEY, { salary, categories, expenses, startedAt, pastPaydays })) {
         setStorageBlocked(true);
       }
     };
@@ -118,7 +129,7 @@ export default function App() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", flush);
     };
-  }, [salary, categories, expenses]);
+  }, [salary, categories, expenses, startedAt, pastPaydays]);
 
   const { spent, remaining } = expenseSummary(salary, expenses);
   // A filter on a category that has since been deleted falls back to all.
@@ -223,12 +234,32 @@ export default function App() {
     notify(`Deleted "${gone.title}"`, true);
   };
 
+  // The pencil edits this payday. A new payday goes through its own button.
+  const saveSalary = (next: number) => {
+    setSalary(next);
+    if (!startedAt && next) setStartedAt(new Date().toISOString());
+  };
+
+  const startNewPayday = (next: number) => {
+    const now = new Date().toISOString();
+    setPastPaydays((past) => [
+      { salary, categories, expenses, startedAt: startedAt ?? now, endedAt: now },
+      ...past,
+    ]);
+    setExpenses([]);
+    setSalary(next);
+    setStartedAt(now);
+    notify("Started new payday");
+  };
+
   // No undo: it is the one act that leaves nothing to restore from, so
   // the settings screen asks first instead.
   const resetAll = () => {
     setSalary(0);
     setCategories(defaultCategories());
     setExpenses([]);
+    setPastPaydays([]);
+    setStartedAt(null);
     setUndo(null);
     setView("salary");
     notify("All data reset", true);
@@ -342,7 +373,9 @@ export default function App() {
             <div className="mt-stack">
               <PaydayHeader
                 salary={salary}
-                onSalaryChange={setSalary}
+                onSalarySave={saveSalary}
+                // Nothing to archive without expenses; the pencil covers that case.
+                onStartNewPayday={expenses.length > 0 ? () => setNewPaydayOpen(true) : undefined}
                 totalPercent={totalPercent}
                 categories={categories}
               />
@@ -455,6 +488,8 @@ export default function App() {
                 onEdit={setExpenseDialog}
                 onDelete={deleteExpense}
               />
+
+              <PastPaydays paydays={pastPaydays} />
             </>
           )}
         </div>
@@ -465,6 +500,16 @@ export default function App() {
           expense={expenseDialog === "new" ? undefined : expenseDialog}
           onClose={() => setExpenseDialog(null)}
           onSubmit={(draft) => (expenseDialog === "new" ? addExpense(draft) : updateExpense(expenseDialog, draft))}
+        />
+      )}
+      {newPaydayOpen && (
+        <NewPaydayDialog
+          salary={salary}
+          onConfirm={(next) => {
+            startNewPayday(next);
+            setNewPaydayOpen(false);
+          }}
+          onCancel={() => setNewPaydayOpen(false)}
         />
       )}
       {calculatorOpen && <Calculator onClose={() => setCalculatorOpen(false)} />}

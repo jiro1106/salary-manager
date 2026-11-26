@@ -74,8 +74,8 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
           <div className="min-w-0">
             <h2 className={NAME}>Reset all data</h2>
             <p className={NOTE}>
-              Clears your salary, every category and every expense, and starts
-              over from the default split.
+              Clears your salary, every category, every expense and past
+              paydays, and starts over from the default split.
             </p>
           </div>
           <Button small variant="danger" onClick={() => setConfirming(true)}>
@@ -90,7 +90,7 @@ export default function SettingsScreen({ onBack, onReset }: SettingsScreenProps)
       <ConfirmDialog
         open={confirming}
         title="Reset all data?"
-        description="Your salary, categories and expenses are erased. This cannot be undone."
+        description="Your salary, categories, expenses and past paydays are erased. This cannot be undone."
         confirmLabel="Reset everything"
         danger
         onConfirm={() => {

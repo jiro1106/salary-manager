@@ -10,6 +10,8 @@ interface ModalProps {
   /** What takes focus on open. */
   initialFocus: RefObject<HTMLElement>;
   onClose: () => void;
+  /** Page width, for a dialog that shows a list rather than a form. Still shrinks to the screen. */
+  wide?: boolean;
   children: ReactNode;
 }
 
@@ -31,6 +33,7 @@ export default function Modal({
   initialFocus,
   onClose,
   children,
+  wide = false,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   // Read through a ref so an inline onClose does not re-run the effect,
@@ -85,7 +88,7 @@ export default function Modal({
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[calc(100dvh-2rem)] w-full max-w-dialog overflow-y-auto rounded-slab border border-line bg-card px-stack py-6"
+        className={`max-h-[calc(100dvh-2rem)] w-full ${wide ? "max-w-content" : "max-w-dialog"} overflow-y-auto rounded-slab border border-line bg-card px-stack py-6`}
       >
         {children}
       </div>

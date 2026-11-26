@@ -34,8 +34,19 @@ export interface ExpenseErrors {
   categoryId?: string;
 }
 
+/** A closed payday, kept read-only with the categories as they were when it closed. */
+export interface Payday {
+  salary: number;
+  categories: Category[];
+  expenses: Expense[];
+  startedAt: string;
+  endedAt: string;
+}
+
 export interface Config {
   salary: number;
   categories: Category[];
   expenses?: Expense[];
+  startedAt?: string | null;
+  pastPaydays?: Payday[];
 }
