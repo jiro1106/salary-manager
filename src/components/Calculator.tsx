@@ -1,15 +1,15 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Delete, X } from "lucide-react";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import Modal from "./Modal";
 import { EMPTY, evaluate, press, show, sumFor, usable } from "../lib/calculator";
 import type { CalcKey } from "../lib/calculator";
 
-// The iOS order, so the keys are where the hand expects them.
-const KEYS: CalcKey[] = ["C", "±", "%", "÷", "7", "8", "9", "×", "4", "5", "6", "−", "1", "2", "3", "+", "0", ".", "="];
+// The iOS order, with delete beside AC and ± moved down beside 0.
+const KEYS: CalcKey[] = ["C", "⌫", "%", "÷", "7", "8", "9", "×", "4", "5", "6", "−", "1", "2", "3", "+", "±", "0", ".", "="];
 const LABEL: Partial<Record<CalcKey, string>> = { C: "AC", "±": "+/−" };
-const SPOKEN: Partial<Record<CalcKey, string>> = { C: "All clear", "±": "Change sign", "%": "Percent" };
+const SPOKEN: Partial<Record<CalcKey, string>> = { C: "All clear", "±": "Change sign", "%": "Percent", "⌫": "Delete last digit" };
 
 /** Physical keys, read only while focus is inside the calculator. */
 const FROM_KEYBOARD: Record<string, CalcKey> = {
@@ -143,23 +143,22 @@ export default function Calculator({ onClose }: { onClose: () => void }) {
       <div className="mt-5 grid grid-cols-4 gap-2.5">
         {KEYS.map((key) => {
           const operator = "+−×÷=".includes(key);
-          const fn = key === "C" || key === "±" || key === "%";
+          const fn = key === "±" || key === "%" || key === "⌫";
           return (
             <Button
               key={key}
-              variant={operator ? "primary" : "alt"}
+              // AC erases the sum, so it wears the red every erasing button uses.
+              variant={operator ? "primary" : key === "C" ? "danger" : "alt"}
               aria-label={SPOKEN[key]}
               onClick={() => tap(key)}
               className={[
-                // `!` because this overrides Button's fixed height.
-                "w-full !h-auto px-0",
-                // The 0 spans two columns, its digit over the first one,
-                // and takes its height from the square keys.
-                key === "0" ? "col-span-2 !justify-start !pl-[calc(25%-0.4em)]" : "aspect-square",
-                operator ? "text-amt" : fn ? "!bg-sunk-deep text-ui" : "text-title",
+                // `!` because these override Button's fixed height and padding.
+                "w-full !h-auto !px-0",
+                "aspect-square",
+                operator ? "text-amt" : fn ? "!bg-sunk-deep text-ui" : key === "C" ? "text-ui" : "text-title",
               ].join(" ")}
             >
-              {LABEL[key] ?? key}
+              {key === "⌫" ? <Delete size={22} strokeWidth={2} aria-hidden="true" /> : (LABEL[key] ?? key)}
             </Button>
           );
         })}
